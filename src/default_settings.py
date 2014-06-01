@@ -25,6 +25,7 @@ import os
 #===============================================================================
 # Configuration Settings
 #===============================================================================
+HOSTNAME                = "localhost"
 PORT                    = 8010
 HOME_DIR                = "/Users/dandicara/Documents/flask_api"
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % 

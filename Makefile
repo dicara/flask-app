@@ -67,8 +67,8 @@ python_venv_build:
 install_external_packages:
 	@echo Now installing individual external packages ...
 	$(MAKE) pip_install PIP_PACKAGE=virtualenv==1.10.1
-	$(MAKE) pip_install PIP_PACKAGE=numpy==1.8.0
-	$(MAKE) pip_install PIP_PACKAGE=scipy==0.13.0
+	#$(MAKE) pip_install PIP_PACKAGE=numpy==1.8.0
+	#$(MAKE) pip_install PIP_PACKAGE=scipy==0.13.0
 	$(MAKE) pip_install PIP_PACKAGE=pymongo==2.7
 	$(MAKE) pip_install PIP_PACKAGE=pyyaml==3.10
 	$(MAKE) pip_install PIP_PACKAGE=simplejson==3.3.1

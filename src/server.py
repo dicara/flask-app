@@ -19,7 +19,7 @@ limitations under the License.
 @author: Dan DiCara
 @date:   Jun 1, 2014
 '''
-
+                                                                                                                                           
 #===============================================================================
 # Imports
 #===============================================================================
@@ -89,13 +89,12 @@ def main(argv=None): # IGNORE:C0111
     program_version_message = '%%(prog)s %s (%s)' % (program_version, 
                                                      program_build_date)
     
-    program_shortdesc = "Start, stop, restart and check status of rest API." \
-                      "Settings for this tool are contained in the " \
-                      "default_settings.py included in the deployed " \
-                      "source code. However, these settings can be " \
-                      "overridden by setting a FLASKR_SETTINGS " \
-                      "environment variable that points to a custom " \
-                      "settings file."
+    program_shortdesc = ''' 
+  Start, stop, restart and check status of rest API. Settings for this tool 
+  are contained in the default_settings.py included in the deployed source 
+  code. However, these settings can be overridden by setting a FLASKR_SETTINGS 
+  environment variable that points to a custom settings file.
+  '''
 
     program_license = '''%s
 

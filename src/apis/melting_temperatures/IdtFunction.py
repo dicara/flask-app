@@ -40,13 +40,13 @@ class IdtFunction(AbstractFunction):
    
     @staticmethod
     def summary():
-        return "Retrieve oligonucleotide sequence melting temperatures via "\
-               "IDT (Integrated DNA Technologies) SOAP service for " \
-               "primer analysis."
+        return "Retrieve melting temperature(s) via IDT."
     
     @staticmethod
     def notes():
-        return ""
+        return "Retrieve oligonucleotide sequence melting temperature(s) via "\
+               "IDT (Integrated DNA Technologies) SOAP service for " \
+               "primer analysis."
     
     @classmethod
     def parameters(cls):

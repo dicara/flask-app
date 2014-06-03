@@ -25,7 +25,8 @@ from src.apis.parameters.LowerCaseStringParameter import LowerCaseStringParamete
 from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 
-from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE
+from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
+    SEQUENCE_NAME
 
 #=============================================================================
 # Class
@@ -41,9 +42,17 @@ class ParameterFactory(object):
                                          allow_multiple=False)
 
     @classmethod
-    def sequence(cls, required=False, allow_multiple=True,
-                 param_type=PARAMETER_TYPES.query): # @UndefinedVariable
-        ''' Create a parameter instance for specifying oligonucleotide sequence(s). '''
-        return UpperCaseStringParameter(SEQUENCE, "Comma separated oligonucleotide sequence(s).",
+    def sequences(cls, required=False, allow_multiple=True,
+                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        ''' Create a parameter instance for specifying sequence(s). '''
+        return UpperCaseStringParameter(SEQUENCE, "Comma separated sequence(s). ",
+                               param_type=param_type, required=required,
+                               allow_multiple=allow_multiple)
+
+    @classmethod
+    def sequence_names(cls, required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        ''' Create a parameter instance for specifying sequence name(s). '''
+        return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)

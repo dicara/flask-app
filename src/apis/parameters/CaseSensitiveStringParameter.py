@@ -40,15 +40,18 @@ class CaseSensitiveStringParameter(AbstractStringParameter):
     # Constructor
     #===========================================================================    
     ''' '''
-    def __init__(self, name, description, enum, alias=None, required=False, 
+    def __init__(self, name, description, enum=None, alias=None, required=False, 
                  allow_multiple=True, default=None, 
                  param_type=PARAMETER_TYPES.query):         # @UndefinedVariable
         
-        # Super constructor calls update_case, so this must be done prior to
-        # calling it
-        if len(enum) > len(set([x.lower() for x in enum])):
-            raise Exception("Enum cannot contain duplicate entries: %s" % enum)
-        self._mapping = {v.lower(): v for v in enum}
+        self._mapping = None
+        
+        # Super constructor calls update_case, so the map must be populated
+        # prior to calling super
+        if enum:
+            if len(enum) > len(set([x.lower() for x in enum])):
+                raise Exception("Enum cannot contain duplicate entries: %s" % enum)
+            self._mapping = {v.lower(): v for v in enum}
 
         super(CaseSensitiveStringParameter, self).__init__(name, alias, 
                                                            description, 
@@ -62,9 +65,14 @@ class CaseSensitiveStringParameter(AbstractStringParameter):
     # Overriden Methods
     #===========================================================================    
     def update_case(self, s):
-        if s.lower() not in self._mapping:
-            raise Exception("Unrecognized input argument: %s" % s)
-        return self._mapping[s.lower()]
+        ''' 
+        If a fixed set of case sensitive strings was provided, then abide by it.
+        '''
+        if self._mapping:
+            if s.lower() not in self._mapping:
+                raise Exception("Unrecognized input argument: %s" % s)
+            return self._mapping[s.lower()]
+        return s
     
 #===============================================================================
 # Run Main

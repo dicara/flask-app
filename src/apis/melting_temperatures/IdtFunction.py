@@ -44,26 +44,38 @@ class IdtFunction(AbstractFunction):
     
     @staticmethod
     def notes():
-        return "Retrieve oligonucleotide sequence melting temperature(s) via "\
-               "IDT (Integrated DNA Technologies) SOAP service for " \
-               "primer analysis."
+        return "Retrieve sequence melting temperature(s) via IDT (Integrated " \
+               "DNA Technologies) SOAP service for sequence analysis. " \
+               "Please note, every provided sequence must have an " \
+               "accompanying name. Names are assigned to sequences in the " \
+               "order in which they are provided, so order matters."
     
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
-                      ParameterFactory.sequence(required=True),
+                      ParameterFactory.sequence_names(required=True),
+                      ParameterFactory.sequences(required=True),
                      ]
         return parameters
     
     @classmethod
     def get_records(cls, params_dict):
-        sequences = params_dict[ParameterFactory.sequence(required=True)]
+        sequences      = params_dict[ParameterFactory.sequences(required=True)]
+        sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
+        
+        # Every sequence must have an accompanying name
+        if len(sequences) != len(sequence_names):
+            return (None, None, None)
+        
         data = list()
-        for sequence in sequences:
+        for i, sequence in enumerate(sequences):
             melting_temp = cls._IDT_CLIENT.get_melting_temp(sequence)
-            data.append({"sequence": sequence, "melting_temp": melting_temp})
-        return (data, None, None)
+            data.append({"Name": sequence_names[i], 
+                         "Sequence": sequence,
+                         "Tm": melting_temp})
+        columns = ["Name", "Sequence", "Tm"]
+        return (data, columns, None)
 #         
 #===============================================================================
 # Run Main

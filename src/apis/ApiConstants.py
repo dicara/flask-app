@@ -92,6 +92,7 @@ PAGE          = "page"
 FORMAT        = "format"
 MISSING_VALUE = ""
 SEQUENCE      = "sequence"
+SEQUENCE_NAME = "sequence_name"
 
 FORMATS_TUPLE = namedtuple('Formats',
                            [

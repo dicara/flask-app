@@ -73,7 +73,7 @@ class IdtFunction(AbstractFunction):
             melting_temp = cls._IDT_CLIENT.get_melting_temp(sequence)
             data.append({"Name": sequence_names[i], 
                          "Sequence": sequence,
-                         "Tm": melting_temp})
+                         "Tm": melting_temp.tm})
         columns = ["Name", "Sequence", "Tm"]
         return (data, columns, None)
 #         

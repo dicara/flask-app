@@ -26,7 +26,7 @@ from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParamete
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
-    SEQUENCE_NAME, PROBE
+    SEQUENCE_NAME, PROBE, EQUALITY
 
 #=============================================================================
 # Class

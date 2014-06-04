@@ -23,6 +23,7 @@ limitations under the License.
 from collections import defaultdict
 
 from src.apis.melting_temperatures.MeltingTemperaturesApi import MeltingTemperaturesApiV1
+from src.apis.probe_design.ProbeDesignApi import ProbeDesignApiV1
 from src.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
 #=============================================================================
@@ -36,6 +37,7 @@ API_DOCS_BASE_ROUTE  = "/%s" % API_DOCS
 #=============================================================================
 _APIS = [
          MeltingTemperaturesApiV1(),
+         ProbeDesignApiV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

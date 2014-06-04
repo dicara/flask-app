@@ -26,7 +26,7 @@ from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParamete
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
-    SEQUENCE_NAME
+    SEQUENCE_NAME, PROBE
 
 #=============================================================================
 # Class
@@ -56,3 +56,26 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
+
+    @classmethod
+    def probes(cls, required=False, allow_multiple=True,
+                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        ''' Create a parameter instance for specifying probe(s). '''
+        return UpperCaseStringParameter(PROBE, "Comma separated probe(s). ",
+                               param_type=param_type, required=required,
+                               allow_multiple=allow_multiple)
+        
+    @classmethod
+    def boolean(cls, name, description, default_value=True):
+        ''' Create a parameter instance for setting a flag to True or False.'''
+        return BooleanParameter(name, description, default=default_value)
+    
+    @classmethod
+    def integer(cls, name, description, required=False, default=None, 
+                minimum=None, maximum=None ):
+        ''' Create a parameter instance for specifying an integer. '''
+        return IntegerParameter(name, description, required=required,
+                                allow_multiple=False, default=default, 
+                                minimum=minimum, maximum=maximum, 
+                                equality=EQUALITY.less_than_or_equal_to) # @UndefinedVariable
+

@@ -93,7 +93,12 @@ FORMAT        = "format"
 MISSING_VALUE = ""
 SEQUENCE      = "sequence"
 SEQUENCE_NAME = "sequence_name"
+PROBE         = "probe"
 
+
+#=============================================================================
+# Miscellaneous namedtuples 
+#=============================================================================
 FORMATS_TUPLE = namedtuple('Formats',
                            [
                             'json',
@@ -111,4 +116,3 @@ EQUALITY_TUPLE = namedtuple('Equality',
                              'less_than_or_equal_to',
                             ])
 EQUALITY = EQUALITY_TUPLE(*EQUALITY_TUPLE._fields)
-

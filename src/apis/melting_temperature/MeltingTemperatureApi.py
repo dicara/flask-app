@@ -34,11 +34,11 @@ class MeltingTemperatureApiV1(AbstractApiV1):
 
     @staticmethod
     def name():
-        return "MeltingTemperatures"
+        return "MeltingTemperature"
    
     @staticmethod
     def description():
-        return "Functions for computing sequence melting temperatures."
+        return "Functions for computing sequence melting temperature."
     
     @staticmethod
     def preferred():

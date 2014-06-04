@@ -21,12 +21,12 @@ limitations under the License.
 # Imports
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
-from src.apis.melting_temperatures.IdtFunction import IdtFunction
+from src.apis.melting_temperature.IdtFunction import IdtFunction
 
 #=============================================================================
 # Class
 #=============================================================================
-class MeltingTemperaturesApiV1(AbstractApiV1):
+class MeltingTemperatureApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   IdtFunction(),
@@ -52,5 +52,5 @@ class MeltingTemperaturesApiV1(AbstractApiV1):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    melting_temps_api = MeltingTemperaturesApiV1()
-    print melting_temps_api
+    api = MeltingTemperatureApiV1()
+    print api

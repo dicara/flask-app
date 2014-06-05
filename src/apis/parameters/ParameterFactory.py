@@ -45,7 +45,7 @@ class ParameterFactory(object):
     def sequences(cls, required=False, allow_multiple=True,
                   param_type=PARAMETER_TYPES.query): # @UndefinedVariable
         ''' Create a parameter instance for specifying sequence(s). '''
-        return UpperCaseStringParameter(SEQUENCE, "Comma separated sequence(s). ",
+        return CaseSensitiveStringParameter(SEQUENCE, "Comma separated sequence(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
 

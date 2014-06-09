@@ -102,6 +102,8 @@ def function(version, name, path):
         for k in request.args.keys():
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
+        for k,v in request.files.iteritems():
+            query_params[k.lower()].extend(v)
         
         data, format, page_info = api_function.getData(query_params, dynamic_fields)
         print "function took %s minutes" % ((time.time()-t)/60.0)

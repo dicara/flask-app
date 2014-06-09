@@ -50,7 +50,6 @@ class ValidationFunction(AbstractFunction):
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
-                      ParameterFactory.file("targets", "Targets FASTA file."),
                       ParameterFactory.probes(required=True),
                       ParameterFactory.boolean("absorb", "Check for absorbed probes."),
                       ParameterFactory.integer("num", "Minimum number of probes for a target.",
@@ -60,7 +59,6 @@ class ValidationFunction(AbstractFunction):
     
     @classmethod
     def get_records(cls, params_dict):
-        print "file: %s" % params_dict[ParameterFactory.file("targets", "Targets FASTA file.")][0]
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]
 #         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
 #         

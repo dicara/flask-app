@@ -24,6 +24,7 @@ from src.apis.parameters.UnmodifiedStringParameter import UnmodifiedStringParame
 from src.apis.parameters.LowerCaseStringParameter import LowerCaseStringParameter
 from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
+from src.apis.parameters.FileParameter import FileParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY
@@ -78,4 +79,8 @@ class ParameterFactory(object):
                                 allow_multiple=False, default=default, 
                                 minimum=minimum, maximum=maximum, 
                                 equality=EQUALITY.less_than_or_equal_to) # @UndefinedVariable
-
+        
+    @classmethod
+    def file(cls, name, description):
+        ''' Create a parameter instance for uploading a file.'''
+        return FileParameter(name, description)    

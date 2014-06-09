@@ -22,6 +22,7 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
 from src.apis.probe_design.Validation import ValidationFunction
+from src.apis.probe_design.UploadTargets import UploadTargets
 
 #=============================================================================
 # Class
@@ -30,6 +31,7 @@ class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   ValidationFunction(),
+                  UploadTargets(),
                  ]
 
     @staticmethod
@@ -43,6 +45,10 @@ class ProbeDesignApiV1(AbstractApiV1):
     @staticmethod
     def preferred():
         return True
+    
+    @staticmethod
+    def consumes():
+        return ["multipart/form-data"]
     
     @property
     def functions(self):

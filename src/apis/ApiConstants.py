@@ -62,6 +62,7 @@ SWAGGER_TYPES_TUPLE = namedtuple('SwaggerTypes',
                                   'string',
                                   'boolean',
                                   'path',
+                                  'File',
                                  ])
 SWAGGER_TYPES = SWAGGER_TYPES_TUPLE(*SWAGGER_TYPES_TUPLE._fields)
 
@@ -107,6 +108,16 @@ FORMATS_TUPLE = namedtuple('Formats',
                            ])
 
 FORMATS = FORMATS_TUPLE(*FORMATS_TUPLE._fields)
+
+METHODS_TUPLE = namedtuple('Methods',
+                           [
+                            'POST',
+                            'GET',
+                            'PUT',
+                            'DELETE',
+                           ])
+
+METHODS = METHODS_TUPLE(*METHODS_TUPLE._fields)
 
 EQUALITY_TUPLE = namedtuple('Equality',
                             [

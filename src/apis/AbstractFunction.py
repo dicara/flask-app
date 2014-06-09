@@ -30,7 +30,7 @@ from flask import jsonify
 
 
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.ApiConstants import FORMATS, MISSING_VALUE
+from src.apis.ApiConstants import FORMATS, MISSING_VALUE, METHODS
 
 #=============================================================================
 # Class
@@ -73,6 +73,10 @@ class AbstractFunction(object):
         https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#526-models-object
         '''
         return {}
+    
+    @classmethod
+    def method(cls):
+        return METHODS.GET                                  # @UndefinedVariable
     
     #===========================================================================
     # Abstract Static Methods
@@ -217,14 +221,14 @@ class AbstractFunction(object):
     @classmethod
     def path(cls):
         '''
-        Example: CopyNumber/Gistic/FocalAmp/{cohort}/{gene}
+        Example: /MeltingTemperatures/IDT/{name}/{sequence}
         
-        The returned path is a combination of the function name (CopyNumber), 
-        static path fields (Gistic and FocalAmp which would be provided by the 
-        static_path_fields function), and dynamic path fields (cohort and gene). 
-        Dynamic path fields are defined by parameters that have param_type == 
-        PARAMETER_TYPES.path. They must be included in the parameters list in
-        the order in which you want them included in the URL. 
+        The returned path is a combination of the function name 
+        (MeltingTemperatures), static path fields (IDT which would be provided 
+        by the static_path_fields function), and dynamic path fields (name and 
+        sequence). Dynamic path fields are defined by parameters that have 
+        param_type == PARAMETER_TYPES.path. They must be included in the 
+        parameters list in the order in which you want them included in the URL. 
         '''
         path = cls.static_path()
         
@@ -357,7 +361,7 @@ class AbstractFunction(object):
         function["operations"] = list()
         
         operation               = dict()
-        operation["method"]     = "GET"
+        operation["method"]     = cls.method()
         operation["summary"]    = cls.summary()
         operation["notes"]      = cls.notes()
         operation["type"]       = cls.type()

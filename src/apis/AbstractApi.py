@@ -85,6 +85,18 @@ class AbstractApiV1(object):
         '''
         return "v1"
     
+    @staticmethod
+    def produces():
+        return [
+                "application/json",
+                "text/tab-separated-values",
+                "text/plain"
+               ]
+        
+    @staticmethod
+    def consumes():
+        return None
+        
     def url(self):
         ''' 
         Base URL to this API. Functions themselves will extend this URL with 
@@ -167,10 +179,9 @@ class AbstractApiV1(object):
         swagger_api_declaration["swaggerVersion"] = SWAGGER_VERSION
         swagger_api_declaration["basePath"]       = basePath
         swagger_api_declaration["resourcePath"]   = resourcePath
-        swagger_api_declaration["produces"]       = ["application/json",
-                                                     "text/tab-separated-values",
-                                                     "text/plain",
-                                                    ]
+        swagger_api_declaration["produces"]       = self.produces()
+        if self.consumes():
+            swagger_api_declaration["consumes"]   = self.consumes()
         swagger_api_declaration["apis"]           = list()
         
         models = dict()

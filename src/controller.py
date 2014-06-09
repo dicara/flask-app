@@ -82,10 +82,12 @@ def api(version, name):
         return jsonify(swagger_api_declaration)
     abort(404)
 
-@app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE)
+@app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST'])
 @crossdomain(origin=ORIGIN)
 def function(version, name, path):
     t = time.time()
+    print "method: %s" % request.method
+    print "files: %s" % request.files
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path)
     if api_function:

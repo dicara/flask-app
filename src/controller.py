@@ -108,6 +108,8 @@ def function(version, name, path):
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
         for k,v in request.files.iteritems():
+            print "key: %s" % k
+            print "value: %s" % v
             query_params[k.lower()].extend(v)
         
         data, format, page_info = api_function.handle_request(query_params, dynamic_fields)

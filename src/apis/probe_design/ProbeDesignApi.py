@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
 from src.apis.probe_design.Validation import ValidationFunction
-from src.apis.probe_design.UploadTargets import UploadTargets
+from src.apis.probe_design.TargetsPost import TargetsPost
 
 #=============================================================================
 # Class
@@ -31,7 +31,7 @@ class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   ValidationFunction(),
-                  UploadTargets(),
+                  TargetsPost(),
                  ]
 
     @staticmethod

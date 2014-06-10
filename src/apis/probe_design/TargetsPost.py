@@ -32,14 +32,14 @@ from src import UPLOAD_FOLDER
 #=============================================================================
 # Class
 #=============================================================================
-class UploadTargets(AbstractPostFunction):
+class TargetsPost(AbstractPostFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "UploadTargets"
+        return "Targets"
    
     @staticmethod
     def summary():
@@ -90,5 +90,5 @@ class UploadTargets(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = UploadTargets()
+    function = TargetsPost()
     print function

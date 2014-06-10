@@ -21,16 +21,14 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
-import math    
 
 from abc import ABCMeta
 from pprint import pformat
 from collections import Counter
-from flask import jsonify
 
 
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.ApiConstants import FORMATS, MISSING_VALUE, METHODS
+from src.apis.ApiConstants import FORMATS
 
 #=============================================================================
 # Class
@@ -106,14 +104,20 @@ class AbstractFunction(object):
         '''
         raise NotImplementedError("AbstractFunction subclass must " \
                                   "implement process_request method.")
+        
+    @classmethod
+    def handle_request(cls, query_params, path_fields):
+        '''
+        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/<user>/IDT?name=foo&sequence=bar
+        
+        In the above example, query_params would be {"name": "foo", 
+        "sequence": "bar"} and path_fields would be [<user>]. After collecting 
+        input parameters, call process_request(). Then return the results in the 
+        requested format.
+        '''
+        raise NotImplementedError("AbstractFunction subclass must " \
+                                  "implement handle_request method.")
 
-    #===========================================================================
-    # Overridable Static Methods
-    #===========================================================================    
-    @staticmethod
-    def method():
-        return METHODS.GET                                  # @UndefinedVariable
-    
     #===========================================================================
     # Abstract Static Methods
     #===========================================================================    
@@ -150,81 +154,14 @@ class AbstractFunction(object):
         raise NotImplementedError("AbstractFunction subclass must implement " \
                                   "notes method.")
     
+    @staticmethod
+    def method():
+        raise NotImplementedError("AbstractFunction subclass must implement " \
+                                  "method method.")
+    
     #===========================================================================
     # Helper Methods
     #===========================================================================    
-    @classmethod
-    def handle_request(cls, query_params, path_fields):
-        '''
-        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/<user>/IDT?name=foo&sequence=bar
-        
-        In the above example, query_params would be {"name": "foo", 
-        "sequence": "bar"} and path_fields would be [<user>]. After collecting 
-        input parameters, call process_request(). Then return the results in the 
-        requested format.
-        '''
-        (params_dict, _format) = cls._parse_query_params(query_params)
-        cls._handle_path_fields(path_fields, params_dict)
-        
-        (items, column_names, page_info) = cls.process_request(params_dict)
-
-        dict_items = False        
-        if len(items) > 0:
-            if isinstance(items[0], dict):
-                dict_items = True
-        
-        if _format == FORMATS.json:                         # @UndefinedVariable
-            # jsonify allows NaNs which are not valid json, so replace with None
-            jsonified_data = jsonify({cls.name(): cls.remove_nans_from_list(items)})
-            return jsonified_data, _format, page_info
-        elif _format == FORMATS.tsv:                        # @UndefinedVariable
-            if dict_items:
-                return cls._generate_delimited_output(items, "\t", column_names), _format, page_info
-            else:
-                tsv = cls.name()
-                for item in items:
-                    tsv += "\n" + item
-                return tsv, _format, page_info
-        elif _format == FORMATS.csv:                        # @UndefinedVariable
-            if dict_items:
-                return cls._generate_delimited_output(items, ",", column_names), _format, page_info
-            else:
-                csv = cls.name()
-                for item in items:
-                    csv += "\n" + item
-                return csv, _format, page_info
-        else:
-            raise Exception("Unrecognized output format: %s." % _format)
-        
-    @classmethod
-    def remove_nans_from_list(cls, l):
-        ''' Create new list replacing NaN with None. '''
-        new_list = list()
-        for item in l:
-            if isinstance(item, list):
-                new_list.append(cls.handle_list(item))
-            elif isinstance(item, dict):
-                for k,v in item.iteritems():
-                    cls.remove_nans_from_dict(item, k, v)
-                new_list.append(item)
-            elif isinstance(item, float) and math.isnan(item):
-                new_list.append(None)
-            else:
-                new_list.append(item)
-        return new_list
-    
-    @classmethod
-    def remove_nans_from_dict(cls, in_dict, in_key, in_value):
-        ''' Update in-place replacing NaN with None.'''
-        if isinstance(in_value, list):
-            in_dict[in_key] = cls.remove_nans_from_list(in_value)
-        elif isinstance(in_value, dict):
-            for key, value in in_value.iteritems():
-                cls.a(in_value, key, value)
-        elif isinstance(in_value, float) and math.isnan(in_value):
-            in_dict[in_key] = None
-        
-        
     @classmethod
     def path(cls):
         '''
@@ -292,7 +229,7 @@ class AbstractFunction(object):
         '''
         params_dict = dict()
         
-        _format = FORMATS.json                               # @UndefinedVariable
+        _format = FORMATS.json                              # @UndefinedVariable
         
         parameters = cls.parameters()
         
@@ -328,33 +265,6 @@ class AbstractFunction(object):
             # path parameter, hence the split
             params_dict[path_parameter] = path_parameter.parse_args(path_fields[i].split(","))
             
-    @classmethod
-    def _generate_delimited_output(cls, records, delimiter, column_names=None):
-        ''' This method converts records into TSV or CSV output formats. '''
-        if column_names is None:
-            column_names = cls._get_unique_attributes_sorted(records)
-        delimited_output = delimiter.join(column_names)
-        for record in records:
-            fields = list()
-            for column_name in column_names:
-                if column_name in record:
-                    fields.append(str(record[column_name]))
-                else:
-                    fields.append(MISSING_VALUE)
-            delimited_output += "\n" + delimiter.join(fields)
-        return delimited_output
-    
-    @staticmethod
-    def _get_unique_attributes_sorted(records):
-        ''' 
-        Iterate over provided records to retrieve the set of unique attributes.
-        Return a case insensitively sorted list of attributes.
-        '''
-        attributes = set()
-        for record in records:
-            attributes.update(record.keys())
-        return sorted(list(attributes), key=lambda s: s.lower())
-    
     def __repr__(self):
         return pformat(self.getSwaggerDeclaration("resourcePath"))
 

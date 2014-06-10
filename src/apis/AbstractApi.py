@@ -104,7 +104,7 @@ class AbstractApiV1(object):
         '''
         return "/".join([API_BASE_URL, self.version(), self.name()])
     
-    def get_function(self, path):
+    def get_function(self, path, method):
         ''' 
         Retrieve the appropriate function. Path is everything after the url()
         and before the query parameters (but including path parameters).
@@ -113,9 +113,10 @@ class AbstractApiV1(object):
         Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/IDT?sequences=ACTGAAATTGGGCCCCCC,ACTGGGAAA
         the path would be IDT.
         '''
-        functions = filter(lambda x: self.__compare_path_signatures(x, path), self.functions)
+        functions = filter(lambda f: self.__compare_path_signatures(f, path), self.functions)
+        functions = filter(lambda f: method == f.method(), functions)
         if len(functions) > 1:
-            raise Exception("Found >1 matching functions: %s." % ",".join([f.name() for f in functions]))
+            raise Exception("Found >1 matching %s functions: %s." % (method, ",".join([f.name() for f in functions])))
         elif functions:
             return functions[0]
         else:

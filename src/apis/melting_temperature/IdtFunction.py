@@ -20,14 +20,14 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from src.apis.AbstractFunction import AbstractFunction
+from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
 
 #=============================================================================
 # Class
 #=============================================================================
-class IdtFunction(AbstractFunction):
+class IdtFunction(AbstractGetFunction):
     
     _IDT_CLIENT = IDTClient()
     

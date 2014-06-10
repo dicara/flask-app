@@ -95,7 +95,8 @@ MISSING_VALUE = ""
 SEQUENCE      = "sequence"
 SEQUENCE_NAME = "sequence_name"
 PROBE         = "probe"
-
+FILE          = "file"
+FILENAMES     = "filenames"
 
 #=============================================================================
 # Miscellaneous namedtuples 

@@ -27,7 +27,7 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
-    SEQUENCE_NAME, PROBE, EQUALITY
+    SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES
 
 #=============================================================================
 # Class
@@ -81,6 +81,14 @@ class ParameterFactory(object):
                                 equality=EQUALITY.less_than_or_equal_to) # @UndefinedVariable
         
     @classmethod
-    def file(cls, name, description):
+    def file(cls, description):
         ''' Create a parameter instance for uploading a file.'''
-        return FileParameter(name, description)    
+        return FileParameter(FILE, description)
+    
+    @classmethod
+    def filenames(cls, required=True, allow_multiple=True,
+                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        ''' Create a parameter instance for specifying filename(s). '''
+        return CaseSensitiveStringParameter(FILENAMES, "Comma separated list of target filename(s) to delete. ",
+                               param_type=param_type, required=required,
+                               allow_multiple=allow_multiple)

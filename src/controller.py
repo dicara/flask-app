@@ -22,15 +22,11 @@ limitations under the License.
 #===============================================================================
 import time
 import os
-import json
 
 from . import app
 from .crossdomain_decorator import crossdomain
 from .apis.ApiManager import ApiManager, API_BASE_ROUTE, API_DOCS_BASE_ROUTE
 from .apis.ApiConstants import PAGE
-
-# from apis.idtClient import IDTClient
-# from pkg_resources import resource_filename #@UnresolvedImport
 
 from flask import jsonify, abort, make_response, request
 from collections import defaultdict
@@ -89,12 +85,8 @@ def function(version, name, path):
     print "method: %s" % request.method
     print "files: %s" % request.files
     version = version.lower()
-    api_function = API_MANAGER.get_api_function(name, version, path)
+    api_function = API_MANAGER.get_api_function(name, version, path, request.method)
     if api_function:
-        
-        # Ensure request method matches the provided api function's method
-        if api_function.method() != request.method:
-            abort(404)
         
         # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
         # dynamic_path_fields would be [<name>, <sequence>]
@@ -115,11 +107,10 @@ def function(version, name, path):
             else:
                 query_params[k.lower()].append(v)
                 
-        data, format, page_info = api_function.handle_request(query_params, dynamic_fields)
+        response, format, page_info = api_function.handle_request(query_params, dynamic_fields)
         print "function took %s minutes" % ((time.time()-t)/60.0)
-        if data:
+        if response:
             pagination_headers = create_link_headers(api_function, request, page_info)
-            response =  make_response(data)
             if pagination_headers:
                 response.headers["Link"] = ",".join(pagination_headers)
             return response

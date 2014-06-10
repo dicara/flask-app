@@ -20,45 +20,54 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from src.apis.AbstractGetFunction import AbstractGetFunction
+import os
+
+from werkzeug.utils import secure_filename
+
+from src.apis.AbstractPostFunction import AbstractPostFunction
+from src.apis.ApiConstants import METHODS
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.melting_temperature.idtClient import IDTClient
+from src import UPLOAD_FOLDER
 
 #=============================================================================
 # Class
 #=============================================================================
-class ValidationFunction(AbstractGetFunction):
-    
-    _IDT_CLIENT = IDTClient()
+class UploadTargets(AbstractPostFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Validity"
+        return "UploadTargets"
    
     @staticmethod
     def summary():
-        return "Check the validity of a set of probes."
+        return "Upload targets FASTA file."
     
     @staticmethod
     def notes():
         return "In depth description goes here."
     
+    @staticmethod
+    def method():
+        return METHODS.POST                                 # @UndefinedVariable
+    
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.format(),
-                      ParameterFactory.probes(required=True),
-                      ParameterFactory.boolean("absorb", "Check for absorbed probes."),
-                      ParameterFactory.integer("num", "Minimum number of probes for a target.",
-                                               default=3, minimum=1),
+                      ParameterFactory.file("Targets FASTA file.")
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
+        print "params_dict: %s" % params_dict
+        targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
+        print "targets_file: %s" % targets_file
+#         print targets_file
+        print targets_file.filename
+        targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]
 #         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
 #         
@@ -81,5 +90,5 @@ class ValidationFunction(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ValidationFunction()
+    function = UploadTargets()
     print function

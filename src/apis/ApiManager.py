@@ -62,10 +62,10 @@ class ApiManager(object):
         return None
     
     @classmethod
-    def get_api_function(cls, name, version, path):
+    def get_api_function(cls, name, version, path, method):
         api = cls.get_api(name, version)
         if api:
-            return api.get_function(path)
+            return api.get_function(path, method)
         return None
     
     @classmethod

@@ -21,7 +21,9 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
+import sys
 
+from flask import make_response, jsonify
 from werkzeug.utils import secure_filename
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
@@ -63,10 +65,27 @@ class TargetsPost(AbstractPostFunction):
     @classmethod
     def process_request(cls, params_dict):
         targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
-        print "filename: %s" % targets_file.filename
-        print "save: %s" % targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
-        print "close: %s" % targets_file.close()
-        return (None, None, None)
+        json_response = {
+                          "file": targets_file.filename,
+                          "status": "success",
+                          "error": ""
+                        }
+        http_status_code = 201
+        path = os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename))
+        if os.path.exists(path):
+            json_response["status"] = "failure"
+            json_response["error"]  = "File already exists."
+            http_status_code        = 403
+        else:
+            try:
+                targets_file.save(os.path.join(UPLOAD_FOLDER, path))
+                targets_file.close()
+            except:
+                json_response["status"] = "failure"
+                json_response["error"]  = sys.exc_info()[0]
+                http_status_code        = 403
+        
+        return make_response(jsonify(json_response), http_status_code)
 
 #===============================================================================
 # Run Main

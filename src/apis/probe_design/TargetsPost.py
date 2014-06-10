@@ -62,30 +62,12 @@ class TargetsPost(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        print "params_dict: %s" % params_dict
         targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
-        print "targets_file: %s" % targets_file
-#         print targets_file
-        print targets_file.filename
-        targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
-#         sequences      = params_dict[ParameterFactory.sequences(required=True)]
-#         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
-#         
-#         # Every sequence must have an accompanying name
-#         if len(sequences) != len(sequence_names):
-#             return (None, None, None)
-#         
-#         data = list()
-#         for i, sequence in enumerate(sequences):
-#             melting_temp = cls._IDT_CLIENT.get_melting_temp(sequence)
-#             data.append({"Name": sequence_names[i], 
-#                          "Sequence": sequence,
-#                          "Tm": melting_temp.tm})
-#         columns = ["Name", "Sequence", "Tm"]
-#         return (data, columns, None)
+        print "filename: %s" % targets_file.filename
+        print "save: %s" % targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
+        print "close: %s" % targets_file.close()
         return (None, None, None)
 
-         
 #===============================================================================
 # Run Main
 #===============================================================================

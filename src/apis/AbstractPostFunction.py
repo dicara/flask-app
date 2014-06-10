@@ -21,7 +21,6 @@ limitations under the License.
 # Imports
 #=============================================================================
 from abc import ABCMeta
-from flask import make_response
 
 from src.apis.AbstractFunction import AbstractFunction 
 from src.apis.ApiConstants import METHODS
@@ -49,9 +48,7 @@ class AbstractPostFunction(AbstractFunction):
         input parameters, call process_request(). Then return the results in the 
         requested format.
         '''
-        (params_dict, _format) = cls._parse_query_params(query_params)
+        (params_dict, _) = cls._parse_query_params(query_params)
         cls._handle_path_fields(path_fields, params_dict)
         
-        (items, column_names, page_info) = cls.process_request(params_dict)
-        
-        return (None, None, None)
+        return (cls.process_request(params_dict), None, None)

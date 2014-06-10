@@ -82,8 +82,6 @@ def api(version, name):
 @crossdomain(origin=ORIGIN)
 def function(version, name, path):
     t = time.time()
-    print "method: %s" % request.method
-    print "files: %s" % request.files
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
     if api_function:
@@ -100,8 +98,6 @@ def function(version, name, path):
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
         for k,v in request.files.iteritems():
-            print "key: %s" % k
-            print "value: %s" % v
             if isinstance(v,(list,tuple)):
                 query_params[k.lower()].extend(v)
             else:

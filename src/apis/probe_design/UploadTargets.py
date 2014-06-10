@@ -62,7 +62,7 @@ class UploadTargets(AbstractFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        targets_file = params_dict[ParameterFactory.file("targets", "Targets FASTA file.")]
+        targets_file = params_dict[ParameterFactory.file("targets", "Targets FASTA file.")][0]
         print targets_file.filename
         targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]

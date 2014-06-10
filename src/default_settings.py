@@ -25,8 +25,20 @@ import os
 #===============================================================================
 # Configuration Settings
 #===============================================================================
-HOSTNAME                = "localhost"
-PORT                    = 8010
-HOME_DIR                = "/Users/dandicara/Documents/flask_api"
+DEV      = True
+HOSTNAME = "localhost"
+# HOSTNAME = "bioweb"
+
+if DEV:
+    PORT = 8020
+else:
+    PORT = 8010
+    
+if HOSTNAME == "localhost":
+    HOME_DIR = "/Users/dandicara/Documents/flask_api"
+else:
+    HOME_DIR = "/home/ddicara/gnubio-bioinformatics-rest_api"
+    
+UPLOAD_FOLDER           = os.path.join(HOME_DIR, "uploads", str(PORT))
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % 
                                        str(PORT))

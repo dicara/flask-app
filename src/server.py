@@ -40,7 +40,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
 
-from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX
+from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, UPLOAD_FOLDER
 from utilities import io_utilities
 
 #===============================================================================
@@ -158,6 +158,7 @@ USAGE
         return 2
     
     io_utilities.safe_make_dirs(HOME_DIR)
+    io_utilities.safe_make_dirs(UPLOAD_FOLDER)
 
     # current_info: currently running process machine, pid, port, user, and 
     #               datestamp

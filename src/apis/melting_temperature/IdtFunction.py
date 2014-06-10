@@ -60,7 +60,7 @@ class IdtFunction(AbstractFunction):
         return parameters
     
     @classmethod
-    def get_records(cls, params_dict):
+    def process_request(cls, params_dict):
         sequences      = params_dict[ParameterFactory.sequences(required=True)]
         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
         

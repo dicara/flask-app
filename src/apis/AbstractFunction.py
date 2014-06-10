@@ -50,7 +50,7 @@ class AbstractFunction(object):
             raise Exception("Duplicate parameters not allowed: %s" % ", ".join(dups))
     
     #===========================================================================
-    # Static Methods
+    # Overridable Class Methods
     #===========================================================================    
     @classmethod
     def type(cls):
@@ -74,43 +74,6 @@ class AbstractFunction(object):
         '''
         return {}
     
-    @classmethod
-    def method(cls):
-        return METHODS.GET                                  # @UndefinedVariable
-    
-    #===========================================================================
-    # Abstract Static Methods
-    #===========================================================================    
-    @staticmethod
-    def name():
-        '''
-        Name of this API function that is included in the URL as the last 
-        non-parameter field.
-        
-        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/IDT?name=foo&sequence=bar
-        In this example, name is IDT.
-        '''
-        raise NotImplementedError("AbstractFunction subclass must implement name method.")
-    
-    @staticmethod
-    def summary():
-        ''' 
-        For use in the Swagger documentation. 
-        
-        A short summary of what the operation does. For maximum readability 
-        in the swagger-ui, this field SHOULD be less than 120 characters.
-        '''
-        raise NotImplementedError("AbstractFunction subclass must implement summary method.")
-
-    @staticmethod
-    def notes():
-        '''
-        For use in the Swagger documentation.
-         
-        A verbose explanation of the operation behavior. 
-        '''
-        raise NotImplementedError("AbstractFunction subclass must implement notes method.")
-    
     #===========================================================================
     # Abstract Class Methods
     #===========================================================================    
@@ -125,13 +88,14 @@ class AbstractFunction(object):
         must come before sequence and they both must have 
         param_type == PARAMETER_TYPES.path.
         '''
-        raise NotImplementedError("AbstractFunction subclass must implement parameters method.")
+        raise NotImplementedError("AbstractFunction subclass must implement "\
+                                  "parameters method.")
 
     @classmethod
-    def get_records(cls, params_dict):
+    def process_request(cls, params_dict):
         '''
-        Query the database using the provided params_dict to filter results 
-        accordingly. Return a tuple of the form (<data>, <column_names>, and 
+        Process this request using the provided params_dict Return a tuple of 
+        the form (<data>, <column_names>, and 
         <pagination_info>. The column_names may be None, but if not it describes
         the order in which to display the columns when output format is TSV or 
         CSV. The pagination info may also be None, but if not it is also a tuple 
@@ -140,26 +104,69 @@ class AbstractFunction(object):
         The links are to the first, previous, next, and last page of results to
         simplify paginated results retrieval.
         '''
-        raise NotImplementedError("AbstractTableFunction subclass must implement get_records method.")
+        raise NotImplementedError("AbstractFunction subclass must " \
+                                  "implement process_request method.")
 
+    #===========================================================================
+    # Overridable Static Methods
+    #===========================================================================    
+    @staticmethod
+    def method():
+        return METHODS.GET                                  # @UndefinedVariable
+    
+    #===========================================================================
+    # Abstract Static Methods
+    #===========================================================================    
+    @staticmethod
+    def name():
+        '''
+        Name of this API function that is included in the URL as the last 
+        non-parameter field.
+        
+        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/IDT?name=foo&sequence=bar
+        In this example, name is IDT.
+        '''
+        raise NotImplementedError("AbstractFunction subclass must implement " \
+                                  "name method.")
+    
+    @staticmethod
+    def summary():
+        ''' 
+        For use in the Swagger documentation. 
+        
+        A short summary of what the operation does. For maximum readability 
+        in the swagger-ui, this field SHOULD be less than 120 characters.
+        '''
+        raise NotImplementedError("AbstractFunction subclass must implement " \
+                                  "summary method.")
+
+    @staticmethod
+    def notes():
+        '''
+        For use in the Swagger documentation.
+         
+        A verbose explanation of the operation behavior. 
+        '''
+        raise NotImplementedError("AbstractFunction subclass must implement " \
+                                  "notes method.")
+    
     #===========================================================================
     # Helper Methods
     #===========================================================================    
     @classmethod
-    def getData(cls, query_params, path_fields):
+    def handle_request(cls, query_params, path_fields):
         '''
-        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/IDT?name=foo&sequence=bar
+        Example API call: http://<hostname>:<port>/api/v1/MeltingTemperatures/<user>/IDT?name=foo&sequence=bar
         
         In the above example, query_params would be {"name": "foo", 
-        "sequence": "bar"} and 
-        path_fields would be ["ACC"]. After collecting input parameters,
-        call get_records() to query the database and retrieve the filtered
-        records. Then return the results in the requested format.
+        "sequence": "bar"} and path_fields would be [<user>]. After collecting 
+        input parameters, call process_request(). Then return the results in the 
+        requested format.
         '''
         (params_dict, _format) = cls._parse_query_params(query_params)
         cls._handle_path_fields(path_fields, params_dict)
         
-        (items, column_names, page_info) = cls.get_records(params_dict)
+        (items, column_names, page_info) = cls.process_request(params_dict)
 
         dict_items = False        
         if len(items) > 0:

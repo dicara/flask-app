@@ -20,9 +20,14 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import os
+
+from werkzeug.utils import secure_filename
+
 from src.apis.AbstractFunction import AbstractFunction
 from src.apis.ApiConstants import METHODS
 from src.apis.parameters.ParameterFactory import ParameterFactory
+from src import UPLOAD_FOLDER
 
 #=============================================================================
 # Class
@@ -44,8 +49,8 @@ class UploadTargets(AbstractFunction):
     def notes():
         return "In depth description goes here."
     
-    @classmethod
-    def method(cls):
+    @staticmethod
+    def method():
         return METHODS.POST                                 # @UndefinedVariable
     
     @classmethod
@@ -56,7 +61,10 @@ class UploadTargets(AbstractFunction):
         return parameters
     
     @classmethod
-    def get_records(cls, params_dict):
+    def process_request(cls, params_dict):
+        targets_file = params_dict[ParameterFactory.file("targets", "Targets FASTA file.")]
+        print targets_file.filename
+        targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]
 #         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
 #         

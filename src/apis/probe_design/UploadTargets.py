@@ -66,8 +66,8 @@ class UploadTargets(AbstractFunction):
         targets_file = params_dict[ParameterFactory.file("targets", "Targets FASTA file.")][0]
         print "targets_file: %s" % targets_file
 #         print targets_file
-#         print targets_file.filename
-#         targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
+        print targets_file.filename
+        targets_file.save(os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename)))
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]
 #         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
 #         

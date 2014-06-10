@@ -110,8 +110,11 @@ def function(version, name, path):
         for k,v in request.files.iteritems():
             print "key: %s" % k
             print "value: %s" % v
-            query_params[k.lower()].extend(v)
-        
+            if isinstance(v,(list,tuple)):
+                query_params[k.lower()].extend(v)
+            else:
+                query_params[k.lower()].append(v)
+                
         data, format, page_info = api_function.handle_request(query_params, dynamic_fields)
         print "function took %s minutes" % ((time.time()-t)/60.0)
         if data:

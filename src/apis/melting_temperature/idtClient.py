@@ -20,7 +20,7 @@ class DimerResult(namedtuple('dimerResult', 'self_dimer deltaG compPercent')):
 
 class IDTClient(object):
     def __init__(self, seq_type='DNA'):
-        self.client = Client(URL)
+        self.client = Client(URL, timeout=300)
         self.seq_type = seq_type
 
     def get_melting_temp(self, sequence, oligo=2, na=40, mg=2, dntp=0.2):

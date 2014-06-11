@@ -98,6 +98,8 @@ def function(version, name, path):
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
         for k,v in request.files.iteritems():
+            print "key: %s" % k
+            print "value: %s" % v
             if isinstance(v,(list,tuple)):
                 query_params[k.lower()].extend(v)
             else:

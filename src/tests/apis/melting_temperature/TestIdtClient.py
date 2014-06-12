@@ -46,7 +46,6 @@ class Test(unittest.TestCase):
         input_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                                   _PROBES_FILENAME)
         self.assertTrue(os.path.isfile(input_path))
-        self.assertTrue(False)
         probes_dict = dict()
         with open(input_path) as f:
             f.readline()

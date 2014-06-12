@@ -46,7 +46,7 @@ summary:
 	@echo "    4. install_src              Standalone target for performing "
 	@echo "                                ONLY the third target of build_venv"
 	@echo "    5. test                     Run nosetests. "
-	@echo
+	@echo 
 	@echo Each of these require that you define PYTHON_BUILD and/or PYTHON_VENV
 	@echo variables in Makefile.inc.  
 	@echo

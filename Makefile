@@ -77,6 +77,7 @@ install_external_packages:
 	$(MAKE) pip_install PIP_PACKAGE=tornado==3.2
 	$(MAKE) pip_install PIP_PACKAGE=redis==2.9.1
 	$(MAKE) pip_install PIP_PACKAGE=suds==0.4
+	$(MAKE) pip_install PIP_PACKAGE=nose==1.3.3
 	
 install_src:
 	@$(MAKE) check_dir DIR=PYTHON_VENV

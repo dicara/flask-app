@@ -82,11 +82,8 @@ class TargetsPost(AbstractPostFunction):
                 targets_file.close()
             except:
                 json_response["status"] = "failure"
-                print sys.exc_info()[0]
-                print sys.exc_info()[1]
-                print sys.exc_info()[2]
-                json_response["error"]  = str(sys.exc_info()[0])
-                http_status_code        = 403
+                json_response["error"]  = str(sys.exc_info()[1])
+                http_status_code        = 500
         
         return make_response(jsonify(json_response), http_status_code)
 

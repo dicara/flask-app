@@ -8,7 +8,7 @@ import sys
 
 __author__ = 'Scott Powers'
 URL = "http://www.idtdna.com/AnalyzerService/AnalyzerService.asmx?wsdl"
-
+RETRY_ATTEMPTS = 5
 
 class OligoTemp(namedtuple('oligoTemp', 'min max tm')):
     pass
@@ -20,14 +20,23 @@ class DimerResult(namedtuple('dimerResult', 'self_dimer deltaG compPercent')):
 
 class IDTClient(object):
     def __init__(self, seq_type='DNA'):
-        self.client = Client(URL, timeout=300)
+        self.client = Client(URL, timeout=30)
         self.seq_type = seq_type
 
     def get_melting_temp(self, sequence, oligo=2, na=40, mg=2, dntp=0.2):
         """Get the melting temperature for sequence.
           \param oligo is the concentration of the oligo in uM
         """
-        result = self.client.service.Analyze(sequence.upper(), self.seq_type, oligo, na, mg, dntp)
+        i = 0
+        while True:
+            try: 
+                result = self.client.service.Analyze(sequence.upper(), self.seq_type, oligo, na, mg, dntp)
+                break;
+            except:
+                i += 1
+                if i > RETRY_ATTEMPTS: 
+                    return OligoTemp(-1, -1, -1)
+      
         #log this.... result
         if not result['Errors']:
             return OligoTemp(result['MinMeltTemp'], result['MaxMeltTemp'], result['MeltTemp'])

@@ -85,6 +85,6 @@ install_src:
 	rm -fr build dist *.egg-info
 	
 test:
-    @echo Performing $@ in python virtual environment $(PYTHON_VENV)... ; \
-    $(PYTHON_VENV)/bin/python setup.py nosetests && \
-    rm -fr build dist *.egg-info
+	@echo Performing $@ in python virtual environment $(PYTHON_VENV)... ; \
+	$(PYTHON_VENV)/bin/python setup.py nosetests && \
+	rm -fr build dist *.egg-info

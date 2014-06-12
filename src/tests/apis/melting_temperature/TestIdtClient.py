@@ -52,14 +52,6 @@ class Test(unittest.TestCase):
             i = 0
             for line in f:
                 fields = line.strip().split(",")
-                if fields[0] in probes_dict:
-                    i +=1
-                    
-                    print "%s %s" % (str(i),fields[0])
-#                     msg = "Sequences with similar name (%s) have different " \
-#                           "sequence: %s and %s." % (fields[0], fields[1],
-#                                                     probes_dict[fields[0]])
-#                     self.assertTrue(fields[1] == probes_dict[fields[0]], msg)
                 probes_dict[fields[0]] = fields[1]
         self.probes_dict = probes_dict
         

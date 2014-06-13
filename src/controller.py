@@ -85,7 +85,8 @@ def function(version, name, path):
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
     if api_function:
-        print request.files
+        print "REQUEST FILES: %s" % request.files
+        print "REQUEST ARGS: %s" % request.args
         
         # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
         # dynamic_path_fields would be [<name>, <sequence>]
@@ -96,11 +97,13 @@ def function(version, name, path):
         # Make query parameter keys case-insensitive - force them all to lower 
         query_params = defaultdict(list)
         for k in request.args.keys():
+            print "ARGS: key: %s" % k
+            print "ARGS: value: %s" % request.args.getlist(k)
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
         for k,v in request.files.iteritems():
-            print "key: %s" % k
-            print "value: %s" % v
+            print "FILES: key: %s" % k
+            print "FILES: value: %s" % v
             if isinstance(v,(list,tuple)):
                 query_params[k.lower()].extend(v)
             else:

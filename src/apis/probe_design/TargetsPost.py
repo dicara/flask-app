@@ -67,7 +67,7 @@ class TargetsPost(AbstractPostFunction):
                           "error": ""
                         }
         http_status_code = 201
-        file_uuid        = uuid4()
+        file_uuid        = str(uuid4())
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):
             json_response["error"]  = "File already exists."

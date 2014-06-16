@@ -65,10 +65,10 @@ class ProbesPost(AbstractPostFunction):
         probes_file = params_dict[ParameterFactory.file("Probes file.")][0]
         json_response = {
                           "filename": probes_file.filename,
-                          "error": ""
+                          "error": "",
                         }
         http_status_code = 201
-        file_uuid        = uuid4()
+        file_uuid        = str(uuid4())
 
         path = os.path.join(PROBES_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):

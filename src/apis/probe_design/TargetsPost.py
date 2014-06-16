@@ -51,10 +51,6 @@ class TargetsPost(AbstractPostFunction):
     def notes():
         return "In depth description goes here."
     
-    @staticmethod
-    def method():
-        return METHODS.POST                                 # @UndefinedVariable
-    
     @classmethod
     def parameters(cls):
         parameters = [

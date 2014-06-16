@@ -22,14 +22,13 @@ limitations under the License.
 #=============================================================================
 import os
 
-from src.apis.AbstractFunction import AbstractFunction
-from src.apis.ApiConstants import METHODS
+from src.apis.AbstractGetFunction import AbstractGetFunction
 from src import PROBES_UPLOAD_FOLDER
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesGet(AbstractFunction):
+class ProbesGet(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
@@ -45,10 +44,6 @@ class ProbesGet(AbstractFunction):
     @staticmethod
     def notes():
         return ""
-    
-    @staticmethod
-    def method():
-        return METHODS.GET                                  # @UndefinedVariable
     
     @classmethod
     def parameters(cls):

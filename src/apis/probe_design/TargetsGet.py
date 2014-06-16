@@ -47,8 +47,7 @@ class TargetsGet(AbstractGetFunction):
     
     @classmethod
     def parameters(cls):
-        parameters = [
-                     ]
+        parameters = []
         return parameters
     
     @classmethod

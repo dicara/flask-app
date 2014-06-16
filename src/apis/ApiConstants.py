@@ -97,6 +97,7 @@ SEQUENCE_NAME = "sequence_name"
 PROBE         = "probe"
 FILE          = "file"
 FILENAMES     = "filenames"
+TIME_FORMAT   = "%Y_%m_%d__%H_%M_%S"
 
 #=============================================================================
 # Miscellaneous namedtuples 

@@ -23,13 +23,14 @@ limitations under the License.
 import os
 import sys
 
+from uuid import uuid4
 from flask import make_response, jsonify
-from werkzeug.utils import secure_filename
+from datetime import datetime
 
+from src.apis.ApiConstants import TIME_FORMAT
 from src.apis.AbstractPostFunction import AbstractPostFunction
-from src.apis.ApiConstants import METHODS
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import TARGETS_UPLOAD_FOLDER
+from src import HOSTNAME, TARGETS_UPLOAD_FOLDER
 
 #=============================================================================
 # Class
@@ -62,22 +63,28 @@ class TargetsPost(AbstractPostFunction):
     def process_request(cls, params_dict):
         targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
         json_response = {
-                          "file": targets_file.filename,
-                          "status": "success",
+                          "filename": targets_file.filename,
                           "error": ""
                         }
         http_status_code = 201
-        path = os.path.join(TARGETS_UPLOAD_FOLDER, secure_filename(targets_file.filename))
+        file_uuid        = uuid4()
+        path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):
-            json_response["status"] = "failure"
             json_response["error"]  = "File already exists."
             http_status_code        = 403
         else:
             try:
                 targets_file.save(os.path.join(TARGETS_UPLOAD_FOLDER, path))
                 targets_file.close()
+                json_response["url"]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
+                json_response["uuid"] = file_uuid
+                json_response["datestamp"] = datetime.today().strftime(TIME_FORMAT)
+                json_response["type"]      = "targets"
+                if "." in targets_file.filename:
+                    json_response["format"] = targets_file.filename.split(".")[-1]
+                else:
+                    json_response["format"] = "Unknown"
             except:
-                json_response["status"] = "failure"
                 json_response["error"]  = str(sys.exc_info()[1])
                 http_status_code        = 500
         

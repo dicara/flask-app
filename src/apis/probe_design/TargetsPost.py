@@ -29,7 +29,7 @@ from werkzeug.utils import secure_filename
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.ApiConstants import METHODS
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import UPLOAD_FOLDER
+from src import TARGETS_UPLOAD_FOLDER
 
 #=============================================================================
 # Class
@@ -71,14 +71,14 @@ class TargetsPost(AbstractPostFunction):
                           "error": ""
                         }
         http_status_code = 201
-        path = os.path.join(UPLOAD_FOLDER, secure_filename(targets_file.filename))
+        path = os.path.join(TARGETS_UPLOAD_FOLDER, secure_filename(targets_file.filename))
         if os.path.exists(path):
             json_response["status"] = "failure"
             json_response["error"]  = "File already exists."
             http_status_code        = 403
         else:
             try:
-                targets_file.save(os.path.join(UPLOAD_FOLDER, path))
+                targets_file.save(os.path.join(TARGETS_UPLOAD_FOLDER, path))
                 targets_file.close()
             except:
                 json_response["status"] = "failure"

@@ -20,49 +20,49 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from src.apis.AbstractApi import AbstractApiV1
-from src.apis.probe_design.Validation import ValidationFunction
-from src.apis.probe_design.TargetsPost import TargetsPost
-from src.apis.probe_design.TargetsGet import TargetsGet
-from src.apis.probe_design.ProbesGet import ProbesGet
-from src.apis.probe_design.ProbesPost import ProbesPost
+import os
+
+from src.apis.AbstractFunction import AbstractFunction
+from src.apis.ApiConstants import METHODS
+from src import TARGETS_UPLOAD_FOLDER
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbeDesignApiV1(AbstractApiV1):
-
-    _FUNCTIONS = [
-                  ValidationFunction(),
-                  TargetsPost(),
-                  TargetsGet(),
-                  ProbesPost(),
-                  ProbesGet(),
-                 ]
-
+class TargetsGet(AbstractFunction):
+    
+    #===========================================================================
+    # Overridden Methods
+    #===========================================================================    
     @staticmethod
     def name():
-        return "ProbeDesign"
+        return "Targets"
    
     @staticmethod
-    def description():
-        return "Functions for designing probes."
+    def summary():
+        return "Retrieve list of available targets files."
     
     @staticmethod
-    def preferred():
-        return True
+    def notes():
+        return ""
     
     @staticmethod
-    def consumes():
-        return ["multipart/form-data"]
+    def method():
+        return METHODS.GET                                  # @UndefinedVariable
     
-    @property
-    def functions(self):
-        return self._FUNCTIONS
+    @classmethod
+    def parameters(cls):
+        parameters = [
+                     ]
+        return parameters
     
+    @classmethod
+    def process_request(cls, params_dict):
+        return (os.listdir(TARGETS_UPLOAD_FOLDER), None, None)
+         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    api = ProbeDesignApiV1()
-    print api
+    function = TargetsGet()
+    print function

@@ -40,6 +40,7 @@ if HOSTNAME == "localhost":
 else:
     HOME_DIR = "/home/ddicara/gnubio-bioinformatics-rest_api"
     
-UPLOAD_FOLDER           = os.path.join(HOME_DIR, "uploads", str(PORT))
+TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
+PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % 
                                        str(PORT))

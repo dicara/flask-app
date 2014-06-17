@@ -84,6 +84,7 @@ def function(version, name, path):
     t = time.time()
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
+    print "API FUNCTION: %s" % api_function
     if api_function:
         print "REQUEST FILES: %s" % request.files
         print "REQUEST ARGS: %s" % request.args

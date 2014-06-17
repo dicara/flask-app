@@ -50,7 +50,7 @@ class TargetsDelete(AbstractDeleteFunction):
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.uuid()
+                      ParameterFactory.uuid(),
                      ]
         return parameters
     
@@ -59,9 +59,11 @@ class TargetsDelete(AbstractDeleteFunction):
         targets_uuids = params_dict[ParameterFactory.uuid()]
         criteria = dict()
         criteria[UUID] = {"$in": targets_uuids}
+        print criteria
         records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria)
         cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
         for record in records:
+            print record
             os.remove(record[FILEPATH])
         return (None, None, None)
 

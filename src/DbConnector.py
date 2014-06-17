@@ -60,7 +60,7 @@ class DbConnector(object):
         return list(DB[collection].distinct(column_name))
     
     def remove(self, collection, criteria):
-        DB[collection].remove(criteria)
+        return DB[collection].remove(criteria)
         
 #===========================================================================
 # Ensure the initial instance is created.

@@ -27,7 +27,8 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
-    SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID
+    SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
+    CHR_STOP
 
 #=============================================================================
 # Class
@@ -57,6 +58,22 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
+
+    @classmethod
+    def chromosome_num(cls, required=False, allow_multiple=False): # @UndefinedVariable
+        ''' Create a parameter instance for specifying chromosome number. '''
+        return IntegerParameter(CHR_NUM, "Integer specifying chromosome. ",
+                               required=required, allow_multiple=allow_multiple)
+    @classmethod
+    def chromosome_start(cls, required=False, allow_multiple=False): # @UndefinedVariable
+        ''' Create a parameter instance for specifying start position of chromosome. '''
+        return IntegerParameter(CHR_START, "Integer specifying chromosome start position. ",
+                               required=required, allow_multiple=allow_multiple)
+    @classmethod
+    def chromosome_stop(cls, required=False, allow_multiple=False): # @UndefinedVariable
+        ''' Create a parameter instance for specifying end position of chromosome. '''
+        return IntegerParameter(CHR_STOP, "Integer specifying chromosome end position. ",
+                               required=required, allow_multiple=allow_multiple)
 
     @classmethod
     def probes(cls, required=False, allow_multiple=True,

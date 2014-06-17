@@ -92,3 +92,11 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(FILENAMES, "Comma separated list of target filename(s) to delete. ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
+        
+    @classmethod
+    def uuid(cls, required=True, allow_multiple=True,
+             param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        ''' Create a parameter instance for specifying uuid(s). '''
+        return LowerCaseStringParameter(PROBE, "Comma separated uuid(s). ",
+                               param_type=param_type, required=required,
+                               allow_multiple=allow_multiple)

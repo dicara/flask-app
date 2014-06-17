@@ -20,15 +20,7 @@ limitations under the License.
 #===============================================================================
 # Imports
 #===============================================================================
-import pymongo
-
-from . import DB, PROBES_COLLECTION, TARGETS_COLLECTION
-from src import TARGETS_COLLECTION
-
-#=============================================================================
-# Private Global Variables
-#=============================================================================
-_CACHE_DISTINCT = False
+from . import DB
 
 #===============================================================================
 # Class
@@ -36,12 +28,10 @@ _CACHE_DISTINCT = False
 class DbConnector(object):
     '''
     This class is intended to be a singleton. It handles communication (i.e.
-    queries) with the MongoDB. Every call to the DB should go through this 
+    queries) with MongoDB. Every call to the DB should go through this 
     class.
     '''
-    
-    _INSTANCE       = None
-    _DISTINCT_CACHE = {}
+    _INSTANCE = None
     
     #===========================================================================
     # Constructor
@@ -68,6 +58,9 @@ class DbConnector(object):
     
     def distinct(self, collection, column_name):
         return list(DB[collection].distinct(column_name))
+    
+    def remove(self, collection, criteria):
+        DB[collection].remove(criteria)
         
 #===========================================================================
 # Ensure the initial instance is created.

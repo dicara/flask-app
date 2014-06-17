@@ -20,51 +20,54 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from src.apis.AbstractApi import AbstractApiV1
-from src.apis.probe_design.Validation import ValidationFunction
-from src.apis.probe_design.TargetsPost import TargetsPost
-from src.apis.probe_design.TargetsGet import TargetsGet
-from src.apis.probe_design.TargetsDelete import TargetsDelete
-from src.apis.probe_design.ProbesGet import ProbesGet
-from src.apis.probe_design.ProbesPost import ProbesPost
+import os
+
+from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
+from src.apis.ApiConstants import UUID, FILEPATH
+from src.apis.parameters.ParameterFactory import ParameterFactory
+from src import TARGETS_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbeDesignApiV1(AbstractApiV1):
-
-    _FUNCTIONS = [
-                  ValidationFunction(),
-                  TargetsPost(),
-                  TargetsGet(),
-                  TargetsDelete(),
-                  ProbesPost(),
-                  ProbesGet(),
-                 ]
-
+class TargetsDelete(AbstractDeleteFunction):
+    
+    #===========================================================================
+    # Overridden Methods
+    #===========================================================================    
     @staticmethod
     def name():
-        return "ProbeDesign"
+        return "Targets"
    
     @staticmethod
-    def description():
-        return "Functions for designing probes."
+    def summary():
+        return "Delete targets FASTA files."
     
     @staticmethod
-    def preferred():
-        return True
+    def notes():
+        return ""
     
-    @staticmethod
-    def consumes():
-        return ["multipart/form-data"]
+    @classmethod
+    def parameters(cls):
+        parameters = [
+                      ParameterFactory.uuid()
+                     ]
+        return parameters
     
-    @property
-    def functions(self):
-        return self._FUNCTIONS
-    
+    @classmethod
+    def process_request(cls, params_dict):
+        targets_uuids = params_dict[ParameterFactory.uuid()]
+        criteria = dict()
+        criteria[UUID] = {"$in": targets_uuids}
+        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria)
+        cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
+        for record in records:
+            os.remove(record[FILEPATH])
+        return (None, None, None)
+
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    api = ProbeDesignApiV1()
-    print api
+    function = TargetsDelete()
+    print function

@@ -61,7 +61,7 @@ class DbConnector(object):
     # Simple get methods
     #===========================================================================
     def insert(self, collection, rows):
-        DB[collection].insert(rows)
+        return DB[collection].insert(rows)
         
 #===========================================================================
 # Ensure the initial instance is created.

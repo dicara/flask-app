@@ -74,9 +74,10 @@ class TargetsPost(AbstractPostFunction):
             http_status_code        = 403
         else:
             try:
-                targets_file.save(os.path.join(TARGETS_UPLOAD_FOLDER, path))
+                targets_file.save(path)
                 targets_file.close()
                 json_response["url"]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
+                json_response["filepath"] = path
                 json_response["uuid"] = file_uuid
                 json_response["datestamp"] = datetime.today().strftime(TIME_FORMAT)
                 json_response["type"]      = "targets"
@@ -86,6 +87,7 @@ class TargetsPost(AbstractPostFunction):
                     json_response["format"] = "Unknown"
                     
                 cls._DB_CONNECTOR.insert(TARGETS_COLLECTION, [json_response])
+                print json_response
                 
             except:
                 json_response["error"]  = str(sys.exc_info()[1])

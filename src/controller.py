@@ -79,7 +79,7 @@ def api(version, name):
     abort(404)
 
 @app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST', 'DELETE', 'OPTIONS'])
-@crossdomain(origin=ORIGIN)
+@crossdomain(origin=ORIGIN, headers="Origin, X-Requested-With, Content-Type, Accept")
 def function(version, name, path):
     t = time.time()
     version = version.lower()

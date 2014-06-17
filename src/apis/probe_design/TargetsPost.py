@@ -32,6 +32,7 @@ from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import HOSTNAME, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
+from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
 # Class
@@ -73,8 +74,11 @@ class TargetsPost(AbstractPostFunction):
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         existing_filenames = cls._DB_CONNECTOR.distinct(TARGETS_COLLECTION, FILENAME)
         if os.path.exists(path) or targets_file.filename in existing_filenames:
-            json_response[ERROR]  = "File already exists. Delete the existing file and try again."
-            http_status_code        = 403
+            json_response[ERROR] = "File already exists. Delete the existing file and try again."
+            http_status_code     = 403
+        elif validate_fasta(path) == False:
+            json_response[ERROR] = "File is not a valid FASTA."
+            http_status_code     = 415
         else:
             try:
                 targets_file.save(path)

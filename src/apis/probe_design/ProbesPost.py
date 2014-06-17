@@ -32,6 +32,7 @@ from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import HOSTNAME, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
+from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
 # Class
@@ -75,6 +76,9 @@ class ProbesPost(AbstractPostFunction):
         if os.path.exists(path) or probes_file.filename in existing_filenames:
             json_response[ERROR] = "File already exists. Delete the existing file and try again."
             http_status_code     = 403
+        elif validate_fasta(path) == False:
+            json_response[ERROR] = "File is not a valid FASTA."
+            http_status_code     = 415
         else:
             try:
                 probes_file.save(path)

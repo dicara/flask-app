@@ -62,6 +62,9 @@ class DbConnector(object):
     #===========================================================================
     def insert(self, collection, rows):
         return DB[collection].insert(rows)
+    
+    def find(self, collection, criteria, projection):
+        return list(DB[collection].find(criteria, projection))
         
 #===========================================================================
 # Ensure the initial instance is created.

@@ -20,10 +20,9 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
-
 from src.apis.AbstractGetFunction import AbstractGetFunction
-from src import TARGETS_UPLOAD_FOLDER
+from src import TARGETS_COLLECTION
+from src.apis.ApiConstants import ID, UUID, FILENAME
 
 #=============================================================================
 # Class
@@ -52,7 +51,7 @@ class TargetsGet(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        return (os.listdir(TARGETS_UPLOAD_FOLDER), None, None)
+        return (cls._DB_CONNECTOR.find(TARGETS_COLLECTION, {}, {ID: 0, UUID: 1, FILENAME: 1}), None, None)
          
 #===============================================================================
 # Run Main

@@ -78,7 +78,7 @@ def api(version, name):
         return jsonify(swagger_api_declaration)
     abort(404)
 
-@app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST'])
+@app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST', 'DELETE'])
 @crossdomain(origin=ORIGIN)
 def function(version, name, path):
     t = time.time()

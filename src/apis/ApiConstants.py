@@ -96,8 +96,16 @@ SEQUENCE      = "sequence"
 SEQUENCE_NAME = "sequence_name"
 PROBE         = "probe"
 FILE          = "file"
+FILENAME      = "filename"
+FILEPATH      = "filepath"
 FILENAMES     = "filenames"
 TIME_FORMAT   = "%Y_%m_%d__%H_%M_%S"
+ID            = "_id"
+URL           = "url"
+DATESTAMP     = "datestamp"
+TYPE          = "type"
+ERROR         = "error"
+UUID          = "uuid"
 
 #=============================================================================
 # Miscellaneous namedtuples 

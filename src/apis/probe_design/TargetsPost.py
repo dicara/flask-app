@@ -27,7 +27,8 @@ from uuid import uuid4
 from flask import make_response, jsonify
 from datetime import datetime
 
-from src.apis.ApiConstants import TIME_FORMAT
+from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
+    URL, DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import HOSTNAME, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
@@ -63,34 +64,33 @@ class TargetsPost(AbstractPostFunction):
     def process_request(cls, params_dict):
         targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
         json_response = {
-                          "filename": targets_file.filename,
-                          "error": ""
+                          FILENAME: targets_file.filename,
+                          ERROR: ""
                         }
         http_status_code = 201
         file_uuid        = str(uuid4())
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):
-            json_response["error"]  = "File already exists."
+            json_response[ERROR]  = "File already exists."
             http_status_code        = 403
         else:
             try:
                 targets_file.save(path)
                 targets_file.close()
-                json_response["url"]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
-                json_response["filepath"] = path
-                json_response["uuid"] = file_uuid
-                json_response["datestamp"] = datetime.today().strftime(TIME_FORMAT)
-                json_response["type"]      = "targets"
+                json_response[URL]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
+                json_response[FILEPATH] = path
+                json_response[UUID] = file_uuid
+                json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
+                json_response[TYPE]      = "targets"
                 if "." in targets_file.filename:
-                    json_response["format"] = targets_file.filename.split(".")[-1]
+                    json_response[FORMAT] = targets_file.filename.split(".")[-1]
                 else:
-                    json_response["format"] = "Unknown"
+                    json_response[FORMAT] = "Unknown"
                     
                 cls._DB_CONNECTOR.insert(TARGETS_COLLECTION, [json_response])
-                print json_response
-                
+                del json_response[ID]
             except:
-                json_response["error"]  = str(sys.exc_info()[1])
+                json_response[ERROR]  = str(sys.exc_info()[1])
                 http_status_code        = 500
         
         return make_response(jsonify(json_response), http_status_code)

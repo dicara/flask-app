@@ -23,7 +23,7 @@ limitations under the License.
 import os
 
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import UUID, FILEPATH
+from src.apis.ApiConstants import ID, UUID, FILEPATH
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import TARGETS_COLLECTION
 
@@ -61,7 +61,7 @@ class TargetsDelete(AbstractDeleteFunction):
         criteria = dict()
         criteria[UUID] = {"$in": targets_uuids}
         print criteria
-        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {})
+        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0, FILEPATH:1})
         cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
         for record in records:
             print record

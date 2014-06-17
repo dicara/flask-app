@@ -27,7 +27,7 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
-    SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES
+    SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID
 
 #=============================================================================
 # Class
@@ -97,6 +97,6 @@ class ParameterFactory(object):
     def uuid(cls, required=True, allow_multiple=True,
              param_type=PARAMETER_TYPES.query): # @UndefinedVariable
         ''' Create a parameter instance for specifying uuid(s). '''
-        return LowerCaseStringParameter(PROBE, "Comma separated uuid(s). ",
+        return LowerCaseStringParameter(UUID, "Comma separated uuid(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)

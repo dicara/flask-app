@@ -62,10 +62,10 @@ class TargetsDelete(AbstractDeleteFunction):
         criteria[UUID] = {"$in": targets_uuids}
         print criteria
         records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0, FILEPATH:1})
-        cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
         for record in records:
             print record
             os.remove(record[FILEPATH])
+        print cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
         return (None, None, None)
 
 #===============================================================================

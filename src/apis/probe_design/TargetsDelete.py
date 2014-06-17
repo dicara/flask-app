@@ -61,7 +61,7 @@ class TargetsDelete(AbstractDeleteFunction):
         criteria = dict()
         criteria[UUID] = {"$in": targets_uuids}
         print criteria
-        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria)
+        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {})
         cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
         for record in records:
             print record

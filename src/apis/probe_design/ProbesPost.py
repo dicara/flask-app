@@ -28,10 +28,11 @@ from flask import make_response, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-from src.apis.ApiConstants import TIME_FORMAT
+from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
+    URL, DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, PROBES_UPLOAD_FOLDER
+from src import HOSTNAME, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
 
 #=============================================================================
 # Class
@@ -64,31 +65,35 @@ class ProbesPost(AbstractPostFunction):
     def process_request(cls, params_dict):
         probes_file = params_dict[ParameterFactory.file("Probes file.")][0]
         json_response = {
-                          "filename": probes_file.filename,
-                          "error": "",
+                          FILENAME: probes_file.filename,
+                          ERROR: "",
                         }
         http_status_code = 201
         file_uuid        = str(uuid4())
 
         path = os.path.join(PROBES_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):
-            json_response["error"]  = "File already exists."
-            http_status_code        = 403
+            json_response[ERROR] = "File already exists."
+            http_status_code     = 403
         else:
             try:
-                probes_file.save(os.path.join(PROBES_UPLOAD_FOLDER, path))
+                probes_file.save(path)
                 probes_file.close()
-                json_response["url"]       = "http://%s/probes/%s" % (HOSTNAME, file_uuid)
-                json_response["uuid"]      = file_uuid
-                json_response["datestamp"] = datetime.today().strftime(TIME_FORMAT)
-                json_response["type"]      = "probes"
+                json_response[URL]       = "http://%s/probes/%s" % (HOSTNAME, file_uuid)
+                json_response[UUID]      = file_uuid
+                json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
+                json_response[TYPE]      = "probes"
                 if "." in probes_file.filename:
-                    json_response["format"] = probes_file.filename.split(".")[-1]
+                    json_response[FORMAT] = probes_file.filename.split(".")[-1]
                 else:
-                    json_response["format"] = "Unknown"
+                    json_response[FORMAT] = "Unknown"
+                
+                cls._DB_CONNECTOR.insert(PROBES_COLLECTION, [json_response])
+                del json_response[ID]
+
             except:
-                json_response["error"]  = str(sys.exc_info()[1])
-                http_status_code        = 500
+                json_response[ERROR] = str(sys.exc_info()[1])
+                http_status_code     = 500
         
         return make_response(jsonify(json_response), http_status_code)
 

@@ -21,8 +21,9 @@ limitations under the License.
 # Imports
 #=============================================================================
 from src.apis.AbstractGetFunction import AbstractGetFunction
+from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import TARGETS_COLLECTION
-from src.apis.ApiConstants import ID, UUID, FILENAME
+from src.apis.ApiConstants import ID
 
 #=============================================================================
 # Class
@@ -46,12 +47,14 @@ class TargetsGet(AbstractGetFunction):
     
     @classmethod
     def parameters(cls):
-        parameters = []
+        parameters = [
+                      ParameterFactory.format(),
+                     ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        return (cls._DB_CONNECTOR.find(TARGETS_COLLECTION, {}, {ID: 0, UUID: 1, FILENAME: 1}), None, None)
+        return (cls._DB_CONNECTOR.find(TARGETS_COLLECTION, {}, {ID: 0}), None, None)
          
 #===============================================================================
 # Run Main

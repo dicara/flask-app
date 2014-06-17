@@ -69,6 +69,7 @@ class TargetsPost(AbstractPostFunction):
                         }
         http_status_code = 201
         file_uuid        = str(uuid4())
+        
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         if os.path.exists(path):
             json_response[ERROR]  = "File already exists."
@@ -90,8 +91,8 @@ class TargetsPost(AbstractPostFunction):
                 cls._DB_CONNECTOR.insert(TARGETS_COLLECTION, [json_response])
                 del json_response[ID]
             except:
-                json_response[ERROR]  = str(sys.exc_info()[1])
-                http_status_code        = 500
+                json_response[ERROR] = str(sys.exc_info()[1])
+                http_status_code     = 500
         
         return make_response(jsonify(json_response), http_status_code)
 

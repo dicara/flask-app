@@ -20,10 +20,10 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
-
 from src.apis.AbstractGetFunction import AbstractGetFunction
-from src import PROBES_UPLOAD_FOLDER
+from src.apis.parameters.ParameterFactory import ParameterFactory
+from src import PROBES_COLLECTION
+from src.apis.ApiConstants import ID
 
 #=============================================================================
 # Class
@@ -48,12 +48,13 @@ class ProbesGet(AbstractGetFunction):
     @classmethod
     def parameters(cls):
         parameters = [
+                      ParameterFactory.format(),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        return (os.listdir(PROBES_UPLOAD_FOLDER), None, None)
+        return (cls._DB_CONNECTOR.find(PROBES_COLLECTION, {}, {ID: 0}), None, None)
          
 #===============================================================================
 # Run Main

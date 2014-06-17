@@ -71,8 +71,9 @@ class TargetsPost(AbstractPostFunction):
         file_uuid        = str(uuid4())
         
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
-        if os.path.exists(path):
-            json_response[ERROR]  = "File already exists."
+        existing_filenames = cls._DB_CONNECTOR.distinct(TARGETS_COLLECTION, FILENAME)
+        if os.path.exists(path) or targets_file.filename in existing_filenames:
+            json_response[ERROR]  = "File already exists. Delete the existing file and try again."
             http_status_code        = 403
         else:
             try:

@@ -25,7 +25,6 @@ import sys
 
 from uuid import uuid4
 from flask import make_response, jsonify
-from werkzeug.utils import secure_filename
 from datetime import datetime
 
 from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
@@ -72,14 +71,16 @@ class ProbesPost(AbstractPostFunction):
         file_uuid        = str(uuid4())
 
         path = os.path.join(PROBES_UPLOAD_FOLDER, file_uuid)
-        if os.path.exists(path):
-            json_response[ERROR] = "File already exists."
+        existing_filenames = cls._DB_CONNECTOR.distinct(PROBES_COLLECTION, FILENAME)
+        if os.path.exists(path) or probes_file.filename in existing_filenames:
+            json_response[ERROR] = "File already exists. Delete the existing file and try again."
             http_status_code     = 403
         else:
             try:
                 probes_file.save(path)
                 probes_file.close()
                 json_response[URL]       = "http://%s/probes/%s" % (HOSTNAME, file_uuid)
+                json_response[FILEPATH]  = path
                 json_response[UUID]      = file_uuid
                 json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
                 json_response[TYPE]      = "probes"

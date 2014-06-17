@@ -65,6 +65,9 @@ class DbConnector(object):
     
     def find(self, collection, criteria, projection):
         return list(DB[collection].find(criteria, projection))
+    
+    def distinct(self, collection, column_name):
+        return list(DB[collection].distinct(column_name))
         
 #===========================================================================
 # Ensure the initial instance is created.

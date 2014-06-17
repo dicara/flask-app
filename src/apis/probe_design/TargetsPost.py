@@ -30,7 +30,7 @@ from datetime import datetime
 from src.apis.ApiConstants import TIME_FORMAT
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, TARGETS_UPLOAD_FOLDER
+from src import HOSTNAME, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
 
 #=============================================================================
 # Class
@@ -84,6 +84,9 @@ class TargetsPost(AbstractPostFunction):
                     json_response["format"] = targets_file.filename.split(".")[-1]
                 else:
                     json_response["format"] = "Unknown"
+                    
+                cls._DB_CONNECTOR.insert(TARGETS_COLLECTION, [json_response])
+                
             except:
                 json_response["error"]  = str(sys.exc_info()[1])
                 http_status_code        = 500

@@ -31,8 +31,10 @@ HOSTNAME = "localhost"
 
 if DEV:
     PORT = 8020
+    DATABASE_NAME = "Bioinformatics_dev"
 else:
     PORT = 8010
+    DATABASE_NAME = "Bioinformatics"
     
 if HOSTNAME == "localhost":
 #     HOME_DIR = "/Users/dandicara/Documents/flask_api"
@@ -44,3 +46,7 @@ TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets"
 PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % 
                                        str(PORT))
+DATABASE_URL            = "bioweb"
+DATABASE_PORT           = 27017
+TARGETS_COLLECTION      = "targets"
+PROBES_COLLECTION       = "probes"

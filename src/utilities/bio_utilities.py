@@ -27,9 +27,16 @@ from Bio import SeqIO
 def validate_fasta(fasta):
     '''
     Use biopython to read in the FASTA and return True if >1 records are found.
-    Otherwise, return False.
+    Otherwise, return False. Fasta can be a file path or a file handle.
     '''
     identifiers = [seq_record.id for seq_record in SeqIO.parse(fasta, "fasta")]
+    
+    try:
+        # If input is a file handle, return it to the start of file.
+        fasta.seek(0)
+    except:
+        pass
+    
     return len(identifiers) > 0
         
 #===============================================================================

@@ -76,7 +76,7 @@ class TargetsPost(AbstractPostFunction):
         if os.path.exists(path) or targets_file.filename in existing_filenames:
             json_response[ERROR] = "File already exists. Delete the existing file and try again."
             http_status_code     = 403
-        elif validate_fasta(path) == False:
+        elif validate_fasta(targets_file) == False:
             json_response[ERROR] = "File is not a valid FASTA."
             http_status_code     = 415
         else:

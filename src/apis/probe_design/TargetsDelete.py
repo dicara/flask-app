@@ -57,6 +57,7 @@ class TargetsDelete(AbstractDeleteFunction):
     @classmethod
     def process_request(cls, params_dict):
         targets_uuids = params_dict[ParameterFactory.uuid()]
+        print targets_uuids
         criteria = dict()
         criteria[UUID] = {"$in": targets_uuids}
         print criteria

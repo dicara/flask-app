@@ -12,7 +12,7 @@ functionality.
 @date:   Mar 12, 2014
 '''
 
-#=============================================================================
+# =============================================================================
 # Imports
 #=============================================================================
 from src.apis.parameters.DateParameter import DateParameter
@@ -34,78 +34,81 @@ from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
 # Class
 #=============================================================================
 class ParameterFactory(object):
-    
     @classmethod
     def format(cls):
-        ''' Create a parameter instance for defining the return format of the result.'''
+        """ Create a parameter instance for defining the return format of the result."""
         return CaseSensitiveStringParameter(FORMAT, "Format of result.",
-                                         FORMATS._fields,
-                                         default=FORMATS.json, # @UndefinedVariable
-                                         allow_multiple=False)
+                                            FORMATS._fields,
+                                            default=FORMATS.json,  # @UndefinedVariable
+                                            allow_multiple=False)
 
     @classmethod
     def sequences(cls, required=False, allow_multiple=True,
-                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
-        ''' Create a parameter instance for specifying sequence(s). '''
+                  param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ Create a parameter instance for specifying sequence(s). """
         return CaseSensitiveStringParameter(SEQUENCE, "Comma separated sequence(s). ",
-                               param_type=param_type, required=required,
-                               allow_multiple=allow_multiple)
+                                            param_type=param_type, required=required,
+                                            allow_multiple=allow_multiple)
 
     @classmethod
     def sequence_names(cls, required=False, allow_multiple=True,
-                       param_type=PARAMETER_TYPES.query): # @UndefinedVariable
-        ''' Create a parameter instance for specifying sequence name(s). '''
+                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ Create a parameter instance for specifying sequence name(s). """
         return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
-                               param_type=param_type, required=required,
-                               allow_multiple=allow_multiple)
+                                            param_type=param_type, required=required,
+                                            allow_multiple=allow_multiple)
 
     @classmethod
-    def chromosome_num(cls, required=False, allow_multiple=False): # @UndefinedVariable
-        ''' Create a parameter instance for specifying chromosome number. '''
+    def chromosome_num(cls, required=False, allow_multiple=False, minimum=1,
+                       maximum=23):  # @UndefinedVariable
+        """ Create a parameter instance for specifying chromosome number. """
         return IntegerParameter(CHR_NUM, "Integer specifying chromosome. ",
-                               required=required, allow_multiple=allow_multiple)
+                                required=required, allow_multiple=allow_multiple,
+                                minimum=minimum, maximum=maximum)
+
     @classmethod
-    def chromosome_start(cls, required=False, allow_multiple=False): # @UndefinedVariable
-        ''' Create a parameter instance for specifying start position of chromosome. '''
+    def chromosome_start(cls, required=False, allow_multiple=False, minimum=0):  # @UndefinedVariable
+        """ Create a parameter instance for specifying start position of chromosome. """
         return IntegerParameter(CHR_START, "Integer specifying chromosome start position. ",
-                               required=required, allow_multiple=allow_multiple)
+                                required=required, allow_multiple=allow_multiple, minimum=minimum)
+
     @classmethod
-    def chromosome_stop(cls, required=False, allow_multiple=False): # @UndefinedVariable
-        ''' Create a parameter instance for specifying end position of chromosome. '''
+    def chromosome_stop(cls, required=False, allow_multiple=False, minimum=1):  # @UndefinedVariable
+        """ Create a parameter instance for specifying end position of chromosome. """
         return IntegerParameter(CHR_STOP, "Integer specifying chromosome end position. ",
-                               required=required, allow_multiple=allow_multiple)
+                                required=required, allow_multiple=allow_multiple, minimum=minimum)
 
     @classmethod
     def probes(cls, required=False, allow_multiple=True,
-                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
-        ''' Create a parameter instance for specifying probe(s). '''
+               param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ Create a parameter instance for specifying probe(s). """
         return UpperCaseStringParameter(PROBE, "Comma separated probe(s). ",
-                               param_type=param_type, required=required,
-                               allow_multiple=allow_multiple)
-        
+                                        param_type=param_type, required=required,
+                                        allow_multiple=allow_multiple)
+
     @classmethod
     def boolean(cls, name, description, default_value=True):
-        ''' Create a parameter instance for setting a flag to True or False.'''
+        """ Create a parameter instance for setting a flag to True or False."""
         return BooleanParameter(name, description, default=default_value)
-    
+
     @classmethod
-    def integer(cls, name, description, required=False, default=None, 
-                minimum=None, maximum=None ):
-        ''' Create a parameter instance for specifying an integer. '''
+    def integer(cls, name, description, required=False, default=None,
+                minimum=None, maximum=None):
+        """ Create a parameter instance for specifying an integer. """
         return IntegerParameter(name, description, required=required,
-                                allow_multiple=False, default=default, 
-                                minimum=minimum, maximum=maximum, 
-                                equality=EQUALITY.less_than_or_equal_to) # @UndefinedVariable
-        
+                                allow_multiple=False, default=default,
+                                minimum=minimum, maximum=maximum,
+                                equality=EQUALITY.less_than_or_equal_to)  # @UndefinedVariable
+
     @classmethod
     def file(cls, description):
-        ''' Create a parameter instance for uploading a file.'''
+        """ Create a parameter instance for uploading a file."""
         return FileParameter(FILE, description)
-    
+
     @classmethod
     def filenames(cls, required=True, allow_multiple=True,
-                  param_type=PARAMETER_TYPES.query): # @UndefinedVariable
-        ''' Create a parameter instance for specifying filename(s). '''
+                  param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ Create a parameter instance for specifying filename(s). """
         return CaseSensitiveStringParameter(FILENAMES, "Comma separated list of target filename(s) to delete. ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)

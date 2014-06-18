@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Dan DiCara
-@date:   Jun 1, 2014
+@author: Nathan Brown
+@date:   Jun 17, 2014
 '''
 
 #=============================================================================
@@ -28,9 +28,7 @@ from src.apis.snp_search.SnpFunction import SnpFunction
 #=============================================================================
 class SnpSearchApiV1(AbstractApiV1):
 
-    _FUNCTIONS = [
-                  SnpFunction(),
-                 ]
+    _FUNCTIONS = [SnpFunction()]
 
     @staticmethod
     def name():

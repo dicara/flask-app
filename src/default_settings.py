@@ -38,7 +38,7 @@ else:
     
 if HOSTNAME == "localhost":
 #     HOME_DIR = "/Users/dandicara/Documents/flask_api"
-    HOME_DIR = "/home/nate/Documents/flask_api"
+    HOME_DIR = "/home/ddicara/Documents/flask_api"
 else:
     HOME_DIR = "/home/ddicara/gnubio-bioinformatics-rest_api"
     

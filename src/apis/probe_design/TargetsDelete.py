@@ -74,7 +74,7 @@ class TargetsDelete(AbstractDeleteFunction):
                 
                 # Delete records from database
                 result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
-                
+                result = None
                 # Delete files from disk only if removal from DB was successful
                 if result and result['n'] == len(response["deleted"]):
                     for _,record in response["deleted"].iteritems():

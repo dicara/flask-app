@@ -42,7 +42,7 @@ class AbstractDeleteFunction(AbstractFunction):
     def response_messages():
         return [
                 { "code": 200, 
-                  "message": "Record deleted successfully."},
+                  "message": "Record(s) deleted successfully."},
                 { "code": 404, 
                   "message": "Deletion unsuccessful: no records found matching criteria."},
                 { "code": 500, 

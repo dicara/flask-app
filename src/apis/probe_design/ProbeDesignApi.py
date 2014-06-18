@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
-from src.apis.probe_design.Validation import ValidationFunction
+from src.apis.probe_design.ValidationFunction import ValidationFunction
 from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
 from src.apis.probe_design.TargetsGetFunction import TargetsGetFunction
 from src.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunction

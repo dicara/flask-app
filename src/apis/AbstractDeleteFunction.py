@@ -38,6 +38,17 @@ class AbstractDeleteFunction(AbstractFunction):
     def method():
         return METHODS.DELETE                               # @UndefinedVariable
     
+    @staticmethod
+    def response_messages():
+        return [
+                { "code": 200, 
+                  "message": "Record deleted successfully."},
+                { "code": 404, 
+                  "message": "Deletion unsuccessful: no records found matching criteria."},
+                { "code": 500, 
+                  "message": "Operation failed."},
+               ]
+    
     @classmethod
     def handle_request(cls, query_params, path_fields):
         '''

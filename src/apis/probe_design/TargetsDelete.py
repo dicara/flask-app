@@ -50,17 +50,6 @@ class TargetsDelete(AbstractDeleteFunction):
     def notes():
         return ""
     
-    @staticmethod
-    def response_messages():
-        return [
-                { "code": 200, 
-                  "message": "Request succeeded."},
-                { "code": 404, 
-                  "message": "No targets files found matching criteria."},
-                { "code": 500, 
-                  "message": "Operation failed."},
-               ]
-    
     @classmethod
     def parameters(cls):
         parameters = [
@@ -70,27 +59,49 @@ class TargetsDelete(AbstractDeleteFunction):
     
     @classmethod
     def process_request(cls, params_dict):
+        response         = {}
         http_status_code = 200
-        targets_uuids = params_dict[ParameterFactory.uuid()]
-        criteria = {UUID: {"$in": targets_uuids}}
-        json_response = {}
+        targets_uuids    = params_dict[ParameterFactory.uuid()]
+        criteria         = {UUID: {"$in": targets_uuids}}
+        
         try:
-            records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0, FILEPATH:1})
-            for record in records:
-                os.remove(record[FILEPATH])
-            result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
-            num_docs_removed = result['n']
-            if num_docs_removed < 1:
-                json_response[ERROR] = "No targets files found matching criteria."
+            records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0})
+            response["deleted"] = {}
+            if len(records) > 0:
+                # Record records
+                for record in records:
+                    response["deleted"][record[UUID]] = record
+                
+                # Delete records from database
+                result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
+                
+                # Delete files from disk only if removal from DB was successful
+                if result and result['n'] == len(response["deleted"]):
+                    for _,record in response["deleted"].iteritems():
+                        os.remove(record[FILEPATH])
+                else:
+                    del response["deleted"]
+                    raise Exception("Error deleting records from the database: %s" % result)
+            else:
                 http_status_code = 404
         except:
-            json_response[ERROR] = str(sys.exc_info()[1])
-            http_status_code     = 500
-        return make_response(jsonify(json_response), http_status_code)
+            response[ERROR]  = str(sys.exc_info()[1])
+            http_status_code = 500
+            
+        return make_response(jsonify(response), http_status_code)
 
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
     function = TargetsDelete()
-    print function
+#     print function
+    records =  function._DB_CONNECTOR.find(TARGETS_COLLECTION, {},{ID: 0})
+    response = {}
+    print len(records)
+    response["deleted"] = {}
+    for record in records:
+        response["deleted"][record[UUID]] = record
+    function._DB_CONNECTOR.remove(TARGETS_COLLECTION, {})
+    for k,v in response["deleted"].iteritems():
+        os.remove(v[FILEPATH])

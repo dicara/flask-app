@@ -37,7 +37,7 @@ from src.utilities.bio_utilities import validate_fasta
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesPost(AbstractPostFunction):
+class ProbesPostFunction(AbstractPostFunction):
     
     #===========================================================================
     # Overridden Methods
@@ -106,5 +106,5 @@ class ProbesPost(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesPost()
+    function = ProbesPostFunction()
     print function

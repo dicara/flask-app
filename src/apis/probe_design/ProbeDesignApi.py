@@ -22,11 +22,12 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
 from src.apis.probe_design.Validation import ValidationFunction
-from src.apis.probe_design.TargetsPost import TargetsPost
-from src.apis.probe_design.TargetsGet import TargetsGet
-from src.apis.probe_design.TargetsDelete import TargetsDelete
-from src.apis.probe_design.ProbesGet import ProbesGet
-from src.apis.probe_design.ProbesPost import ProbesPost
+from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
+from src.apis.probe_design.TargetsGetFunction import TargetsGetFunction
+from src.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunction
+from src.apis.probe_design.ProbesPostFunction import ProbesPostFunction
+from src.apis.probe_design.ProbesGetFunction import ProbesGetFunction
+from src.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
 
 #=============================================================================
 # Class
@@ -35,11 +36,12 @@ class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   ValidationFunction(),
-                  TargetsPost(),
-                  TargetsGet(),
-                  TargetsDelete(),
-                  ProbesPost(),
-                  ProbesGet(),
+                  TargetsPostFunction(),
+                  TargetsGetFunction(),
+                  TargetsDeleteFunction(),
+                  ProbesPostFunction(),
+                  ProbesGetFunction(),
+                  ProbesDeleteFunction,
                  ]
 
     @staticmethod

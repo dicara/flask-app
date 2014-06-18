@@ -37,7 +37,7 @@ from src.utilities.bio_utilities import validate_fasta
 #=============================================================================
 # Class
 #=============================================================================
-class TargetsPost(AbstractPostFunction):
+class TargetsPostFunction(AbstractPostFunction):
     
     #===========================================================================
     # Overridden Methods
@@ -105,5 +105,5 @@ class TargetsPost(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = TargetsPost()
+    function = TargetsPostFunction()
     print function

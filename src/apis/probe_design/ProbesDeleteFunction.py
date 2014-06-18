@@ -28,23 +28,23 @@ from flask import make_response, jsonify
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
 from src.apis.ApiConstants import ID, UUID, FILEPATH, ERROR
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import TARGETS_COLLECTION
+from src import PROBES_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class TargetsDelete(AbstractDeleteFunction):
+class ProbesDeleteFunction(AbstractDeleteFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Targets"
+        return "Probes"
    
     @staticmethod
     def summary():
-        return "Delete targets FASTA files."
+        return "Delete probes FASTA files."
     
     @staticmethod
     def notes():
@@ -65,7 +65,7 @@ class TargetsDelete(AbstractDeleteFunction):
         criteria         = {UUID: {"$in": targets_uuids}}
         
         try:
-            records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0})
+            records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
             response["deleted"] = {}
             if len(records) > 0:
                 # Record records
@@ -73,8 +73,8 @@ class TargetsDelete(AbstractDeleteFunction):
                     response["deleted"][record[UUID]] = record
                 
                 # Delete records from database
-                result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
-                result = None
+                result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
+                
                 # Delete files from disk only if removal from DB was successful
                 if result and result['n'] == len(response["deleted"]):
                     for _,record in response["deleted"].iteritems():
@@ -94,14 +94,5 @@ class TargetsDelete(AbstractDeleteFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = TargetsDelete()
-#     print function
-    records =  function._DB_CONNECTOR.find(TARGETS_COLLECTION, {},{ID: 0})
-    response = {}
-    print len(records)
-    response["deleted"] = {}
-    for record in records:
-        response["deleted"][record[UUID]] = record
-    function._DB_CONNECTOR.remove(TARGETS_COLLECTION, {})
-    for k,v in response["deleted"].iteritems():
-        os.remove(v[FILEPATH])
+    function = ProbesDelete()
+    print function

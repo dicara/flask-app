@@ -28,7 +28,7 @@ from src.apis.ApiConstants import ID
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesGet(AbstractGetFunction):
+class ProbesGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
@@ -60,5 +60,5 @@ class ProbesGet(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesGet()
+    function = ProbesGetFunction()
     print function

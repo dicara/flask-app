@@ -28,7 +28,7 @@ from src.apis.ApiConstants import ID
 #=============================================================================
 # Class
 #=============================================================================
-class TargetsGet(AbstractGetFunction):
+class TargetsGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
@@ -60,5 +60,5 @@ class TargetsGet(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = TargetsGet()
+    function = TargetsGetFunction()
     print function

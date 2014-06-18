@@ -74,6 +74,10 @@ class AbstractFunction(object):
         '''
         return {}
     
+    @staticmethod
+    def response_messages():
+        return [{"code": 404, "message": "not found"}]
+    
     #===========================================================================
     # Abstract Class Methods
     #===========================================================================    
@@ -160,7 +164,7 @@ class AbstractFunction(object):
     def method():
         raise NotImplementedError("AbstractFunction subclass must implement " \
                                   "method method.")
-    
+        
     #===========================================================================
     # Helper Methods
     #===========================================================================    
@@ -286,7 +290,7 @@ class AbstractFunction(object):
         operation["type"]       = cls.type()
         operation["nickname"]   = cls.name()
         operation["parameters"] = list()
-        operation["responseMessages"] = [{"code": 404, "message": "not found"}]
+        operation["responseMessages"] = cls.response_messages()
         for param in cls.parameters():
             operation["parameters"].append(param.getParameterDict())
         function["operations"].append(operation)

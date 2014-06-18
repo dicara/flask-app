@@ -38,6 +38,19 @@ class AbstractPostFunction(AbstractFunction):
     def method():
         return METHODS.POST                                 # @UndefinedVariable
     
+    @staticmethod
+    def response_messages():
+        return [
+                { "code": 200, 
+                  "message": "Record(s) posted successfully."},
+                { "code": 403, 
+                  "message": "File already exists. Delete the existing file and retry."},
+                { "code": 415, 
+                  "message": "File is not a valid FASTA file."},
+                { "code": 500, 
+                  "message": "Operation failed."},
+               ]
+    
     @classmethod
     def handle_request(cls, query_params, path_fields):
         '''

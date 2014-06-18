@@ -68,16 +68,14 @@ class TargetsPostFunction(AbstractPostFunction):
                           FILENAME: targets_file.filename,
                           ERROR: ""
                         }
-        http_status_code = 201
+        http_status_code = 200
         file_uuid        = str(uuid4())
         
         path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
         existing_filenames = cls._DB_CONNECTOR.distinct(TARGETS_COLLECTION, FILENAME)
         if os.path.exists(path) or targets_file.filename in existing_filenames:
-            json_response[ERROR] = "File already exists. Delete the existing file and try again."
             http_status_code     = 403
         elif validate_fasta(targets_file) == False:
-            json_response[ERROR] = "File is not a valid FASTA."
             http_status_code     = 415
         else:
             try:

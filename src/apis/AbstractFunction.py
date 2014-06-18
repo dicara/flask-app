@@ -76,7 +76,7 @@ class AbstractFunction(object):
     
     @staticmethod
     def response_messages():
-        return [{"code": 404, "message": "not found"}]
+        return [{"code": 200, "message": "Operation successful."}]
     
     #===========================================================================
     # Abstract Class Methods

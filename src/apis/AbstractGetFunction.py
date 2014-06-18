@@ -64,7 +64,7 @@ class AbstractGetFunction(AbstractFunction):
         if _format == FORMATS.json:                         # @UndefinedVariable
             # jsonify allows NaNs which are not valid json, so replace with None
             jsonified_data = jsonify({cls.name(): cls._remove_nans_from_list(items)})
-            return make_response(jsonified_data), _format, page_info
+            return make_response(jsonified_data, 200), _format, page_info
         elif _format == FORMATS.tsv:                        # @UndefinedVariable
             if dict_items:
                 return cls._generate_delimited_output(items, "\t", column_names), _format, page_info
@@ -72,7 +72,7 @@ class AbstractGetFunction(AbstractFunction):
                 tsv = cls.name()
                 for item in items:
                     tsv += "\n" + item
-                return make_response(tsv), _format, page_info
+                return make_response(tsv, 200), _format, page_info
         elif _format == FORMATS.csv:                        # @UndefinedVariable
             if dict_items:
                 return cls._generate_delimited_output(items, ",", column_names), _format, page_info
@@ -80,7 +80,7 @@ class AbstractGetFunction(AbstractFunction):
                 csv = cls.name()
                 for item in items:
                     csv += "\n" + item
-                return make_response(csv), _format, page_info
+                return make_response(csv, 200), _format, page_info
         else:
             raise Exception("Unrecognized output format: %s." % _format)
         

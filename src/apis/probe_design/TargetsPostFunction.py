@@ -81,9 +81,9 @@ class TargetsPostFunction(AbstractPostFunction):
             try:
                 targets_file.save(path)
                 targets_file.close()
-                json_response[URL]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
-                json_response[FILEPATH] = path
-                json_response[UUID] = file_uuid
+                json_response[URL]       = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
+                json_response[FILEPATH]  = path
+                json_response[UUID]      = file_uuid
                 json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
                 json_response[TYPE]      = "targets"
                 if "." in targets_file.filename:

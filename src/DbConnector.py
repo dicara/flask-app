@@ -83,9 +83,7 @@ class DbConnector(object):
             
     @staticmethod
     def find_one(collection, column_name, column_value):
-        print "colname %s" % column_name
-        print "colval %s" %column_value
-        return DB[collection].find_one({"uuid":"4a8bb28e-f504-4a64-90ad-53ad33704d31"}), DB[collection].find_one({column_name: column_value}), DB[collection].find_one()
+        return DB[collection].find_one({column_name: column_value})
             
 #===========================================================================
 # Ensure the initial instance is created.

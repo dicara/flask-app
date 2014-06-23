@@ -45,7 +45,10 @@ class ValidationFunction(AbstractGetFunction):
     
     @staticmethod
     def notes():
-        return "In depth description goes here."
+        return "Probes and targets files must be uploaded using their upload " \
+            "APIs prior to calling this function. Use the provided uuids " \
+            "returned by the upload APIs to select the targets and probes " \
+            "for which you are performing this validation."
     
     @classmethod
     def parameters(cls):
@@ -61,6 +64,17 @@ class ValidationFunction(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
+        probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)]
+        targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)]
+        absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")]
+        num               = params_dict[ ParameterFactory.integer("num", "Minimum number of probes for a target.",
+                                               default=3, minimum=1)]
+        print "Probes: %s" % probes_file_uuid
+        print "Targets: %s" % targets_file_uuid
+        print "absorb: %s" % absorb
+        print "num: %s" % num
+        
+        
 #         sequences      = params_dict[ParameterFactory.sequences(required=True)]
 #         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
 #         

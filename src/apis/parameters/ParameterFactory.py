@@ -92,9 +92,10 @@ class ParameterFactory(object):
                                         allow_multiple=allow_multiple)
 
     @classmethod
-    def boolean(cls, name, description, default_value=True):
+    def boolean(cls, name, description, default_value=True, required=False):
         """ Create a parameter instance for setting a flag to True or False."""
-        return BooleanParameter(name, description, default=default_value)
+        return BooleanParameter(name, description, default=default_value, 
+                                required=required)
 
     @classmethod
     def integer(cls, name, description, required=False, default=None,
@@ -127,7 +128,7 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple)
 
     @classmethod
-    def file_uuid(cls, alias, collection, required=True, allow_multiple=True):
+    def file_uuid(cls, alias, collection, required=True, allow_multiple=False):
         return LowerCaseStringParameter(UUID, "Comma separated file uuid(s). ",
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, 

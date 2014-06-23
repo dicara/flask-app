@@ -1,17 +1,55 @@
-from collections import namedtuple
-
-from Bio import SeqIO, SearchIO
 import os
 import subprocess
+
+from collections import namedtuple
+from Bio import SeqIO, SearchIO
 from uuid import uuid4
 from Bio.Seq import Seq, reverse_complement
 from Bio.SeqRecord import SeqRecord
+from redis import StrictRedis
 
+
+from src.analyses.melting_temperature.idtClient import IDTClient
 from src.analyses.probe_validation import settings
 from src.analyses.probe_validation.ncbi_util import chromosome_for_ref_assembly
-from src.analyses.probe_validation.probe_util import get_tm_checker
 
 __author__ = 'spowers'
+
+def get_tm_checker():
+    """
+    :return: a function closed over the needed clients to check the Tm of a probe.
+    """
+    r = StrictRedis(settings.REDIS_CONFIG['REDIS_HOST'], settings.REDIS_CONFIG['REDIS_PORT'],
+                    settings.REDIS_CONFIG['REDIS_DB'])
+    try:
+        itdClient = IDTClient()
+    except:
+        itdClient = None
+
+    def check_tm(probe):
+        """
+        :param probe: A probe to check the Tm for
+        """
+        if r.exists(probe):
+            info = r.hgetall(probe)
+        else:
+            try:
+                tm = itdClient.get_melting_temp(probe)
+                dimer = itdClient.self_dimer_check(probe)
+            except:
+                itdClient = IDTClient()
+                tm = itdClient.get_melting_temp(probe)
+                dimer = itdClient.self_dimer_check(probe)
+            info = {'tm': tm.tm, 'dimer': dimer.self_dimer, 'compPercent': dimer.compPercent}
+            r.hmset(probe, info)
+        if settings.PROBES['min_tm'] < float(info['tm']) < settings.PROBES['max_tm'] and info[
+            'dimer'] != 'true' and float(info['compPercent']) < settings.PROBES['max_comp_percent']:
+            return probe
+        else:
+            return None
+
+    return check_tm
+
 
 
 def _find_amplicon_in_refgenome(amplicon):
@@ -26,7 +64,8 @@ def _find_amplicon_in_refgenome(amplicon):
     try:
         os.remove(filename + '.fa')
         os.remove(filename + '.psl')
-    except os.OSError:
+#     except os.OSError:
+    except:
         return None
     return search_results[0]
 

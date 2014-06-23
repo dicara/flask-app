@@ -3,8 +3,7 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import reverse_complement
 from redis import StrictRedis
-from src.analyses.melting_temperature.idtClient import IDTClient
-from src.analyses.probe_validation.probe_containers import ProbeSet, AmpliconSet, Amplicon
+from src.analyses.probe_validation.probe_containers import ProbeSet, AmpliconSet, Amplicon, get_tm_checker
 from src.analyses.probe_validation import  settings
 
 __author__ = 'spowers'
@@ -94,6 +93,7 @@ def global_probe_counts_refgenome(amplicons, probes):
     results = defaultdict(list)
     for amplicon in amplicons:
         for probe in probes:
+            print amplicon
             results[probe].extend(amplicon.relative_to_genomic(amplicon.findall(probe)))
 
     for probe in results.keys():
@@ -146,42 +146,6 @@ def retrieve_probes():
         lambda s: (settings.QUENCHER.reverse_complement().count(s) + settings.RB3.reverse_complement().count(s) == 0),
         probes)
     return probes
-
-
-def get_tm_checker():
-    """
-    :return: a function closed over the needed clients to check the Tm of a probe.
-    """
-    r = StrictRedis(settings.REDIS_CONFIG['REDIS_HOST'], settings.REDIS_CONFIG['REDIS_PORT'],
-                    settings.REDIS_CONFIG['REDIS_DB'])
-    try:
-        itdClient = IDTClient()
-    except:
-        itdClient = None
-
-    def check_tm(probe):
-        """
-        :param probe: A probe to check the Tm for
-        """
-        if r.exists(probe):
-            info = r.hgetall(probe)
-        else:
-            try:
-                tm = itdClient.get_melting_temp(probe)
-                dimer = itdClient.self_dimer_check(probe)
-            except:
-                itdClient = IDTClient()
-                tm = itdClient.get_melting_temp(probe)
-                dimer = itdClient.self_dimer_check(probe)
-            info = {'tm': tm.tm, 'dimer': dimer.self_dimer, 'compPercent': dimer.compPercent}
-            r.hmset(probe, info)
-        if settings.PROBES['min_tm'] < float(info['tm']) < settings.PROBES['max_tm'] and info[
-            'dimer'] != 'true' and float(info['compPercent']) < settings.PROBES['max_comp_percent']:
-            return probe
-        else:
-            return None
-
-    return check_tm
 
 
 def chop_sequence(seq, min=settings.PROBES['min_length'], max=settings.PROBES['max_length']):
@@ -274,10 +238,10 @@ def get_targets(in_filename):
     targets = [s for s in SeqIO.parse(in_filename, 'fasta')]
     for target in targets:
         #convert from Seq to Amplicon
-        target.__setattr__('seq', Amplicon(target.seq.tostring()))
+        target.__setattr__('seq', Amplicon(str(target.seq)))
 
     wild_types = [s for s in targets if '_WT' in s.name]  # wildtype is denoted by _WT at the end of the name.
     for wt in wild_types:
         #convert from Seq to Amplicon
-        wt.__setattr__('seq', Amplicon(wt.seq.tostring()))
+        wt.__setattr__('seq', Amplicon(str(wt.seq)))
     return targets, wild_types

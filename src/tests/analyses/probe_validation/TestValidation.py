@@ -25,13 +25,15 @@ import os
 import time
 import filecmp
 
+from src.analyses.probe_validation import validation
 
 #===============================================================================
 # Global Private Variables
 #===============================================================================
-_PROBES_FILENAME = "test_probes.csv"
-_EXPECTED_RESULT_FILENAME = "expected_melting_temps.txt"
-_OBSERVED_RESULT_FILENAME = "observed_melting_temps.txt"
+_TARGETS_FILENAME = "targets.fasta"
+_PROBES_FILENAME  = "probes.fasta"
+_EXPECTED_RESULT_FILENAME = "expected_validation.txt"
+_OBSERVED_RESULT_FILENAME = "observed_validation.txt"
 
 #===============================================================================
 # Test
@@ -39,10 +41,19 @@ _OBSERVED_RESULT_FILENAME = "observed_melting_temps.txt"
 class Test(unittest.TestCase):
     
     def setUp(self):
-        pass
+        self.targets_file = os.path.join(os.path.dirname(__file__), _TARGETS_FILENAME)
+        self.probes_file  = os.path.join(os.path.dirname(__file__), _PROBES_FILENAME)
+        self.absorb       = False
+        self.num          = 3
+        
+        msg = "%s targets FASTA file not found." % self.targets_file
+        self.assertTrue(os.path.isfile(self.targets_file), msg)
+        msg = "%s probes FASTA file not found." % self.probes_file
+        self.assertTrue(os.path.isfile(self.probes_file), msg)
 
     def test_validation(self):
-        pass
+        validation.validate(self.targets_file, self.probes_file, self.absorb, 
+                            _OBSERVED_RESULT_FILENAME, self.num)
             
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

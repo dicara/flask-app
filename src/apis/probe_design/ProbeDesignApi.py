@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
-from src.apis.probe_design.ValidationFunction import ValidationFunction
+from src.apis.probe_design.ValidationPostFunction import ValidationPostFunction
 from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
 from src.apis.probe_design.TargetsGetFunction import TargetsGetFunction
 from src.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunction
@@ -35,7 +35,7 @@ from src.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
 class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
-                  ValidationFunction(),
+                  ValidationPostFunction(),
                   TargetsPostFunction(),
                   TargetsGetFunction(),
                   TargetsDeleteFunction(),

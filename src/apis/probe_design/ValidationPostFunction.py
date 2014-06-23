@@ -77,11 +77,11 @@ class ValidationPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)]
-        targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)]
-        absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")]
+        probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)][0]
+        targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)][0]
+        absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")][0]
         num               = params_dict[ParameterFactory.integer("num", "Minimum number of probes for a target.",
-                                               default=3, minimum=1)]
+                                               default=3, minimum=1)][0]
         json_repsonse = {
                          "probes": probes_file_uuid,
                          "targets": targets_file_uuid,
@@ -90,10 +90,8 @@ class ValidationPostFunction(AbstractPostFunction):
                          }
 
         print "Probes: %s" % probes_file_uuid
-        find, path, one = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)
-        print "Probes find: %s" % find
+        path = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)
         print "Probes record: %s" % path
-        print "Probes one: %s" % one
         print "Targets: %s" % targets_file_uuid
         print "absorb: %s" % absorb
         print "num: %s" % num

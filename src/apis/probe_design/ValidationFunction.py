@@ -24,7 +24,7 @@ from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
 from src import PROBES_COLLECTION, TARGETS_COLLECTION
-
+from src.apis.ApiConstants import UUID
 #=============================================================================
 # Class
 #=============================================================================
@@ -67,31 +67,16 @@ class ValidationFunction(AbstractGetFunction):
         probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)]
         targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)]
         absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")]
-        num               = params_dict[ ParameterFactory.integer("num", "Minimum number of probes for a target.",
+        num               = params_dict[ParameterFactory.integer("num", "Minimum number of probes for a target.",
                                                default=3, minimum=1)]
         print "Probes: %s" % probes_file_uuid
+        path = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)
+        print "Probes record: " % path
         print "Targets: %s" % targets_file_uuid
         print "absorb: %s" % absorb
         print "num: %s" % num
         
-        
-#         sequences      = params_dict[ParameterFactory.sequences(required=True)]
-#         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
-#         
-#         # Every sequence must have an accompanying name
-#         if len(sequences) != len(sequence_names):
-#             return (None, None, None)
-#         
-#         data = list()
-#         for i, sequence in enumerate(sequences):
-#             melting_temp = cls._IDT_CLIENT.get_melting_temp(sequence)
-#             data.append({"Name": sequence_names[i], 
-#                          "Sequence": sequence,
-#                          "Tm": melting_temp.tm})
-#         columns = ["Name", "Sequence", "Tm"]
-#         return (data, columns, None)
         return (None, None, None)
-
          
 #===============================================================================
 # Run Main

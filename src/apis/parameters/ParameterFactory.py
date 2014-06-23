@@ -134,5 +134,3 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple, 
                                enum=cls._DB_CONNECTOR.get_distinct(collection, 
                                                                    UUID))
-        
-    

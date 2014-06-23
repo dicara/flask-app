@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:  Jun 12, 2014
+@date:  Jun 23, 2014
 '''
 
 #===============================================================================
@@ -25,7 +25,6 @@ import os
 import time
 import filecmp
 
-from src.apis.melting_temperature.idtClient import IDTClient
 
 #===============================================================================
 # Global Private Variables

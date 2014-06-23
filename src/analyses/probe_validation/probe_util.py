@@ -3,7 +3,7 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import reverse_complement
 from redis import StrictRedis
-from src.apis.melting_temperature.idtClient import IDTClient
+from src.analyses.melting_temperature.idtClient import IDTClient
 from src.analyses.probe_validation.probe_containers import ProbeSet, AmpliconSet, Amplicon
 from src.analyses.probe_validation import  settings
 

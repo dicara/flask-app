@@ -25,7 +25,7 @@ import os
 import time
 import filecmp
 
-from src.apis.melting_temperature.idtClient import IDTClient
+from src.analyses.melting_temperature.idtClient import IDTClient
 
 #===============================================================================
 # Global Private Variables

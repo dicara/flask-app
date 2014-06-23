@@ -2,7 +2,7 @@ import argparse
 from multiprocessing.pool import Pool
 from src.analyses.probe_validation.probe_util import get_targets, global_probe_counts_refgenome
 import settings
-from src.apis.melting_temperature.idtClient import CachedIDTClient
+from src.analyses.melting_temperature.idtClient import CachedIDTClient
 __author__ = 'spowers'
 
 
@@ -45,6 +45,8 @@ def get_checker(targets, locs):
 
     return check_validity
 
+def main():
+    pass
 
 if __name__ == "__main__":
     args = parse_cli_arguments()

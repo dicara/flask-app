@@ -30,12 +30,15 @@ from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP
     
-from src import DB
+from src.DbConnector import DbConnector
 
 #=============================================================================
 # Class
 #=============================================================================
 class ParameterFactory(object):
+    
+    _DB_CONNECTOR = DbConnector.Instance()
+    
     @classmethod
     def format(cls):
         """ Create a parameter instance for defining the return format of the result."""
@@ -128,6 +131,7 @@ class ParameterFactory(object):
         return LowerCaseStringParameter(UUID, "Comma separated file uuid(s). ",
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, 
-                               enum=DB.get_distinct(collection, UUID))
+                               enum=cls._DB_CONNECTOR.get_distinct(collection, 
+                                                                   UUID))
         
     

@@ -75,11 +75,8 @@ class TargetsPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
-        json_response = {
-                          FILENAME: targets_file.filename,
-                          ERROR: ""
-                        }
+        targets_file     = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
+        json_response    = {FILENAME: targets_file.filename}
         http_status_code = 200
         file_uuid        = str(uuid4())
         

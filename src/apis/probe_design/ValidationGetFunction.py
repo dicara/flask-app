@@ -20,10 +20,13 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from collections import OrderedDict
+
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import VALIDATION_COLLECTION
-from src.apis.ApiConstants import ID
+from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
+    TARGETS, DATESTAMP, ABSORB, NUM
 
 #=============================================================================
 # Class
@@ -54,7 +57,23 @@ class ValidationGetFunction(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        return (cls._DB_CONNECTOR.find(VALIDATION_COLLECTION, {}, {ID: 0}), None, None)
+        columns            = OrderedDict()
+        columns[ID]        = 0
+        columns[JOB_NAME]  = 1
+        columns[UUID]      = 1
+        columns[STATUS]    = 1
+        columns[DATESTAMP] = 1
+        columns[PROBES]    = 1
+        columns[TARGETS]   = 1
+        columns[ABSORB]    = 1
+        columns[NUM]       = 1
+        
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find(VALIDATION_COLLECTION, {}, columns)
+         
+        return (data, column_names, None)
          
 #===============================================================================
 # Run Main

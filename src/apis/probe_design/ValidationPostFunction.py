@@ -31,7 +31,7 @@ from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
-    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP
+    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP, ABSORB, NUM
 
 #=============================================================================
 # Class
@@ -92,8 +92,8 @@ class ValidationPostFunction(AbstractPostFunction):
         json_response = {
                          PROBES: probes_file_uuid,
                          TARGETS: targets_file_uuid,
-                         "absorb": absorb,
-                         "num": num,
+                         ABSORB: absorb,
+                         NUM: num,
                          UUID: str(uuid4()),
                          STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
                          JOB_NAME: job_name,

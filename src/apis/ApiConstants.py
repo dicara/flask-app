@@ -122,6 +122,8 @@ STATUS        = "status"
 JOB_NAME      = "job_name"
 PROBES        = "probes"
 TARGETS       = "targets"
+ABSORB        = "absorb"
+NUM           = "num"
 
 #=============================================================================
 # Miscellaneous namedtuples 

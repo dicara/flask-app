@@ -20,7 +20,9 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from src.apis.AbstractGetFunction import AbstractGetFunction
+from flask import make_response, jsonify
+
+from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
 from src import PROBES_COLLECTION, TARGETS_COLLECTION
@@ -29,7 +31,7 @@ from src.apis.ApiConstants import UUID, FILEPATH
 #=============================================================================
 # Class
 #=============================================================================
-class ValidationFunction(AbstractGetFunction):
+class ValidationPostFunction(AbstractPostFunction):
     
     _IDT_CLIENT = IDTClient()
     
@@ -50,6 +52,16 @@ class ValidationFunction(AbstractGetFunction):
             "APIs prior to calling this function. Use the provided uuids " \
             "returned by the upload APIs to select the targets and probes " \
             "for which you are performing this validation."
+    
+    def response_messages(self):
+        msgs = super(ValidationPostFunction, self).response_messages()
+#         msgs.extend([
+#                      { "code": 403, 
+#                        "message": "File already exists. Delete the existing file and retry."},
+#                      { "code": 415, 
+#                        "message": "File is not a valid FASTA file."},
+#                     ])
+        return msgs
     
     @classmethod
     def parameters(cls):
@@ -85,12 +97,11 @@ class ValidationFunction(AbstractGetFunction):
         print "absorb: %s" % absorb
         print "num: %s" % num
         
-        
-        return (json_repsonse, None, None)
+        return make_response(jsonify(json_repsonse), 500)
          
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ValidationFunction()
+    function = ValidationPostFunction()
     print function

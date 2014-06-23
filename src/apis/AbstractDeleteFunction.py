@@ -38,8 +38,7 @@ class AbstractDeleteFunction(AbstractFunction):
     def method():
         return METHODS.DELETE                               # @UndefinedVariable
     
-    @staticmethod
-    def response_messages():
+    def response_messages(self):
         return [
                 { "code": 200, 
                   "message": "Record(s) deleted successfully."},

@@ -29,6 +29,8 @@ from src.apis.parameters.FileParameter import FileParameter
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP
+    
+from src import DB
 
 #=============================================================================
 # Class
@@ -120,3 +122,12 @@ class ParameterFactory(object):
         return LowerCaseStringParameter(UUID, "Comma separated uuid(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
+
+    @classmethod
+    def file_uuid(cls, alias, collection, required=True, allow_multiple=True):
+        return LowerCaseStringParameter(UUID, "Comma separated file uuid(s). ",
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple, 
+                               enum=DB.get_distinct(collection, UUID))
+        
+    

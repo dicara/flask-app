@@ -61,6 +61,21 @@ class DbConnector(object):
     
     def remove(self, collection, criteria):
         return DB[collection].remove(criteria)
+    
+    @classmethod
+    def get_distinct(cls, collection, column_name, is_string=True):
+        '''
+        Call distinct on the provide column_name in the provided collection. If
+        the column contains strings, then return case-insensitively sorted 
+        results. Otherwise, simply sort the results.
+        '''
+        if is_string:
+            return sorted(filter(lambda x: x is not None, 
+                                 DB[collection].distinct(column_name)), 
+                          key=lambda s: s.lower())
+        else:
+            return sorted(filter(lambda x: x is not None, 
+                                 DB[collection].distinct(column_name)))
         
 #===========================================================================
 # Ensure the initial instance is created.

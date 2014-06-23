@@ -28,7 +28,6 @@ from datetime import datetime
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.melting_temperature.idtClient import IDTClient
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP, ABSORB, NUM
@@ -37,8 +36,6 @@ from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
 # Class
 #=============================================================================
 class ValidationPostFunction(AbstractPostFunction):
-    
-    _IDT_CLIENT = IDTClient()
     
     #===========================================================================
     # Overridden Methods

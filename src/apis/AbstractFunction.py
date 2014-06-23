@@ -76,7 +76,10 @@ class AbstractFunction(object):
     
     @staticmethod
     def response_messages():
-        return [{"code": 200, "message": "Operation successful."}]
+        return [
+                { "code": 200, "message": "Operation successful."},
+                { "code": 500, "message": "Operation failed."},
+               ]
     
     #===========================================================================
     # Abstract Class Methods

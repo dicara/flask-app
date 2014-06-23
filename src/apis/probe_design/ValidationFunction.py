@@ -70,6 +70,13 @@ class ValidationFunction(AbstractGetFunction):
         absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")]
         num               = params_dict[ParameterFactory.integer("num", "Minimum number of probes for a target.",
                                                default=3, minimum=1)]
+        json_repsonse = {
+                         "probes": probes_file_uuid,
+                         "targets": targets_file_uuid,
+                         "absorb": absorb,
+                         "num": num,
+                         }
+
         print "Probes: %s" % probes_file_uuid
         path, one = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)
         print "Probes record: %s" % path
@@ -78,7 +85,8 @@ class ValidationFunction(AbstractGetFunction):
         print "absorb: %s" % absorb
         print "num: %s" % num
         
-        return (None, None, None)
+        
+        return (json_repsonse, None, None)
          
 #===============================================================================
 # Run Main

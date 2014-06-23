@@ -49,6 +49,16 @@ class AbstractFunction(object):
         if len(dups) > 0:
             raise Exception("Duplicate parameters not allowed: %s" % ", ".join(dups))
     
+    
+    #===========================================================================
+    # Overridable Instance Methods
+    #===========================================================================    
+    def response_messages(self):
+        return [
+                { "code": 200, "message": "Operation successful."},
+                { "code": 500, "message": "Operation failed."},
+               ]
+        
     #===========================================================================
     # Overridable Class Methods
     #===========================================================================    
@@ -73,13 +83,6 @@ class AbstractFunction(object):
         https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#526-models-object
         '''
         return {}
-    
-    @staticmethod
-    def response_messages():
-        return [
-                { "code": 200, "message": "Operation successful."},
-                { "code": 500, "message": "Operation failed."},
-               ]
     
     #===========================================================================
     # Abstract Class Methods

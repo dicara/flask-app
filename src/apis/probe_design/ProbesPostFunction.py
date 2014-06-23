@@ -52,7 +52,19 @@ class ProbesPostFunction(AbstractPostFunction):
     
     @staticmethod
     def notes():
-        return "In depth description goes here."
+        return "The returned uuid identifies the uploaded file and must " \
+            "be used to select this file as input to APIs that consume " \
+            "probes files."
+    
+    def response_messages(self):
+        msgs = super(ProbesPostFunction, self).response_messages()
+        msgs.extend([
+                     { "code": 403, 
+                       "message": "File already exists. Delete the existing file and retry."},
+                     { "code": 415, 
+                       "message": "File is not a valid FASTA file."},
+                    ])
+        return msgs
     
     @classmethod
     def parameters(cls):

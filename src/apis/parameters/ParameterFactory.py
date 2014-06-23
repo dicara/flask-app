@@ -129,7 +129,11 @@ class ParameterFactory(object):
 
     @classmethod
     def file_uuid(cls, alias, collection, required=True, allow_multiple=False):
-        return LowerCaseStringParameter(UUID, "Comma separated file uuid(s). ",
+        if allow_multiple:
+            description = "Comma separated UUID(s)."
+        else:
+            description = "File UUID."
+        return LowerCaseStringParameter(UUID, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, 
                                enum=cls._DB_CONNECTOR.get_distinct(collection, 

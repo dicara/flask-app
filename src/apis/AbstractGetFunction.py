@@ -57,7 +57,7 @@ class AbstractGetFunction(AbstractFunction):
         (items, column_names, page_info) = cls.process_request(params_dict)
 
         if items is None:
-            make_response(jsonify({"error": "Operation failed."}), 500)
+            return make_response(jsonify({"error": "Operation failed."}), 500)
 
         dict_items = False        
         if len(items) > 0:

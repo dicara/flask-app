@@ -71,7 +71,6 @@ class ValidationPostFunction(AbstractPostFunction):
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.format(),
                       ParameterFactory.file_uuid(PROBES, PROBES_COLLECTION),
                       ParameterFactory.file_uuid(TARGETS, TARGETS_COLLECTION),
                       ParameterFactory.boolean("absorb", "Check for absorbed probes."),

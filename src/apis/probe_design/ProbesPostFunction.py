@@ -27,8 +27,8 @@ from uuid import uuid4
 from flask import make_response, jsonify
 from datetime import datetime
 
-from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
-    URL, DATESTAMP, TYPE, ERROR, UUID
+from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
+    DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import HOSTNAME, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
@@ -75,11 +75,8 @@ class ProbesPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        probes_file = params_dict[ParameterFactory.file("Probes file.")][0]
-        json_response = {
-                          FILENAME: probes_file.filename,
-                          ERROR: "",
-                        }
+        probes_file      = params_dict[ParameterFactory.file("Probes file.")][0]
+        json_response    = {FILENAME: probes_file.filename}
         http_status_code = 200
         file_uuid        = str(uuid4())
 

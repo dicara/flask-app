@@ -283,21 +283,20 @@ class AbstractFunction(object):
     #===========================================================================
     # Swagger Methods
     #===========================================================================    
-    @classmethod
-    def getSwaggerDeclaration(cls, resourcePath):
+    def getSwaggerDeclaration(self, resourcePath):
         function               = dict()
-        function["path"]       = os.path.join(resourcePath, cls.path())
+        function["path"]       = os.path.join(resourcePath, self.path())
         function["operations"] = list()
         
         operation               = dict()
-        operation["method"]     = cls.method()
-        operation["summary"]    = cls.summary()
-        operation["notes"]      = cls.notes()
-        operation["type"]       = cls.type()
-        operation["nickname"]   = cls.name()
+        operation["method"]     = self.method()
+        operation["summary"]    = self.summary()
+        operation["notes"]      = self.notes()
+        operation["type"]       = self.type()
+        operation["nickname"]   = self.name()
         operation["parameters"] = list()
-        operation["responseMessages"] = cls.response_messages()
-        for param in cls.parameters():
+        operation["responseMessages"] = self.response_messages()
+        for param in self.parameters():
             operation["parameters"].append(param.getParameterDict())
         function["operations"].append(operation)
         return function

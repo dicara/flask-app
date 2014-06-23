@@ -50,3 +50,4 @@ DATABASE_URL            = "bioweb"
 DATABASE_PORT           = 27017
 TARGETS_COLLECTION      = "targets"
 PROBES_COLLECTION       = "probes"
+VALIDATION_COLLECTION   = "validation"

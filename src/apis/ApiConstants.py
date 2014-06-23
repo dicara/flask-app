@@ -86,6 +86,15 @@ PARAMETER_TYPES_TUPLE = namedtuple('ParameterTypes',
                                    ])
 PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 
+JOB_STATUS_TUPLE = namedtuple('JobStatus',
+                              [
+                               'submitted',
+                               'running',
+                               'succeeded',
+                               'failed',
+                              ])
+JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
+
 #=============================================================================
 # Miscellaneous Constants 
 #=============================================================================
@@ -109,6 +118,10 @@ DATESTAMP     = "datestamp"
 TYPE          = "type"
 ERROR         = "error"
 UUID          = "uuid"
+STATUS        = "status"
+JOB_NAME      = "job_name"
+PROBES        = "probes"
+TARGETS       = "targets"
 
 #=============================================================================
 # Miscellaneous namedtuples 

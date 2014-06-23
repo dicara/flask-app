@@ -90,9 +90,11 @@ class ValidationPostFunction(AbstractPostFunction):
                          }
 
         print "Probes: %s" % probes_file_uuid
-        path = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)
-        print "Probes record: %s" % path
+        path = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
+        print "Probes path: %s" % path
         print "Targets: %s" % targets_file_uuid
+        path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
+        print "Targets path: %s" % path
         print "absorb: %s" % absorb
         print "num: %s" % num
         

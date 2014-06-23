@@ -94,5 +94,5 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesDelete()
+    function = ProbesDeleteFunction()
     print function

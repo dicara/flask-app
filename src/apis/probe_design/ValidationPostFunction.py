@@ -24,13 +24,14 @@ import sys
 
 from flask import make_response, jsonify
 from uuid import uuid4
+from datetime import datetime
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
-    ERROR, JOB_NAME, PROBES, TARGETS
+    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP
 
 #=============================================================================
 # Class
@@ -97,6 +98,7 @@ class ValidationPostFunction(AbstractPostFunction):
                          UUID: str(uuid4()),
                          STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
                          JOB_NAME: job_name,
+                         DATESTAMP: datetime.today(),
                         }
         http_status_code = 200
         
@@ -104,12 +106,13 @@ class ValidationPostFunction(AbstractPostFunction):
             http_status_code     = 403
         else:
             try:
-                cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
-                del json_response[ID]
                 probes_path  = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
                 targets_path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
                 
                 #ADD VALIDATOR JOB TO QUEUE
+
+                cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
+                del json_response[ID]
             except:
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500

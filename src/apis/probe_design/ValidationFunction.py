@@ -23,6 +23,7 @@ limitations under the License.
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
+from src import PROBES_COLLECTION, TARGETS_COLLECTION
 
 #=============================================================================
 # Class
@@ -50,7 +51,8 @@ class ValidationFunction(AbstractGetFunction):
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
-                      ParameterFactory.probes(required=True),
+                      ParameterFactory.file_uuid("probes", PROBES_COLLECTION),
+                      ParameterFactory.file_uuid("targets", TARGETS_COLLECTION),
                       ParameterFactory.boolean("absorb", "Check for absorbed probes."),
                       ParameterFactory.integer("num", "Minimum number of probes for a target.",
                                                default=3, minimum=1),

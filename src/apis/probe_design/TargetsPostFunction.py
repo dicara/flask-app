@@ -96,7 +96,7 @@ class TargetsPostFunction(AbstractPostFunction):
                 json_response[URL]       = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
                 json_response[FILEPATH]  = path
                 json_response[UUID]      = file_uuid
-                json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
+                json_response[DATESTAMP] = datetime.today()
                 json_response[TYPE]      = "targets"
                 if "." in targets_file.filename:
                     json_response[FORMAT] = targets_file.filename.split(".")[-1]

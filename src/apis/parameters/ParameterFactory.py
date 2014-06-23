@@ -138,3 +138,10 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple, 
                                enum=cls._DB_CONNECTOR.get_distinct(collection, 
                                                                    UUID))    
+
+    @classmethod
+    def lc_string(cls, name, description, alias=None, required=True, 
+                  allow_multiple=False):
+        return LowerCaseStringParameter(name, description,
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple)

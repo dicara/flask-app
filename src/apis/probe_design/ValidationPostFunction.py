@@ -20,13 +20,17 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import sys
+
 from flask import make_response, jsonify
+from uuid import uuid4
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.melting_temperature.idtClient import IDTClient
-from src import PROBES_COLLECTION, TARGETS_COLLECTION
-from src.apis.ApiConstants import UUID, FILEPATH
+from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION
+from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
+    ERROR, JOB_NAME, PROBES, TARGETS
 
 #=============================================================================
 # Class
@@ -40,11 +44,11 @@ class ValidationPostFunction(AbstractPostFunction):
     #===========================================================================    
     @staticmethod
     def name():
-        return "Validity"
+        return "Validation"
    
     @staticmethod
     def summary():
-        return "Check the validity of a set of probes."
+        return "Check the validity of a set of probes for a given set of targets."
     
     @staticmethod
     def notes():
@@ -52,26 +56,27 @@ class ValidationPostFunction(AbstractPostFunction):
             "APIs prior to calling this function. Use the provided uuids " \
             "returned by the upload APIs to select the targets and probes " \
             "for which you are performing this validation."
-    
+
     def response_messages(self):
         msgs = super(ValidationPostFunction, self).response_messages()
-#         msgs.extend([
-#                      { "code": 403, 
-#                        "message": "File already exists. Delete the existing file and retry."},
+        msgs.extend([
+                     { "code": 403, 
+                       "message": "Job name already exists. Delete the existing job or pick a new name."},
 #                      { "code": 415, 
 #                        "message": "File is not a valid FASTA file."},
-#                     ])
+                    ])
         return msgs
     
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
-                      ParameterFactory.file_uuid("probes", PROBES_COLLECTION),
-                      ParameterFactory.file_uuid("targets", TARGETS_COLLECTION),
+                      ParameterFactory.file_uuid(PROBES, PROBES_COLLECTION),
+                      ParameterFactory.file_uuid(TARGETS, TARGETS_COLLECTION),
                       ParameterFactory.boolean("absorb", "Check for absorbed probes."),
                       ParameterFactory.integer("num", "Minimum number of probes for a target.",
                                                default=3, minimum=1),
+                      ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")
                      ]
         return parameters
     
@@ -82,23 +87,34 @@ class ValidationPostFunction(AbstractPostFunction):
         absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")][0]
         num               = params_dict[ParameterFactory.integer("num", "Minimum number of probes for a target.",
                                                default=3, minimum=1)][0]
-        json_repsonse = {
-                         "probes": probes_file_uuid,
-                         "targets": targets_file_uuid,
+        job_name          = params_dict[ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")][0]
+        
+        json_response = {
+                         PROBES: probes_file_uuid,
+                         TARGETS: targets_file_uuid,
                          "absorb": absorb,
                          "num": num,
-                         }
-
-        print "Probes: %s" % probes_file_uuid
-        path = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
-        print "Probes path: %s" % path
-        print "Targets: %s" % targets_file_uuid
-        path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
-        print "Targets path: %s" % path
-        print "absorb: %s" % absorb
-        print "num: %s" % num
+                         UUID: str(uuid4()),
+                         STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
+                         JOB_NAME: job_name,
+                        }
+        http_status_code = 200
         
-        return make_response(jsonify(json_repsonse), 500)
+        if job_name in cls._DB_CONNECTOR.get_distinct(VALIDATION_COLLECTION, JOB_NAME):
+            http_status_code     = 403
+        else:
+            try:
+                cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
+                del json_response[ID]
+                probes_path  = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
+                targets_path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
+                
+                #ADD VALIDATOR JOB TO QUEUE
+            except:
+                json_response[ERROR] = str(sys.exc_info()[1])
+                http_status_code     = 500
+        
+        return make_response(jsonify(json_response), http_status_code)
          
 #===============================================================================
 # Run Main

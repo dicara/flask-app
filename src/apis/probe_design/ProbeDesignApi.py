@@ -41,7 +41,7 @@ class ProbeDesignApiV1(AbstractApiV1):
                   TargetsDeleteFunction(),
                   ProbesPostFunction(),
                   ProbesGetFunction(),
-                  ProbesDeleteFunction,
+                  ProbesDeleteFunction(),
                  ]
 
     @staticmethod

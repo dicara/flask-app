@@ -85,7 +85,21 @@ def validate(targets_file, probes_file, absorb, out_file, min_num_probes):
 
     with open(probes_file, 'r') as fd:
         probes.extend(fd.read().upper().strip('\n').split('\n'))
-
+    
+    print "===================================================================="
+    print "TARGETS"
+    print "===================================================================="
+    print targets
+    print "===================================================================="
+    print "WILD TYPES"
+    print "===================================================================="
+    print wild_types
+    print "===================================================================="
+    print "PROBES"
+    print "===================================================================="
+    print probes
+    return
+    
     if not absorb:
         loc = global_probe_counts_refgenome(targets, probes)
         print len(loc.keys())

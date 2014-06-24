@@ -21,13 +21,15 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
+from os.path import expanduser
 
 #===============================================================================
 # Configuration Settings
 #===============================================================================
-DEV      = True
-HOSTNAME = "localhost"
-# HOSTNAME = "bioweb"
+DEV       = True
+HOSTNAME  = "localhost"
+# HOSTNAME  = "bioweb"
+USER_HOME = expanduser("~")
 
 if DEV:
     PORT = 8020
@@ -36,18 +38,17 @@ else:
     PORT = 8010
     DATABASE_NAME = "Bioinformatics"
     
-if HOSTNAME == "localhost":
-#     HOME_DIR = "/Users/dandicara/Documents/flask_api"
-    HOME_DIR = "/home/ddicara/Documents/flask_api"
-else:
-    HOME_DIR = "/home/ddicara/gnubio-bioinformatics-rest_api"
-    
+DATABASE_URL  = HOSTNAME
+DATABASE_PORT = 27017
+
+# Directories
+HOME_DIR                = os.path.join(USER_HOME, "gnubio-bioinformatics-rest_api")
 TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
-TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % 
-                                       str(PORT))
-DATABASE_URL            = "bioweb"
-DATABASE_PORT           = 27017
+REFS_FOLDER             = os.path.join(HOME_DIR, "refs")
+TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
+
+# MongoDb Collections
 TARGETS_COLLECTION      = "targets"
 PROBES_COLLECTION       = "probes"
 VALIDATION_COLLECTION   = "validation"

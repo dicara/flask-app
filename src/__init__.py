@@ -22,6 +22,7 @@ DB     = CLIENT[app.config['DATABASE_NAME']]
 #=============================================================================
 HOSTNAME                = app.config['HOSTNAME']                 
 PORT                    = app.config['PORT']
+USER_HOME_DIR           = app.config['USER_HOME_DIR']
 HOME_DIR                = app.config['HOME_DIR']
 TARGETS_UPLOAD_FOLDER   = app.config['TARGETS_UPLOAD_FOLDER']
 PROBES_UPLOAD_FOLDER    = app.config['PROBES_UPLOAD_FOLDER']

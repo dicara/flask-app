@@ -26,10 +26,10 @@ from os.path import expanduser
 #===============================================================================
 # Configuration Settings
 #===============================================================================
-DEV       = True
-HOSTNAME  = "localhost"
-# HOSTNAME  = "bioweb"
-USER_HOME = expanduser("~")
+DEV           = True
+HOSTNAME      = "localhost"
+# HOSTNAME      = "bioweb"
+USER_HOME_DIR = expanduser("~")
 
 if DEV:
     PORT = 8020
@@ -42,7 +42,7 @@ DATABASE_URL  = HOSTNAME
 DATABASE_PORT = 27017
 
 # Directories
-HOME_DIR                = os.path.join(USER_HOME, "gnubio-bioinformatics-rest_api")
+HOME_DIR                = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
 TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
 REFS_FOLDER             = os.path.join(HOME_DIR, "refs")

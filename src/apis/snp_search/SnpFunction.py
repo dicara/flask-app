@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.snp_search.ncbi_utilities import snps_in_interval
+from src.apis.snp_search.ncbi_utilities import snps_in_interval_multiple
 
 #=============================================================================
 # Class
@@ -56,14 +56,14 @@ class SnpFunction(AbstractGetFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        chromosome_num = params_dict[ParameterFactory.chromosome_num(required=True)][0]
-        start_pos = params_dict[ParameterFactory.chromosome_start(required=True)][0]
-        stop_pos = params_dict[ParameterFactory.chromosome_stop(required=True)][0]
+        chromosome_num = params_dict[ParameterFactory.chromosome_num(required=True)]
+        start_pos = params_dict[ParameterFactory.chromosome_start(required=True)]
+        stop_pos = params_dict[ParameterFactory.chromosome_stop(required=True)]
 
         data = list()
-        ncbi_snps = snps_in_interval(chromosome_num, start_pos, stop_pos)
+        ncbi_snps = snps_in_interval_multiple(chromosome_num, start_pos, stop_pos)
         for snp in ncbi_snps:
-            data.append(snp.to_dict())
+            data.append(snp)
 
         columns = ['rs', 'chromosome', 'loc', 'ref', 'alt']
         return data, columns, None

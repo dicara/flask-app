@@ -44,3 +44,11 @@ def snps_in_interval(chromosome, start, stop):
         match = re.search('\[([^/]*)/([^\]]*)\]', snp['DOCSUM'])
         SNPs.append(SNPSummary('rs'+snp['SNP_ID'].__str__(), chromosome, location, match.group(1), match.group(2)))
     return SNPs
+
+
+def snps_in_interval_multiple(chromosome_num, start_pos, stop_pos):
+    SNPs = list()
+    for chr_num, chr_start, chr_stop in zip(chromosome_num, start_pos, stop_pos):
+        SNPs.extend(snps_in_interval(chr_num, chr_start, chr_stop))
+    # remove duplicates
+    return [dict(item) for item in set(tuple(snp.to_dict().items()) for snp in SNPs)]

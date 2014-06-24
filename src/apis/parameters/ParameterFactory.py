@@ -59,24 +59,24 @@ class ParameterFactory(object):
                                             allow_multiple=allow_multiple)
 
     @classmethod
-    def chromosome_num(cls, required=False, allow_multiple=False, minimum=1,
-                       maximum=23):  # @UndefinedVariable
+    def chromosome_num(cls, required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
         """ Create a parameter instance for specifying chromosome number. """
-        return IntegerParameter(CHR_NUM, "Integer specifying chromosome. ",
+        return CaseSensitiveStringParameter(CHR_NUM, "Comma separated integers specifying chromosome numbers. ",
                                 required=required, allow_multiple=allow_multiple,
-                                minimum=minimum, maximum=maximum)
+                                param_type=param_type)
 
     @classmethod
-    def chromosome_start(cls, required=False, allow_multiple=False, minimum=0):  # @UndefinedVariable
+    def chromosome_start(cls, required=False, allow_multiple=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
         """ Create a parameter instance for specifying start position of chromosome. """
-        return IntegerParameter(CHR_START, "Integer specifying chromosome start position. ",
-                                required=required, allow_multiple=allow_multiple, minimum=minimum)
+        return CaseSensitiveStringParameter(CHR_START, "Comma separated integers specifying chromosome start position. ",
+                                required=required, allow_multiple=allow_multiple, param_type=param_type)
 
     @classmethod
-    def chromosome_stop(cls, required=False, allow_multiple=False, minimum=1):  # @UndefinedVariable
+    def chromosome_stop(cls, required=False, allow_multiple=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
         """ Create a parameter instance for specifying end position of chromosome. """
-        return IntegerParameter(CHR_STOP, "Integer specifying chromosome end position. ",
-                                required=required, allow_multiple=allow_multiple, minimum=minimum)
+        return CaseSensitiveStringParameter(CHR_STOP, "Comma separated integers  specifying chromosome end position. ",
+                                required=required, allow_multiple=allow_multiple, param_type=param_type)
 
     @classmethod
     def probes(cls, required=False, allow_multiple=True,

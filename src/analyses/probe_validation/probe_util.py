@@ -94,7 +94,7 @@ def global_probe_counts_refgenome(amplicons, probes):
     for amplicon in amplicons:
         for probe in probes:
             print amplicon
-            results[probe].extend(amplicon.relative_to_genomic(amplicon.findall(probe)))
+            results[probe].extend(amplicon.seq.relative_to_genomic(amplicon.seq.findall(probe)))
 
     for probe in results.keys():
         results[probe] = len(set(results[probe]))

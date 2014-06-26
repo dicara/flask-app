@@ -134,7 +134,7 @@ class AbsorbtionCallable(object):
     
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
-                           START_DATESTAMP: datetime.today}}     
+                           START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(VALIDATION_COLLECTION, self.query, update)
         return execute_absorption(self.targets_path, self.probes_path, 
                                   self.outfile_path)

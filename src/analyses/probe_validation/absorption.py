@@ -58,7 +58,6 @@ def main(argv=None):
         probes_file    = args.probes
         out_file       = args.out
         
-        
         logging_level = logging.WARNING
         logging.basicConfig(stream=sys.stderr, format='%(asctime)s::%(levelname)s  %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p', level=logging_level)
 
@@ -83,20 +82,20 @@ def compute_absorption(targets_file, probes_file):
     
     probes = get_probes(probes_file)
 
-    print "===================================================================="
-    print "TARGETS"
-    print "===================================================================="
-    print targets
-    print len(targets)
-    print "===================================================================="
-    print "WILD TYPES"
-    print "===================================================================="
-    print wild_types
-    print "===================================================================="
-    print "PROBES"
-    print "===================================================================="
-    print probes
-    print len(probes)
+    logging.info("====================================================================")
+    logging.info("TARGETS")
+    logging.info("====================================================================")
+    logging.info(targets)
+    logging.info(len(targets))
+    logging.info("====================================================================")
+    logging.info("WILD TYPES")
+    logging.info("====================================================================")
+    logging.info(wild_types)
+    logging.info("====================================================================")
+    logging.info("PROBES")
+    logging.info("====================================================================")
+    logging.info(probes)
+    logging.info(len(probes))
     
     #TODO: What about wild types?
      

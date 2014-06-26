@@ -41,7 +41,8 @@ from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
 
 from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
-    TARGETS_UPLOAD_FOLDER, PROBES_UPLOAD_FOLDER, RESULTS_FOLDER, REFS_FOLDER
+    TARGETS_UPLOAD_FOLDER, PROBES_UPLOAD_FOLDER, RESULTS_FOLDER, REFS_FOLDER, \
+    DEV
 from utilities import io_utilities
 
 #===============================================================================
@@ -120,6 +121,8 @@ USAGE
         # Setup argument parser
         parser = ArgumentParser(description=program_license, 
                                 formatter_class=RawDescriptionHelpFormatter)
+        parser.add_argument("-v", "--verbose", dest="verbose", action="count", 
+                            help="set verbosity level [default: %(default)s]")
         parser.add_argument('-V', '--version', action='version', 
                             version=program_version_message)
         # Either start, stop, restart, or check status of the server, 
@@ -144,10 +147,16 @@ USAGE
         # Process arguments
         args = parser.parse_args()
 
+        verbose        = args.verbose
         restart_server = args.restart
-        start_server = args.start
-        stop_server = args.stop
-        show_status = args.status
+        start_server   = args.start
+        stop_server    = args.stop
+        show_status    = args.status
+        
+        logging_level = logging.WARNING
+        if verbose > 0 or DEV:
+            logging_level = logging.INFO
+        logging.basicConfig(stream=sys.stderr, format='%(asctime)s::%(levelname)s  %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p', level=logging_level)
 
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

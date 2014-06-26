@@ -29,7 +29,7 @@ from datetime import datetime
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION, \
+from src import PROBES_COLLECTION, TARGETS_COLLECTION, ABSORPTION_COLLECTION, \
     RESULTS_FOLDER, HOSTNAME, PORT
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
@@ -94,7 +94,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                         }
         http_status_code = 200
         
-        if job_name in cls._DB_CONNECTOR.get_distinct(VALIDATION_COLLECTION, JOB_NAME):
+        if job_name in cls._DB_CONNECTOR.get_distinct(ABSORPTION_COLLECTION, JOB_NAME):
             http_status_code     = 403
         else:
             try:
@@ -108,7 +108,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
                 
                 # Add to queue and update DB
-                cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
+                cls._DB_CONNECTOR.insert(ABSORPTION_COLLECTION, [json_response])
                 cls._EXECUTION_MANAGER.add_job(json_response[UUID], abs_callable, callback)
                 del json_response[ID]
             except:
@@ -135,7 +135,7 @@ class AbsorbtionCallable(object):
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
                            START_DATESTAMP: datetime.today()}}     
-        self.db_connector.update(VALIDATION_COLLECTION, self.query, update)
+        self.db_connector.update(ABSORPTION_COLLECTION, self.query, update)
         return execute_absorption(self.targets_path, self.probes_path, 
                                   self.outfile_path)
         
@@ -157,14 +157,14 @@ def make_absorption_callback(uuid, outfile_path, db_connector):
                                 RESULT: outfile_path,
                                 FINISH_DATESTAMP: datetime.today(),
                                 URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid)}}
-            db_connector.update(VALIDATION_COLLECTION, query, update)
+            db_connector.update(ABSORPTION_COLLECTION, query, update)
         except:
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None, 
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
-            db_connector.update(VALIDATION_COLLECTION, query, update)
+            db_connector.update(ABSORPTION_COLLECTION, query, update)
     return absorption_callback
     
 #===============================================================================

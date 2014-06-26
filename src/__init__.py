@@ -20,6 +20,7 @@ DB     = CLIENT[app.config['DATABASE_NAME']]
 #=============================================================================
 # Parse configuration
 #=============================================================================
+DEV                     = app.config['DEV']                 
 HOSTNAME                = app.config['HOSTNAME']                 
 PORT                    = app.config['PORT']
 USER_HOME_DIR           = app.config['USER_HOME_DIR']
@@ -32,5 +33,6 @@ TORNADO_LOG_FILE_PREFIX = app.config['TORNADO_LOG_FILE_PREFIX']
 TARGETS_COLLECTION      = app.config['TARGETS_COLLECTION']
 PROBES_COLLECTION       = app.config['PROBES_COLLECTION']
 VALIDATION_COLLECTION   = app.config['VALIDATION_COLLECTION']
+ABSORPTION_COLLECTION   = app.config['ABSORPTION_COLLECTION']
 
 from . import controller

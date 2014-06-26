@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 from collections import defaultdict
 from Bio import SeqIO
@@ -111,9 +112,9 @@ def global_probe_counts_refgenome(amplicons, probes):
     for probe_name, amplicons in results.iteritems():
         genomic_locations = set()
         for amplicon_id, locations in amplicons.iteritems():
-            print amplicon_id
+            logging.info(amplicon_id)
             for location in locations:
-                print location
+                logging.info(location)
                 genomic_locations.add(location)
         if len(genomic_locations) > 1:
             absorption[probe_name] = True

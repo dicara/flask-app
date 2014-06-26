@@ -86,23 +86,23 @@ def validate(targets_file, probes_file, absorb, out_file, min_num_probes):
     with open(probes_file, 'r') as fd:
         probes.extend(fd.read().upper().strip('\n').split('\n'))
     
-    print "===================================================================="
-    print "TARGETS"
-    print "===================================================================="
-    print targets
-    print "===================================================================="
-    print "WILD TYPES"
-    print "===================================================================="
-    print wild_types
-    print "===================================================================="
-    print "PROBES"
-    print "===================================================================="
-    print probes
+    logging.info("====================================================================")
+    logging.info("TARGETS")
+    logging.info("====================================================================")
+    logging.info(targets)
+    logging.info("====================================================================")
+    logging.info("WILD TYPES")
+    logging.info("====================================================================")
+    logging.info(wild_types)
+    logging.info("====================================================================")
+    logging.info("PROBES")
+    logging.info("====================================================================")
+    logging.info(probes)
     return
     
     if not absorb:
         loc = global_probe_counts_refgenome(targets, probes)
-        print len(loc.keys())
+        logging.info(len(loc.keys()))
         p = Pool()
         checker = get_checker([t.seq for t in targets], loc)
 
@@ -117,7 +117,7 @@ def validate(targets_file, probes_file, absorb, out_file, min_num_probes):
                 if target.seq.count(probe) or target.seq.reverse_complement().count(probe):
                     found_in.append(target.name)
 
-            print "{0} found in: {1}".format(probe, ''.join(found_in))
+            logging.info("{0} found in: {1}".format(probe, ''.join(found_in)))
 
 def get_checker(targets, locs):
     idtClient = CachedIDTClient()

@@ -22,6 +22,7 @@ limitations under the License.
 #===============================================================================
 import time
 import os
+import logging
 
 from . import app
 from .crossdomain_decorator import crossdomain
@@ -50,7 +51,7 @@ def index():
 def api_resource_listing():
     t = time.time()
     swagger_resource_listing = API_MANAGER.getSwaggerResourceListing()
-    print "api_resource_listing took %s minutes" % ((time.time()-t)/60.0)
+    logging.info("api_resource_listing took %s minutes" % ((time.time()-t)/60.0))
     if swagger_resource_listing:
         return jsonify(swagger_resource_listing)
     abort(404)
@@ -62,7 +63,7 @@ def api_declarations(version, name):
     
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
     
-    print "api_declarations took %s minutes" % ((time.time()-t)/60.0)
+    logging.info("api_declarations took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -73,7 +74,7 @@ def api(version, name):
     #REPLACE WITH HTML DOCS!!!
     t = time.time()
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
-    print "api took %s minutes" % ((time.time()-t)/60.0)
+    logging.info("api took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -81,10 +82,9 @@ def api(version, name):
 @app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST', 'DELETE', 'OPTIONS'])
 @crossdomain(origin=ORIGIN, headers="Origin, X-Requested-With, Content-Type, Accept")
 def function(version, name, path):
-    t = time.time()
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
-    print "API FUNCTION: %s" % api_function
+    logging.info("API FUNCTION: %s" % api_function)
     if api_function:
         
         # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
@@ -104,7 +104,7 @@ def function(version, name, path):
             else:
                 query_params[k.lower()].append(v)
                 
-        response, format, page_info = api_function.handle_request(query_params, dynamic_fields)
+        response, _, page_info = api_function.handle_request(query_params, dynamic_fields)
         if response:
             pagination_headers = create_link_headers(api_function, request, page_info)
             if pagination_headers:

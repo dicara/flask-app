@@ -53,3 +53,4 @@ TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(POR
 TARGETS_COLLECTION      = "targets"
 PROBES_COLLECTION       = "probes"
 VALIDATION_COLLECTION   = "validation"
+ABSORPTION_COLLECTION   = "absorption"

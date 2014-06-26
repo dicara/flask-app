@@ -203,7 +203,6 @@ class ProbeSet(object):
         tm = get_tm_checker()
         f_m, r_m = self.max_start()
         if self.is_large_indel():
-            print self.sequence.name
             self._filter_for_indel()
         else:
             self.forward = filter(lambda x: self.sequence.seq.find(x) + len(x) + max_position <= f_m, self.forward)

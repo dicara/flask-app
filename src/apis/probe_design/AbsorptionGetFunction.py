@@ -24,7 +24,7 @@ from collections import OrderedDict
 
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import VALIDATION_COLLECTION
+from src import ABSORPTION_COLLECTION
 from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
     TARGETS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
     RESULT, URL
@@ -75,7 +75,7 @@ class AbsorptionGetFunction(AbstractGetFunction):
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(VALIDATION_COLLECTION, {}, columns)
+        data = cls._DB_CONNECTOR.find(ABSORPTION_COLLECTION, {}, columns)
          
         return (data, column_names, None)
          

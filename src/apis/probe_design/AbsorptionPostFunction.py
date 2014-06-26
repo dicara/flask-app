@@ -103,7 +103,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 outfile_path = os.path.join(RESULTS_FOLDER, json_response[UUID])
                 
                 # Create helper functions
-                abs_callable = AbsorbtionCallable(targets_path, probes_path, outfile_path)
+                abs_callable = AbsorbtionCallable(targets_path, probes_path, outfile_path, json_response[UUID], cls._DB_CONNECTOR)
                 callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
                 
                 # Add to queue and update DB
@@ -123,12 +123,16 @@ class AbsorbtionCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, targets_path, probes_path, outfile_path):
+    def __init__(self, targets_path, probes_path, outfile_path, uuid, db_connector):
         self.targets_path = targets_path
         self.probes_path  = probes_path
         self.outfile_path = outfile_path
+        self.db_connector = db_connector
+        self.query        = {UUID: uuid}
+        self.update       = {"$set": {STATUS: JOB_STATUS.running}}     # @UndefinedVariable
     
     def __call__(self):
+        self.db_connector.update(VALIDATION_COLLECTION, self.query, self.update)
         return execute_absorption(self.targets_path, self.probes_path, self.outfile_path)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):

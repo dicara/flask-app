@@ -108,8 +108,8 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
                 
                 # Add to queue and update DB
-                cls._EXECUTION_MANAGER.add_job(json_response[UUID], abs_callable, callback)
                 cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
+                cls._EXECUTION_MANAGER.add_job(json_response[UUID], abs_callable, callback)
                 del json_response[ID]
             except:
                 json_response[ERROR] = str(sys.exc_info()[1])

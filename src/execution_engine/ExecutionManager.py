@@ -61,8 +61,10 @@ class ExecutionManager(object):
     #===========================================================================
     # Simple execution functions
     #===========================================================================
-    def add_job(self, uuid, fn):
-        self._JOB_QUEUE[uuid] = self._pool.submit(fn)
+    def add_job(self, uuid, callback, fn):
+        future = self._pool.submit(fn)
+        future.add_done_callback(callback)
+        self._JOB_QUEUE[uuid] = future
         
     def job_done(self, uuid):
         return self._get_future(uuid).done()

@@ -31,7 +31,7 @@ from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
     DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
+from src import HOSTNAME, PORT, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
 from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
@@ -90,7 +90,7 @@ class ProbesPostFunction(AbstractPostFunction):
             try:
                 probes_file.save(path)
                 probes_file.close()
-                json_response[URL]       = "http://%s/probes/%s" % (HOSTNAME, file_uuid)
+                json_response[URL]       = "http://%s/uploads/%s/probes/%s" % (HOSTNAME, PORT, file_uuid)
                 json_response[FILEPATH]  = path
                 json_response[UUID]      = file_uuid
                 json_response[DATESTAMP] = datetime.today()

@@ -30,9 +30,10 @@ from datetime import datetime
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION, \
-    RESULTS_FOLDER
+    RESULTS_FOLDER, HOSTNAME, PORT
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
-    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP, RESULT
+    ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
+    START_DATESTAMP, FINISH_DATESTAMP
 from src.analyses.probe_validation.absorption import execute_absorption
 
 #=============================================================================
@@ -89,7 +90,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                          UUID: str(uuid4()),
                          STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
                          JOB_NAME: job_name,
-                         DATESTAMP: datetime.today(),
+                         SUBMIT_DATESTAMP: datetime.today(),
                         }
         http_status_code = 200
         
@@ -123,17 +124,20 @@ class AbsorbtionCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, targets_path, probes_path, outfile_path, uuid, db_connector):
+    def __init__(self, targets_path, probes_path, outfile_path, uuid, 
+                 db_connector):
         self.targets_path = targets_path
         self.probes_path  = probes_path
         self.outfile_path = outfile_path
         self.db_connector = db_connector
         self.query        = {UUID: uuid}
-        self.update       = {"$set": {STATUS: JOB_STATUS.running}}     # @UndefinedVariable
     
     def __call__(self):
-        self.db_connector.update(VALIDATION_COLLECTION, self.query, self.update)
-        return execute_absorption(self.targets_path, self.probes_path, self.outfile_path)
+        update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
+                           START_DATESTAMP: datetime.today}}     
+        self.db_connector.update(VALIDATION_COLLECTION, self.query, update)
+        return execute_absorption(self.targets_path, self.probes_path, 
+                                  self.outfile_path)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):
     """
@@ -150,12 +154,15 @@ def make_absorption_callback(uuid, outfile_path, db_connector):
         try:
             _ = future.result()
             update = { "$set": {STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
-                                RESULT: outfile_path}}
+                                RESULT: outfile_path,
+                                FINISH_DATESTAMP: datetime.today(),
+                                URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid)}}
             db_connector.update(VALIDATION_COLLECTION, query, update)
         except:
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None, 
+                                   FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
             db_connector.update(VALIDATION_COLLECTION, query, update)
     return absorption_callback

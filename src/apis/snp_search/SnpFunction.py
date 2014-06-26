@@ -48,6 +48,7 @@ class SnpFunction(AbstractGetFunction):
     def parameters(cls):
         parameters = [
             ParameterFactory.format(),
+            ParameterFactory.snpsearch_name(required=True),
             ParameterFactory.chromosome_num(required=True),
             ParameterFactory.chromosome_start(required=True),
             ParameterFactory.chromosome_stop(required=True),
@@ -56,16 +57,17 @@ class SnpFunction(AbstractGetFunction):
 
     @classmethod
     def process_request(cls, params_dict):
+        snp_search_name = params_dict[ParameterFactory.snpsearch_name(required=True)]
         chromosome_num = params_dict[ParameterFactory.chromosome_num(required=True)]
         start_pos = params_dict[ParameterFactory.chromosome_start(required=True)]
         stop_pos = params_dict[ParameterFactory.chromosome_stop(required=True)]
 
         data = list()
-        ncbi_snps = snps_in_interval_multiple(chromosome_num, start_pos, stop_pos)
+        ncbi_snps = snps_in_interval_multiple(snp_search_name, chromosome_num, start_pos, stop_pos)
         for snp in ncbi_snps:
             data.append(snp)
 
-        columns = ['rs', 'chromosome', 'loc', 'ref', 'alt']
+        columns = ['search_name', 'rs', 'chromosome', 'loc', 'ref', 'alt', 'validated']
         return data, columns, None
 
 #

@@ -61,8 +61,8 @@ class ExecutionManager(object):
     #===========================================================================
     # Simple execution functions
     #===========================================================================
-    def add_job(self, uuid, callback, fn):
-        future = self._pool.submit(fn)
+    def add_job(self, uuid, callback, fn, *args):
+        future = self._pool.submit(fn, *args)
         future.add_done_callback(callback)
         self._JOB_QUEUE[uuid] = future
         
@@ -100,11 +100,11 @@ if __name__ == "__main__":
     em = ExecutionManager.Instance()
     def add(x, y, z):
         time.sleep(2)
-        raise Exception("failed")
+#         raise Exception("failed")
         return x+y+z
         
     uuid = str(uuid4())
-    em.add_job(uuid, add, 1,2,3)
+    em.add_job(uuid, None, add, 1,2,3)
     print em.job_result(uuid)
     i = 0
     while  em.job_running(uuid):

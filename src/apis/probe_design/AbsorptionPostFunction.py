@@ -115,7 +115,8 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 job_runner   = make_job_runner(targets_path, probes_path, outfile_path)
                 
                 # Add to queue and update DB
-                cls._EXECUTION_MANAGER.add_job(json_response[UUID], callback, job_runner)
+#                 cls._EXECUTION_MANAGER.add_job(json_response[UUID], callback, job_runner)
+                cls._EXECUTION_MANAGER.add_job(json_response[UUID], callback, execute_absorption, targets_path, probes_path, outfile_path)
                 cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
                 del json_response[ID]
             except:

@@ -32,7 +32,7 @@ from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, VALIDATION_COLLECTION, \
     RESULTS_FOLDER
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
-    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP, ABSORB, NUM
+    ERROR, JOB_NAME, PROBES, TARGETS, DATESTAMP, RESULT
 from src.analyses.probe_validation.absorption import execute_absorption
 
 #=============================================================================
@@ -73,9 +73,6 @@ class AbsorptionPostFunction(AbstractPostFunction):
         parameters = [
                       ParameterFactory.file_uuid(PROBES, PROBES_COLLECTION),
                       ParameterFactory.file_uuid(TARGETS, TARGETS_COLLECTION),
-                      ParameterFactory.boolean("absorb", "Check for absorbed probes."),
-                      ParameterFactory.integer("num", "Minimum number of probes for a target.",
-                                               default=3, minimum=1),
                       ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")
                      ]
         return parameters
@@ -84,16 +81,11 @@ class AbsorptionPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)][0]
         targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)][0]
-        absorb            = params_dict[ParameterFactory.boolean("absorb", "Check for absorbed probes.")][0]
-        num               = params_dict[ParameterFactory.integer("num", "Minimum number of probes for a target.",
-                                               default=3, minimum=1)][0]
         job_name          = params_dict[ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")][0]
         
         json_response = {
                          PROBES: probes_file_uuid,
                          TARGETS: targets_file_uuid,
-                         ABSORB: absorb,
-                         NUM: num,
                          UUID: str(uuid4()),
                          STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
                          JOB_NAME: job_name,
@@ -111,12 +103,11 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 outfile_path = os.path.join(RESULTS_FOLDER, json_response[UUID])
                 
                 # Create helper functions
+                abs_callable = AbsorbtionCallable(targets_path, probes_path, outfile_path)
                 callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
-                job_runner   = make_job_runner(targets_path, probes_path, outfile_path)
                 
                 # Add to queue and update DB
-#                 cls._EXECUTION_MANAGER.add_job(json_response[UUID], callback, job_runner)
-                cls._EXECUTION_MANAGER.add_job(json_response[UUID], callback, execute_absorption, targets_path, probes_path, outfile_path)
+                cls._EXECUTION_MANAGER.add_job(json_response[UUID], abs_callable, callback)
                 cls._DB_CONNECTOR.insert(VALIDATION_COLLECTION, [json_response])
                 del json_response[ID]
             except:
@@ -124,27 +115,46 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 http_status_code     = 500
         
         return make_response(jsonify(json_response), http_status_code)
+
+#===============================================================================
+# Callable/Callback Functionality
+#===============================================================================
+class AbsorbtionCallable(object):
+    """
+    Callable that executes the absorption command.
+    """
+    def __init__(self, targets_path, probes_path, outfile_path):
+        self.targets_path = targets_path
+        self.probes_path  = probes_path
+        self.outfile_path = outfile_path
     
-def make_job_runner(targets_path, probes_path, outfile_path):
-    def run():
-        #TODO: Can we include db connector and set status to running 
-        return execute_absorption(targets_path, probes_path, outfile_path)
-    return run
+    def __call__(self):
+        return execute_absorption(self.targets_file, self.probes_file, self.out_file)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):
+    """
+    Return a closure that is fired when the absorption job finishes. This 
+    callback updates the DB with completion status, result file location, and
+    an error message if applicable.
+    
+    :param uuid: Unique job id in database
+    :param outfile_path: Path to generated results file
+    :param db_connector: Object that handles communication with the DB
+    """
+    query = {UUID: uuid}
     def absorption_callback(future):
-        print "CALLBACK"
         try:
-            result = future.result()
-            query = { UUID: uuid}
-            update = { "$set": {"status": "success", "result": outfile_path}}
+            _ = future.result()
+            update = { "$set": {STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
+                                RESULT: outfile_path}}
             db_connector.update(VALIDATION_COLLECTION, query, update)
         except:
-            query = { UUID: uuid}
-            update = { "$set": {"status": "failed", "result": None}}
+            error_msg = str(sys.exc_info()[1])
+            update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
+                                   RESULT: None, 
+                                   ERROR: error_msg}}
             db_connector.update(VALIDATION_COLLECTION, query, update)
     return absorption_callback
-    
     
 #===============================================================================
 # Run Main

@@ -61,18 +61,28 @@ class ExecutionManager(object):
     #===========================================================================
     # Simple execution functions
     #===========================================================================
-    def add_job(self, uuid, callback, fn, *args):
-        future = self._pool.submit(fn, *args)
-        future.add_done_callback(callback)
+    def add_job(self, uuid, fn, callback=None):
+        """
+        Submit new job to job queue.
+        """
+        future = self._pool.submit(fn)
+        if callback:
+            future.add_done_callback(callback)
         self._JOB_QUEUE[uuid] = future
         
-    def job_done(self, uuid):
+    def done(self, uuid):
+        """
+        Is this job done running.
+        """
         return self._get_future(uuid).done()
     
-    def job_running(self, uuid):
+    def running(self, uuid):
+        """
+        Is this job running.
+        """
         return self._get_future(uuid).running()
     
-    def job_result(self, uuid):
+    def result(self, uuid):
         """
         :raise exception: If run raised exception.
         """
@@ -93,18 +103,24 @@ ExecutionManager.Instance()
 #===============================================================================
 # Run Main
 #===============================================================================
+class my_add(object):
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+        
+    def __call__(self):
+        time.sleep(2)
+        return self.x+self.y+self.z
+
 if __name__ == "__main__":
     from uuid import uuid4
     import time
 
     em = ExecutionManager.Instance()
-    def add(x, y, z):
-        time.sleep(2)
-#         raise Exception("failed")
-        return x+y+z
         
     uuid = str(uuid4())
-    em.add_job(uuid, None, add, 1,2,3)
+    em.add_job(uuid, None, my_add(1,2,3))
     print em.job_result(uuid)
     i = 0
     while  em.job_running(uuid):

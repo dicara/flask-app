@@ -124,6 +124,7 @@ PROBES        = "probes"
 TARGETS       = "targets"
 ABSORB        = "absorb"
 NUM           = "num"
+RESULT        = "result"
 
 #=============================================================================
 # Miscellaneous namedtuples 

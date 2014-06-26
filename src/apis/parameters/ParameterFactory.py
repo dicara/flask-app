@@ -25,11 +25,9 @@ from src.apis.parameters.LowerCaseStringParameter import LowerCaseStringParamete
 from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 from src.apis.parameters.FileParameter import FileParameter
-
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP
-    
+    CHR_STOP, SNP_SEARCH_NAME
 from src.DbConnector import DbConnector
 
 #=============================================================================
@@ -62,6 +60,14 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
                                             param_type=param_type, required=required,
                                             allow_multiple=allow_multiple)
+
+    @classmethod
+    def snpsearch_name(cls, required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ Create a parameter instance for specifying chromosome number. """
+        return CaseSensitiveStringParameter(SNP_SEARCH_NAME, "Comma separated integers specifying snp search name. ",
+                                required=required, allow_multiple=allow_multiple,
+                                param_type=param_type)
 
     @classmethod
     def chromosome_num(cls, required=False, allow_multiple=True,

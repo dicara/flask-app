@@ -18,15 +18,21 @@ def chromosome_for_ref_assembly(name):
     return match.group(1) if match else '-'
 
 
-class SNPSummary(namedtuple("SNPSummary", "rs chr position ref alt")):
+class SNPSummary(namedtuple("SNPSummary", "search_name rs chr position ref alt validated")):
     def matches_range(self, chromosome, start, stop):
         return str(chromosome) == self.chr and start <= int(self.position) <= stop #
 
     def to_dict(self):
-        return {'rs': self.rs, 'chromosome': self.chr, 'loc': self.position, 'ref': self.ref, 'alt': self.alt}
+        return {'search_name': self.search_name,
+                'rs': self.rs,
+                'chromosome': self.chr,
+                'loc': self.position,
+                'ref': self.ref,
+                'alt': self.alt,
+                'validated': self.validated}
 
 
-def snps_in_interval(chromosome, start, stop):
+def snps_in_interval(search_name, chromosome, start, stop):
     query = "%s:%s[Base Position] AND %s[CHR] AND Homo sapiens[ORGN] AND by cluster [VALI]" % (start, stop, chromosome)
     handle = Entrez.esearch(db='snp', term=query)
     search_results = Entrez.read(handle)
@@ -42,13 +48,19 @@ def snps_in_interval(chromosome, start, stop):
         chromosome = match.group(1)
         location = match.group(2)
         match = re.search('\[([^/]*)/([^\]]*)\]', snp['DOCSUM'])
-        SNPs.append(SNPSummary('rs'+snp['SNP_ID'].__str__(), chromosome, location, match.group(1), match.group(2)))
+        validated = snp['VALIDATED']
+        SNPs.append(SNPSummary(search_name, 'rs'+snp['SNP_ID'].__str__(), chromosome, location, match.group(1), match.group(2), validated))
     return SNPs
 
 
-def snps_in_interval_multiple(chromosome_num, start_pos, stop_pos):
+def snps_in_interval_multiple(snp_search_names, chromosome_num, start_pos, stop_pos):
     SNPs = list()
-    for chr_num, chr_start, chr_stop in zip(chromosome_num, start_pos, stop_pos):
-        SNPs.extend(snps_in_interval(chr_num, chr_start, chr_stop))
+    for search_name, chr_num, chr_start, chr_stop in zip(snp_search_names, chromosome_num, start_pos, stop_pos):
+        SNPs.extend(snps_in_interval(search_name, chr_num, chr_start, chr_stop))
     # remove duplicates
-    return [dict(item) for item in set(tuple(snp.to_dict().items()) for snp in SNPs)]
+    uniq_snps = [dict(item) for item in set(tuple(snp.to_dict().items()) for snp in SNPs)]
+    uniq_snps.sort(key=lambda snp: int(snp['loc']))
+    uniq_snps.sort(key=lambda snp: int(snp['chromosome']))
+    uniq_snps.sort(key=lambda snp: snp['search_name'])
+    return uniq_snps
+

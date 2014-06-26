@@ -106,6 +106,7 @@ SEQUENCE_NAME    = "sequence_name"
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"
+SNP_SEARCH_NAME  = 'snp_search_name'
 PROBE            = "probe"
 FILE             = "file"
 FILENAME         = "filename"

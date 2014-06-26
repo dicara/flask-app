@@ -20,6 +20,8 @@ limitations under the License.
 #===============================================================================
 # Imports
 #===============================================================================
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
 
 #===============================================================================
 # Imports
@@ -29,13 +31,13 @@ limitations under the License.
 # Class
 #===============================================================================
 class ExecutionManager(object):
-    '''
-    This class is intended to be a singleton. It handles communication (i.e.
-    queries) with MongoDB. Every call to the DB should go through this 
-    class.
-    '''
+    """
+    This class is intended to be a singleton.
+    """
     _INSTANCE  = None
-    _JOB_QUEUE = []
+    # This is really a list of futures
+    _JOB_QUEUE = {} #TODO: This should really be stored in DB
+    #TODO: Kill all currently executing jobs and wipe from DB if api is killed.
     
     #===========================================================================
     # Constructor
@@ -44,6 +46,11 @@ class ExecutionManager(object):
         # Enforce that it's a singleton
         if self._INSTANCE:
             raise Exception("%s is a singleton and should be accessed through the Instance method." % self.__class__.__name__)
+        cpu_count = multiprocessing.cpu_count()
+        self._pool = ProcessPoolExecutor(max_workers=cpu_count)
+        
+    def __del__(self):
+        self._pool.shutdown()
     
     @classmethod
     def Instance(cls):
@@ -52,10 +59,54 @@ class ExecutionManager(object):
         return cls._INSTANCE
     
     #===========================================================================
-    # Simple get methods
+    # Simple execution functions
     #===========================================================================
+    def add_job(self, uuid, fn):
+        self._JOB_QUEUE[uuid] = self._pool.submit(fn)
+        
+    def job_done(self, uuid):
+        return self._get_future(uuid).done()
+    
+    def job_running(self, uuid):
+        return self._get_future(uuid).running()
+    
+    def job_result(self, uuid):
+        """
+        :raise exception: If run raised exception.
+        """
+        future = self._get_future(uuid)
+        if future.running():
+            return None
+        return future.result()
+    
+    def _get_future(self, uuid):
+        return self._JOB_QUEUE[uuid]
+    
         
 #===========================================================================
 # Ensure the initial instance is created.
 #===========================================================================    
 ExecutionManager.Instance()
+
+#===============================================================================
+# Run Main
+#===============================================================================
+if __name__ == "__main__":
+    from uuid import uuid4
+    import time
+
+    em = ExecutionManager.Instance()
+    def add(x, y, z):
+        time.sleep(2)
+        raise Exception("failed")
+        return x+y+z
+        
+    uuid = str(uuid4())
+    em.add_job(uuid, add, 1,2,3)
+    print em.job_result(uuid)
+    i = 0
+    while  em.job_running(uuid):
+        print i 
+        i += 1
+        time.sleep(1)
+    print em.job_result(uuid)

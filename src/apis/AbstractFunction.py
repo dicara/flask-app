@@ -27,6 +27,7 @@ from pprint import pformat
 from collections import Counter
 
 from src.DbConnector import DbConnector
+from src.execution_engine.ExecutionManager import ExecutionManager
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.ApiConstants import FORMATS
 
@@ -37,6 +38,7 @@ class AbstractFunction(object):
     __metaclass__ = ABCMeta
     
     _DB_CONNECTOR = DbConnector.Instance()
+    _EXECUTION_MANAGER = ExecutionManager.Instance()
     
     #===========================================================================
     # Constructor

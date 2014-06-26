@@ -61,13 +61,17 @@ def _find_amplicon_in_refgenome(amplicon):
         search_results = SearchIO.read(filename + '.psl', 'blat-psl')
     except (subprocess.CalledProcessError, ValueError):
         search_results = None
+        
     try:
         os.remove(filename + '.fa')
         os.remove(filename + '.psl')
-#     except os.OSError:
-    except:
+    except OSError:
+        pass
+    
+    if search_results:
+        return search_results[0]
+    else:
         return None
-    return search_results[0]
 
 
 class Amplicon(Seq):

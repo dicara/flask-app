@@ -90,14 +90,38 @@ def global_probe_counts(sequences, probes):
 
 
 def global_probe_counts_refgenome(amplicons, probes):
-    results = defaultdict(list)
+    """
+    Determine where each probe matches within each provided amplicon. Populate
+    a dictionary keyed by each probe name. Each value is a list of location 
+    info dictionaries that contain the AmpliconID and genomic location where
+    the probe matched the target sequence. Futhermore, a boolean flag indicating 
+    absorption (probe matches >1 genomic location) is populated for each probe.
+    
+    :param amplicons: List of Biopython SeqRecord objects, one for each target amplicon
+    :param probes: Dictionary of probe name to sequence key value pairs
+    :return: Dictionary of probe name to array of location info key value pairs
+    """
+    results = defaultdict(dict)
     for amplicon in amplicons:
-        for probe in probes:
-            print amplicon
-            results[probe].extend(amplicon.seq.relative_to_genomic(amplicon.seq.findall(probe)))
-
-    for probe in results.keys():
-        results[probe] = len(set(results[probe]))
+        for probe_name, seq in probes.iteritems():
+            locations = amplicon.seq.relative_to_genomic(amplicon.seq.findall(seq))
+            if locations:
+                results[probe_name][amplicon.id] = locations
+    absorption = dict()
+    for probe_name, amplicons in results.iteritems():
+        genomic_locations = set()
+        for amplicon_id, locations in amplicons.iteritems():
+            print amplicon_id
+            for location in locations:
+                print location
+                genomic_locations.add(location)
+        if len(genomic_locations) > 1:
+            absorption[probe_name] = True
+        else:
+            absorption[probe_name] = False
+            
+    for probe_name, absorbed in absorption.iteritems():
+        results[probe_name]["absorbed"] = absorbed
     return results
 
 

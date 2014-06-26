@@ -45,6 +45,7 @@ DATABASE_PORT = 27017
 HOME_DIR                = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
 TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
+RESULTS_FOLDER          = os.path.join(HOME_DIR, "results", str(PORT))
 REFS_FOLDER             = os.path.join(HOME_DIR, "refs")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
 

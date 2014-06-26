@@ -84,6 +84,10 @@ class DbConnector(object):
     @staticmethod
     def find_one(collection, column_name, column_value):
         return DB[collection].find_one({column_name: column_value})
+    
+    @staticmethod
+    def update(collection, query, update):
+        DB[collection].update(query, update)
             
 #===========================================================================
 # Ensure the initial instance is created.

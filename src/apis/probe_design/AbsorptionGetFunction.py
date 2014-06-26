@@ -26,7 +26,7 @@ from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import VALIDATION_COLLECTION
 from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
-    TARGETS, DATESTAMP, ABSORB, NUM
+    TARGETS, DATESTAMP, ERROR, RESULT
 
 #=============================================================================
 # Class
@@ -63,10 +63,10 @@ class AbsorptionGetFunction(AbstractGetFunction):
         columns[UUID]      = 1
         columns[STATUS]    = 1
         columns[DATESTAMP] = 1
+        columns[ERROR]     = 1
+        columns[RESULT]    = 1
         columns[PROBES]    = 1
         columns[TARGETS]   = 1
-        columns[ABSORB]    = 1
-        columns[NUM]       = 1
         
         column_names = columns.keys()  
         column_names.remove(ID)         

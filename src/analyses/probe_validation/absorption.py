@@ -102,8 +102,8 @@ def compute_absorption(targets_file, probes_file):
      
     return global_probe_counts_refgenome(targets, probes)
 
-def write_results(results, file):
-    with open(file, 'w') as f:
+def write_results(results, out_file):
+    with open(out_file, 'w') as f:
         print >>f, "Probe\tAbsorbed\tLocations"
         for probe_name, info in results.iteritems():
             locations = ",".join(["%s: %s" % (amp,loc) for amp,loc in info.iteritems() if amp != "absorbed"])

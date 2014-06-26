@@ -129,7 +129,7 @@ class AbsorbtionCallable(object):
         self.outfile_path = outfile_path
     
     def __call__(self):
-        return execute_absorption(self.targets_file, self.probes_file, self.out_file)
+        return execute_absorption(self.targets_path, self.probes_path, self.outfile_path)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):
     """

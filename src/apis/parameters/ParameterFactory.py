@@ -151,3 +151,10 @@ class ParameterFactory(object):
         return LowerCaseStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
+
+    @classmethod
+    def cs_string(cls, name, description, alias=None, required=True, 
+                  allow_multiple=False):
+        return CaseSensitiveStringParameter(name, description,
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple)

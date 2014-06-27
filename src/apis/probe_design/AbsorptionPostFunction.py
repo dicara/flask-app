@@ -74,7 +74,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
         parameters = [
                       ParameterFactory.file_uuid(PROBES, PROBES_COLLECTION),
                       ParameterFactory.file_uuid(TARGETS, TARGETS_COLLECTION),
-                      ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")
+                      ParameterFactory.cs_string(JOB_NAME, "Unique name to give this job.")
                      ]
         return parameters
     
@@ -82,7 +82,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)][0]
         targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)][0]
-        job_name          = params_dict[ParameterFactory.lc_string(JOB_NAME, "Unique name to give this job.")][0]
+        job_name          = params_dict[ParameterFactory.cs_string(JOB_NAME, "Unique name to give this job.")][0]
         
         json_response = {
                          PROBES: probes_file_uuid,

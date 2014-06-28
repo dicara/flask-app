@@ -42,7 +42,7 @@ from tornado.web import FallbackHandler, Application, RequestHandler
 
 from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     TARGETS_UPLOAD_FOLDER, PROBES_UPLOAD_FOLDER, RESULTS_FOLDER, REFS_FOLDER, \
-    DEV
+    DEV, PLATES_UPLOAD_FOLDER
 from utilities import io_utilities
 
 #===============================================================================
@@ -170,6 +170,7 @@ USAGE
     io_utilities.safe_make_dirs(HOME_DIR)
     io_utilities.safe_make_dirs(TARGETS_UPLOAD_FOLDER)
     io_utilities.safe_make_dirs(PROBES_UPLOAD_FOLDER)
+    io_utilities.safe_make_dirs(PLATES_UPLOAD_FOLDER)
     io_utilities.safe_make_dirs(RESULTS_FOLDER)
     io_utilities.safe_make_dirs(REFS_FOLDER)
 

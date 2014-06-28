@@ -24,7 +24,7 @@ from collections import OrderedDict
 
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import PROBES_COLLECTION
+from src import PLATES_COLLECTION
 from src.apis.ApiConstants import FILENAME, FILEPATH, ID, URL, \
     DATESTAMP, UUID
 
@@ -77,7 +77,7 @@ class ExperimentGetFunction(AbstractGetFunction):
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(PROBES_COLLECTION, {}, columns)
+        data = cls._DB_CONNECTOR.find(PLATES_COLLECTION, {}, columns)
          
         return (data, column_names, None)
          

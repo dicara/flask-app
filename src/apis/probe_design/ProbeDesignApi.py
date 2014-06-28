@@ -23,6 +23,7 @@ limitations under the License.
 from src.apis.AbstractApi import AbstractApiV1
 # from src.apis.probe_design.ValidationPostFunction import ValidationPostFunction
 # from src.apis.probe_design.ValidationGetFunction import ValidationGetFunction
+from src.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
 from src.apis.probe_design.AbsorptionPostFunction import AbsorptionPostFunction
 from src.apis.probe_design.AbsorptionGetFunction import AbsorptionGetFunction
 from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
@@ -38,6 +39,7 @@ from src.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
 class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
+                  ExperimentPostFunction(),
                   AbsorptionPostFunction(),
                   AbsorptionGetFunction(),
                   TargetsPostFunction(),

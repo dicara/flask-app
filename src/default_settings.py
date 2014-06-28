@@ -45,6 +45,7 @@ DATABASE_PORT = 27017
 HOME_DIR                = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
 TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
+PLATES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "plates")
 RESULTS_FOLDER          = os.path.join(HOME_DIR, "results", str(PORT))
 REFS_FOLDER             = os.path.join(HOME_DIR, "refs")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
@@ -52,5 +53,6 @@ TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(POR
 # MongoDb Collections
 TARGETS_COLLECTION      = "targets"
 PROBES_COLLECTION       = "probes"
+PLATES_COLLECTION       = "plates"
 VALIDATION_COLLECTION   = "validation"
 ABSORPTION_COLLECTION   = "absorption"

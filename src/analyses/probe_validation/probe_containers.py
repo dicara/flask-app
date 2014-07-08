@@ -75,32 +75,47 @@ def _find_amplicon_in_refgenome(amplicon):
 
 
 class Amplicon(Seq):
-    """Amplicon is a type of sequence object which can find its location within the reference genome and store that
-    data.  Additional information like mutation locations can also be saved.
+    """
+    Amplicon is a type of sequence object which can find its location within 
+    the reference genome and store that data.  Additional information like 
+    mutation locations can also be saved.
     """
     mutation_locations = list()
 
     def __init__(self, seq_string):
         super(Amplicon, self).__init__(seq_string)
-        self.locus = None
+        self.locus    = None
         self.position = None
-        self.hits = 0
+        self.hits     = 0
+        self.strand   = None
+        
+    def get_position(self):
+        return self.position
 
     def find_in_reference(self):
-        """utilize an external search util (BLAT or BLAST) to find in the reference genome.  This can then be used to
-        find the actual position in the genome for probes later on."""
+        """
+        Utilize an external search util (BLAT or BLAST) to find in the 
+        reference genome.  This can then be used to find the actual position in 
+        the genome for probes later on.
+        """
         if self.locus is None:
-            hit = _find_amplicon_in_refgenome(SeqRecord(self))
+            hit       = _find_amplicon_in_refgenome(SeqRecord(self))
             self.hits = len(hit)
-            if len(hit):
-                self.locus = chromosome_for_ref_assembly(hit[0].hit_id)
+            if self.hits:
+                self.locus    = chromosome_for_ref_assembly(hit[0].hit_id)
                 self.position = hit[0].hit_start
+                self.strand   = hit[0].query_strand
 
     def add_ref(self, ref_info):
-        self.locus = ref_info['chromosome']
+        self.locus    = ref_info['chromosome']
         self.position = ref_info['ref_start']
+        self.strand   = ref_info['strand']
 
     def findall(self, probe):
+        """
+        Return start locations of probe found relative to the forward strand.
+        """
+        self.find_in_reference()
         def search(probe):
             l = list()
             current = self.find(probe)
@@ -111,8 +126,12 @@ class Amplicon(Seq):
         locations = search(probe)
         p = reverse_complement(probe)
         locations.extend(search(p))
+        if self.strand < 0:
+            # If this is the reverse strand, update the location to be
+            # relative to the forward strand.
+            locations = map(lambda x: len(self) - x - len(probe), locations)
         return locations
-
+    
     def relative_to_genomic(self, locations):
         """take a list of locations relative to this amplicon (like for a probe match) and map that to the
         genomic reference locations"""

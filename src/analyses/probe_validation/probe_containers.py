@@ -1,5 +1,6 @@
 import os
 import subprocess
+import logging
 
 from collections import namedtuple
 from Bio import SeqIO, SearchIO
@@ -56,10 +57,12 @@ def _find_amplicon_in_refgenome(amplicon):
     #run the search
     filename = str(uuid4())
     SeqIO.write(amplicon, filename + '.fa', 'fasta')
+    error_msg = ""
     try:
         _ = subprocess.check_call([settings.blat_location, settings.ref_genome_loc, filename + '.fa', filename + '.psl'])
         search_results = SearchIO.read(filename + '.psl', 'blat-psl')
-    except (subprocess.CalledProcessError, ValueError):
+    except Exception, e:
+        error_msg      = str(e)
         search_results = None
         
     try:
@@ -69,9 +72,9 @@ def _find_amplicon_in_refgenome(amplicon):
         pass
     
     if search_results:
-        return search_results[0]
+        return search_results[0], error_msg
     else:
-        return None
+        return None, error_msg
 
 
 class Amplicon(Seq):
@@ -99,12 +102,16 @@ class Amplicon(Seq):
         the genome for probes later on.
         """
         if self.locus is None:
-            hit       = _find_amplicon_in_refgenome(SeqRecord(self))
-            self.hits = len(hit)
-            if self.hits:
-                self.locus    = chromosome_for_ref_assembly(hit[0].hit_id)
-                self.position = hit[0].hit_start
-                self.strand   = hit[0].query_strand
+            hit, error_msg = _find_amplicon_in_refgenome(SeqRecord(self))
+            
+            if hit:
+                self.hits     = len(hit)
+                if self.hits:
+                    self.locus    = chromosome_for_ref_assembly(hit[0].hit_id)
+                    self.position = hit[0].hit_start
+                    self.strand   = hit[0].query_strand
+            else:
+                logging.error(error_msg)
 
     def add_ref(self, ref_info):
         self.locus    = ref_info['chromosome']

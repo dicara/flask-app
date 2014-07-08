@@ -22,7 +22,6 @@ limitations under the License.
 #===============================================================================
 import unittest
 import os
-import time
 import filecmp
 
 from src.analyses.melting_temperature.idtClient import IDTClient

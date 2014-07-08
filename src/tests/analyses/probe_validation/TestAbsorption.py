@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
         self.assertTrue(os.path.isfile(self.expected_result_path), msg)
 
     def test_absorption(self):
-        observed_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__), _OBSERVED_RESULT_FILENAME))
+        observed_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _OBSERVED_RESULT_FILENAME)
         absorption.execute_absorption(self.targets_file, self.probes_file, observed_result_path)
         
         msg = "%s file not found." % _OBSERVED_RESULT_FILENAME

@@ -147,10 +147,10 @@ class ParameterFactory(object):
 
     @classmethod
     def lc_string(cls, name, description, alias=None, required=True, 
-                  allow_multiple=False):
+                  allow_multiple=False, enum=None):
         return LowerCaseStringParameter(name, description,
                                alias=alias, required=required, 
-                               allow_multiple=allow_multiple)
+                               allow_multiple=allow_multiple, enum=enum)
 
     @classmethod
     def cs_string(cls, name, description, alias=None, required=True, 
@@ -158,3 +158,11 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
+    @staticmethod
+    def float(name, description, alias=None, required=False, 
+              allow_multiple=False, default=None, enum=None, minimum=None,
+              maximum=None, equality=None):
+        return FloatParameter(name, description, alias=alias, required=required,
+                              allow_multiple=allow_multiple, default=None, 
+                              enum=None, minimum=None, maximum=None, 
+                              equality=None)

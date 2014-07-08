@@ -24,10 +24,6 @@ from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 
 #===============================================================================
-# Imports
-#===============================================================================
-
-#===============================================================================
 # Class
 #===============================================================================
 class ExecutionManager(object):
@@ -35,9 +31,8 @@ class ExecutionManager(object):
     This class is intended to be a singleton.
     """
     _INSTANCE  = None
-    # This is really a list of futures
-    _JOB_QUEUE = {} #TODO: This should really be stored in DB
-    #TODO: Kill all currently executing jobs and wipe from DB if api is killed.
+    # List of futures for submitted jobs.
+    _JOB_QUEUE = {} 
     
     #===========================================================================
     # Constructor
@@ -91,10 +86,18 @@ class ExecutionManager(object):
             return None
         return future.result()
     
+    def cancel(self, uuid):
+        """
+        Cancel job.
+        """
+        if self.done(uuid) or self.running(uuid):
+            return False
+        else:
+            return self._get_future(uuid).cancel()
+    
     def _get_future(self, uuid):
         return self._JOB_QUEUE[uuid]
     
-        
 #===========================================================================
 # Ensure the initial instance is created.
 #===========================================================================    

@@ -79,27 +79,11 @@ def execute_absorption(targets_file, probes_file, out_file):
 def compute_absorption(targets_file, probes_file):
     
     targets, wild_types = get_targets(targets_file)
-    
-    probes = get_probes(probes_file)
-
-    logging.info("====================================================================")
-    logging.info("TARGETS")
-    logging.info("====================================================================")
-    logging.info(targets)
-    logging.info(len(targets))
-    logging.info("====================================================================")
-    logging.info("WILD TYPES")
-    logging.info("====================================================================")
-    logging.info(wild_types)
-    logging.info("====================================================================")
-    logging.info("PROBES")
-    logging.info("====================================================================")
-    logging.info(probes)
-    logging.info(len(probes))
-    
-    #TODO: What about wild types?
+    probes              = get_probes(probes_file)
+    targets_results     = global_probe_counts_refgenome(targets, probes)
+#     wild_type_results   = global_probe_counts_refgenome(wild_types, probes)
      
-    return global_probe_counts_refgenome(targets, probes)
+    return targets_results
 
 def write_results(results, out_file):
     with open(out_file, 'w') as f:
@@ -138,29 +122,63 @@ def get_probes(probes_file):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
+#     from probe_containers import Amplicon
+#     a = Amplicon("GTCCTCCTTCGGGGTTCAGGGCAAGGTTCCAGTCGGTCCAGCCGACCACATGGTACAGGAGGTTCTAGGGTAAG")
+#     print len(a)
+#     sys.exit()
+#     from Bio import SearchIO
+#     filename = "c8ad6baa-9c92-4f7d-b6a6-d1047f93cd37"
+#     filename = "e1517544-648c-4143-bc21-4a755feb77ef"
+# #     with open(filename) as f:
+# #         parser = BlatPslParser(f)
+# #         for result in parser:
+# #             print "===================NEW RESULT==================="
+# #             print result
+#     search_results = SearchIO.read(filename + '.psl', 'blat-psl')
+#     hit = search_results[0]
+#     print hit[0].query_strand
+# #     print dir(search_results[0].hsps[0])
+# #     print search_results[0].hsps[0].hit_strand
+# #     print search_results[0].hsps[0].query_strand
+# #     print dir(search_results.fragments[0])
+# #     print dir(search_results.fragments[0])
+# #     for result in search_results:
+# #         print result
+# #         for hit in result.hits:
+# #             print "==============================================="
+# #             print hit
+# #     
+# #     for result in search_results:
+# #         print result["strand"]
+#         
+#     
+#     sys.exit()
 #     sys.exit(main())
 #     targets_fasta = "../../tests/analyses/probe_validation/amplicons.fasta"
 #     probes_fasta  = "../../tests/analyses/probe_validation/probes.fasta"
     targets_fasta = "../../tests/analyses/probe_validation/amplicons_red.fasta"
+#     targets_fasta = "../../tests/analyses/probe_validation/amplicons_red2.fasta"
     probes_fasta  = "../../tests/analyses/probe_validation/probes_red.fasta"
     
-    from src.execution_engine.ExecutionManager import ExecutionManager
-    em = ExecutionManager.Instance()
-    from uuid import uuid4
-    uuid = str(uuid4())
-    em.add_job(uuid, compute_absorption, targets_fasta, probes_fasta)
-    import time
-    secs = 0
-    while em.job_running(uuid):
-        time.sleep(5)
-        secs += 5
-        print secs
+    execute_absorption(targets_fasta, probes_fasta, "results.txt")
     
-#     results = compute_absorption(targets_fasta, probes_fasta)
-    results = em.job_result(uuid)
-    out_file = "results.txt"
-    with open(out_file, 'w') as f:
-        print >>f, "Probe\tAbsorbed\tLocations"
-        for probe_name, info in results.iteritems():
-            locations = ",".join(["%s: %s" % (amp,loc) for amp,loc in info.iteritems() if amp != "absorbed"])
-            print >>f, "%s\t%s\t%s" % (probe_name, info["absorbed"], locations)
+#     from src.execution_engine.ExecutionManager import ExecutionManager
+#     em = ExecutionManager.Instance()
+#     from uuid import uuid4
+#     uuid = str(uuid4())
+#     em.add_job(uuid, compute_absorption, targets_fasta, probes_fasta)
+#     import time
+#     secs = 0
+#     while em.job_running(uuid):
+#         time.sleep(5)
+#         secs += 5
+#         print secs
+#     
+# #     results = compute_absorption(targets_fasta, probes_fasta)
+#     results = em.job_result(uuid)
+#     out_file = "results.txt"
+#     with open(out_file, 'w') as f:
+#         print >>f, "Probe\tAbsorbed\tLocations"
+#         for probe_name, info in results.iteritems():
+#             locations = ",".join(["%s: %s" % (amp,loc) for amp,loc in info.iteritems() if amp != "absorbed"])
+#             print >>f, "%s\t%s\t%s" % (probe_name, info["absorbed"], locations)

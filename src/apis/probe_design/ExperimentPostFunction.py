@@ -83,14 +83,14 @@ class ExperimentPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         plate_file       = params_dict[ParameterFactory.file("Raw plate reader data file.")][0]
         probe_sequence   = params_dict[ParameterFactory.cs_string("probe_sequence", "Probe sequence.")][0]
-        probe_tm         = params_dict[ParameterFactory.cs_string("probe_tm", "Probe melting temperature.")][0]
-        probe_length     = params_dict[ParameterFactory.cs_string("probe_length", "Probe melting temperature.")][0]
+        probe_tm         = params_dict[ParameterFactory.float("probe_tm", "Probe melting temperature (degrees celsius).")][0]
+        probe_length     = params_dict[ParameterFactory.integer("probe_length", "Probe length.")][0]
         target_sequence  = params_dict[ParameterFactory.cs_string("target_sequence", "Target sequence.")][0]
         variant_location = params_dict[ParameterFactory.cs_string("variant_location", "Variant location.")][0]
         variant_allele   = params_dict[ParameterFactory.cs_string("variant_allele", "Variant allele.")][0]
         reference_allele = params_dict[ParameterFactory.cs_string("reference_allele", "Reference allele.")][0]
-        incubation_temp  = params_dict[ParameterFactory.cs_string("incubation_temp", "Incubation temperature (degrees celsius).")][0]
-        incubation_time  = params_dict[ParameterFactory.cs_string("incubation_time", "Incubation time (minutes).")][0]
+        incubation_temp  = params_dict[ParameterFactory.float("incubation_temp", "Incubation temperature (degrees celsius).")][0]
+        incubation_time  = params_dict[ParameterFactory.float("incubation_time", "Incubation time (minutes).")][0]
         
         json_response     = {
                              FILENAME: plate_file.filename,

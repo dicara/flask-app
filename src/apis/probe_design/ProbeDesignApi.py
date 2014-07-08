@@ -27,6 +27,7 @@ from src.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
 from src.apis.probe_design.ExperimentGetFunction import ExperimentGetFunction
 from src.apis.probe_design.AbsorptionPostFunction import AbsorptionPostFunction
 from src.apis.probe_design.AbsorptionGetFunction import AbsorptionGetFunction
+from src.apis.probe_design.AbsorptionDeleteFunction import AbsorptionDeleteFunction
 from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
 from src.apis.probe_design.TargetsGetFunction import TargetsGetFunction
 from src.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunction
@@ -44,6 +45,7 @@ class ProbeDesignApiV1(AbstractApiV1):
                   ExperimentGetFunction(),
                   AbsorptionPostFunction(),
                   AbsorptionGetFunction(),
+                  AbsorptionDeleteFunction(),
                   TargetsPostFunction(),
                   TargetsGetFunction(),
                   TargetsDeleteFunction(),

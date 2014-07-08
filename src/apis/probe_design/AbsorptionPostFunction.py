@@ -157,14 +157,22 @@ def make_absorption_callback(uuid, outfile_path, db_connector):
                                 RESULT: outfile_path,
                                 FINISH_DATESTAMP: datetime.today(),
                                 URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid)}}
-            db_connector.update(ABSORPTION_COLLECTION, query, update)
+            # If job has been deleted, then delete result and don't update DB.
+            if len(db_connector.find(ABSORPTION_COLLECTION, query, {})) > 0:
+                db_connector.update(ABSORPTION_COLLECTION, query, update)
+            elif os.path.isfile(outfile_path):
+                os.remove(outfile_path)
         except:
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None, 
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
-            db_connector.update(ABSORPTION_COLLECTION, query, update)
+            # If job has been deleted, then delete result and don't update DB.
+            if len(db_connector.find(ABSORPTION_COLLECTION, query, {})) > 0:
+                db_connector.update(ABSORPTION_COLLECTION, query, update)
+            elif os.path.isfile(outfile_path):
+                os.remove(outfile_path)
     return absorption_callback
     
 #===============================================================================

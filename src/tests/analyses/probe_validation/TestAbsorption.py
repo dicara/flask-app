@@ -40,9 +40,9 @@ _OBSERVED_RESULT_FILENAME = "observed_results.txt"
 class Test(unittest.TestCase):
     
     def setUp(self):
-        self.targets_file         = os.path.join(os.path.abspath(os.path.dirname(__file__), _TARGETS_FILENAME))
-        self.probes_file          = os.path.join(os.path.abspath(os.path.dirname(__file__), _PROBES_FILENAME))
-        self.expected_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__), _EXPECTED_RESULT_FILENAME))
+        self.targets_file         = os.path.join(os.path.abspath(os.path.dirname(__file__)), _TARGETS_FILENAME)
+        self.probes_file          = os.path.join(os.path.abspath(os.path.dirname(__file__)), _PROBES_FILENAME)
+        self.expected_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_RESULT_FILENAME)
         self.absorb       = False
         self.num          = 3
         
@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
         msg = "%s file not found." % self.probes_file
         self.assertTrue(os.path.isfile(self.expected_result_path), msg)
 
-    def test_validation(self):
+    def test_absorption(self):
         observed_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__), _OBSERVED_RESULT_FILENAME))
         absorption.execute_absorption(self.targets_file, self.probes_file, observed_result_path)
         

@@ -51,7 +51,7 @@ def index():
 def api_resource_listing():
     t = time.time()
     swagger_resource_listing = API_MANAGER.getSwaggerResourceListing()
-    logging.info("api_resource_listing took %s minutes" % ((time.time()-t)/60.0))
+#     logging.info("api_resource_listing took %s minutes" % ((time.time()-t)/60.0))
     if swagger_resource_listing:
         return jsonify(swagger_resource_listing)
     abort(404)
@@ -63,7 +63,7 @@ def api_declarations(version, name):
     
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
     
-    logging.info("api_declarations took %s minutes" % ((time.time()-t)/60.0))
+#     logging.info("api_declarations took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -74,7 +74,7 @@ def api(version, name):
     #REPLACE WITH HTML DOCS!!!
     t = time.time()
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
-    logging.info("api took %s minutes" % ((time.time()-t)/60.0))
+#     logging.info("api took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -84,7 +84,7 @@ def api(version, name):
 def function(version, name, path):
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
-    logging.info("API FUNCTION: %s" % api_function)
+#     logging.info("API FUNCTION: %s" % api_function)
     if api_function:
         
         # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 

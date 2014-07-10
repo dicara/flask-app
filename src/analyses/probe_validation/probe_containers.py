@@ -2,7 +2,6 @@ import os
 import sys
 import traceback
 import subprocess
-import logging
 
 from collections import namedtuple
 from Bio import SeqIO, SearchIO
@@ -15,8 +14,12 @@ from redis import StrictRedis
 from src.analyses.melting_temperature.idtClient import IDTClient
 from src.analyses.probe_validation import settings
 from src.analyses.probe_validation.ncbi_util import chromosome_for_ref_assembly
+from src.utilities.logging_utilities import APP_LOGGER
+
 
 __author__ = 'spowers'
+
+
 
 def get_tm_checker():
     """
@@ -56,29 +59,28 @@ def get_tm_checker():
 
 
 def _find_amplicon_in_refgenome(amplicon):
-    #run the search
     filename = str(uuid4())
     SeqIO.write(amplicon, filename + '.fa', 'fasta')
-    error_msg = ""
-    try:
-        _ = subprocess.check_call([settings.blat_location, settings.ref_genome_loc, filename + '.fa', filename + '.psl'])
-        search_results = SearchIO.read(filename + '.psl', 'blat-psl')
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        error_msg = "\n".join(traceback.format_exception(exc_type, exc_value, 
-                                                         exc_traceback))
-        search_results = None
         
+    cmd_args       = [settings.blat_location, settings.ref_genome_loc, filename + '.fa', filename + '.psl']
+    blat_process   = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = blat_process.communicate()
+    
+    search_results = None
+    if len(stderr) == 0:
+        APP_LOGGER.info(stdout)
+        search_results = SearchIO.read(filename + '.psl', 'blat-psl')[0]
+
     try:
         os.remove(filename + '.fa')
         os.remove(filename + '.psl')
     except OSError:
         pass
+
+    if len(stderr) > 0:
+        raise Exception(stderr)
     
-    if search_results:
-        return search_results[0], error_msg
-    else:
-        return None, error_msg
+    return search_results
 
 
 class Amplicon(Seq):
@@ -103,19 +105,18 @@ class Amplicon(Seq):
         """
         Utilize an external search util (BLAT or BLAST) to find in the 
         reference genome.  This can then be used to find the actual position in 
-        the genome for probes later on.
+        the genome for probes later on. If the search fails, raise an 
+        exception.
         """
         if self.locus is None:
-            hit, error_msg = _find_amplicon_in_refgenome(SeqRecord(self))
+            hit = _find_amplicon_in_refgenome(SeqRecord(self))
             
             if hit:
-                self.hits     = len(hit)
+                self.hits = len(hit)
                 if self.hits:
                     self.locus    = chromosome_for_ref_assembly(hit[0].hit_id)
                     self.position = hit[0].hit_start
                     self.strand   = hit[0].query_strand
-            else:
-                logging.error(error_msg)
 
     def add_ref(self, ref_info):
         self.locus    = ref_info['chromosome']

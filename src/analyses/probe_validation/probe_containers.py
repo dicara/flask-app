@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 import subprocess
 import logging
 
@@ -61,8 +63,10 @@ def _find_amplicon_in_refgenome(amplicon):
     try:
         _ = subprocess.check_call([settings.blat_location, settings.ref_genome_loc, filename + '.fa', filename + '.psl'])
         search_results = SearchIO.read(filename + '.psl', 'blat-psl')
-    except Exception, e:
-        error_msg      = str(e)
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        error_msg = "\n".join(traceback.format_exception(exc_type, exc_value, 
+                                                         exc_traceback))
         search_results = None
         
     try:

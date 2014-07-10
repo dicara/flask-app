@@ -103,11 +103,16 @@ def global_probe_counts_refgenome(amplicons, probes):
     :return: Dictionary of probe name to array of location info key value pairs
     """
     results = defaultdict(dict)
+    # Pre-populate so probes that don't match any amplicons are still included
+    for probe_name in probes.keys():
+        results[probe_name] = {}
+        
     for amplicon in amplicons:
         for probe_name, seq in probes.iteritems():
             locations = amplicon.seq.relative_to_genomic(amplicon.seq.findall(seq))
             if locations:
                 results[probe_name][amplicon.id] = locations
+                
     absorption = dict()
     for probe_name, amplicons in results.iteritems():
         genomic_locations = set()

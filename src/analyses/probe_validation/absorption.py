@@ -78,10 +78,11 @@ def execute_absorption(targets_file, probes_file, out_file):
 
 def compute_absorption(targets_file, probes_file):
     
-    targets, wild_types = get_targets(targets_file)
-    probes              = get_probes(probes_file)
-    targets_results     = global_probe_counts_refgenome(targets, probes)
-#     wild_type_results   = global_probe_counts_refgenome(wild_types, probes)
+    # Ignoring wildtypes for now, it is assumed that these are a subset of the
+    # provided targets.
+    targets, _      = get_targets(targets_file)
+    probes          = get_probes(probes_file)
+    targets_results = global_probe_counts_refgenome(targets, probes)
      
     return targets_results
 

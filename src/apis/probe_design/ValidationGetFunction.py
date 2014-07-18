@@ -20,31 +20,29 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
-import sys
+from collections import OrderedDict
 
-from flask import make_response, jsonify
-
-from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH, ERROR
+from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import PROBES_COLLECTION
+from src import VALIDATION_COLLECTION
+from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
+    TARGETS, DATESTAMP, ABSORB, NUM
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesDeleteFunction(AbstractDeleteFunction):
+class ValidationGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Probes"
+        return "Validation"
    
     @staticmethod
     def summary():
-        return "Delete probes FASTA files."
+        return "Retrieve list of validation jobs."
     
     @staticmethod
     def notes():
@@ -53,46 +51,33 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.uuid(),
+                      ParameterFactory.format(),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        response         = {}
-        http_status_code = 200
-        targets_uuids    = params_dict[ParameterFactory.uuid()]
-        criteria         = {UUID: {"$in": targets_uuids}}
+        columns            = OrderedDict()
+        columns[ID]        = 0
+        columns[JOB_NAME]  = 1
+        columns[UUID]      = 1
+        columns[STATUS]    = 1
+        columns[DATESTAMP] = 1
+        columns[PROBES]    = 1
+        columns[TARGETS]   = 1
+        columns[ABSORB]    = 1
+        columns[NUM]       = 1
         
-        try:
-            records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
-            response["deleted"] = {}
-            if len(records) > 0:
-                # Record records
-                for record in records:
-                    response["deleted"][record[UUID]] = record
-                
-                # Delete records from database
-                result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
-                
-                # Delete files from disk only if removal from DB was successful
-                if result and result['n'] == len(response["deleted"]):
-                    for _,record in response["deleted"].iteritems():
-                        os.remove(record[FILEPATH])
-                else:
-                    del response["deleted"]
-                    raise Exception("Error deleting records from the database: %s" % result)
-            else:
-                http_status_code = 404
-        except:
-            response[ERROR]  = str(sys.exc_info()[1])
-            http_status_code = 500
-            
-        return make_response(jsonify(response), http_status_code)
-
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find(VALIDATION_COLLECTION, {}, columns)
+         
+        return (data, column_names, None)
+         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesDeleteFunction()
+    function = ValidationGetFunction()
     print function

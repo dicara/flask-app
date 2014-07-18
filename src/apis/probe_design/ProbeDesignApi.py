@@ -21,7 +21,13 @@ limitations under the License.
 # Imports
 #=============================================================================
 from src.apis.AbstractApi import AbstractApiV1
-from src.apis.probe_design.ValidationFunction import ValidationFunction
+# from src.apis.probe_design.ValidationPostFunction import ValidationPostFunction
+# from src.apis.probe_design.ValidationGetFunction import ValidationGetFunction
+from src.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
+from src.apis.probe_design.ExperimentGetFunction import ExperimentGetFunction
+from src.apis.probe_design.AbsorptionPostFunction import AbsorptionPostFunction
+from src.apis.probe_design.AbsorptionGetFunction import AbsorptionGetFunction
+from src.apis.probe_design.AbsorptionDeleteFunction import AbsorptionDeleteFunction
 from src.apis.probe_design.TargetsPostFunction import TargetsPostFunction
 from src.apis.probe_design.TargetsGetFunction import TargetsGetFunction
 from src.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunction
@@ -35,13 +41,17 @@ from src.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
 class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
-                  ValidationFunction(),
+                  ExperimentPostFunction(),
+                  ExperimentGetFunction(),
+                  AbsorptionPostFunction(),
+                  AbsorptionGetFunction(),
+                  AbsorptionDeleteFunction(),
                   TargetsPostFunction(),
                   TargetsGetFunction(),
                   TargetsDeleteFunction(),
                   ProbesPostFunction(),
                   ProbesGetFunction(),
-                  ProbesDeleteFunction,
+                  ProbesDeleteFunction(),
                  ]
 
     @staticmethod

@@ -20,31 +20,29 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
-import sys
+from collections import OrderedDict
 
-from flask import make_response, jsonify
-
-from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH, ERROR
+from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import PROBES_COLLECTION
+from src import PLATES_COLLECTION
+from src.apis.ApiConstants import FILENAME, FILEPATH, ID, URL, \
+    DATESTAMP, UUID
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesDeleteFunction(AbstractDeleteFunction):
+class ExperimentGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Probes"
+        return "Experiment"
    
     @staticmethod
     def summary():
-        return "Delete probes FASTA files."
+        return "Retrieve list of available experiments."
     
     @staticmethod
     def notes():
@@ -53,46 +51,39 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.uuid(),
+                      ParameterFactory.format(),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        response         = {}
-        http_status_code = 200
-        targets_uuids    = params_dict[ParameterFactory.uuid()]
-        criteria         = {UUID: {"$in": targets_uuids}}
+        columns                     = OrderedDict()
+        columns[ID]                 = 0
+        columns[UUID]               = 1
+        columns[FILENAME]           = 1
+        columns[FILEPATH]           = 1
+        columns[URL]                = 1
+        columns[DATESTAMP]          = 1
+        columns["probe_sequence"]   = 1
+        columns["probe_tm"]         = 1
+        columns["probe_length"]     = 1
+        columns["target_sequence"]  = 1
+        columns["variant_location"] = 1
+        columns["variant_allele"]   = 1
+        columns["reference_allele"] = 1
+        columns["incubation_temp"]  = 1
+        columns["incubation_time"]  = 1
         
-        try:
-            records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
-            response["deleted"] = {}
-            if len(records) > 0:
-                # Record records
-                for record in records:
-                    response["deleted"][record[UUID]] = record
-                
-                # Delete records from database
-                result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
-                
-                # Delete files from disk only if removal from DB was successful
-                if result and result['n'] == len(response["deleted"]):
-                    for _,record in response["deleted"].iteritems():
-                        os.remove(record[FILEPATH])
-                else:
-                    del response["deleted"]
-                    raise Exception("Error deleting records from the database: %s" % result)
-            else:
-                http_status_code = 404
-        except:
-            response[ERROR]  = str(sys.exc_info()[1])
-            http_status_code = 500
-            
-        return make_response(jsonify(response), http_status_code)
-
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find(PLATES_COLLECTION, {}, columns)
+         
+        return (data, column_names, None)
+         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesDeleteFunction()
+    function = ExperimentGetFunction()
     print function

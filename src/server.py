@@ -27,7 +27,6 @@ import sys
 import os
 import getpass
 import platform
-import logging
 import time
 import signal
 import csv
@@ -41,8 +40,10 @@ from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
 
 from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
-    TARGETS_UPLOAD_FOLDER, PROBES_UPLOAD_FOLDER
-from utilities import io_utilities
+    TARGETS_UPLOAD_FOLDER, PROBES_UPLOAD_FOLDER, RESULTS_FOLDER, REFS_FOLDER, \
+    PLATES_UPLOAD_FOLDER
+from src.utilities import io_utilities
+from src.utilities.logging_utilities import GENERAL_LOGGER
 
 #===============================================================================
 # Class private variables
@@ -145,10 +146,10 @@ USAGE
         args = parser.parse_args()
 
         restart_server = args.restart
-        start_server = args.start
-        stop_server = args.stop
-        show_status = args.status
-
+        start_server   = args.start
+        stop_server    = args.stop
+        show_status    = args.status
+        
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return 0
@@ -161,6 +162,9 @@ USAGE
     io_utilities.safe_make_dirs(HOME_DIR)
     io_utilities.safe_make_dirs(TARGETS_UPLOAD_FOLDER)
     io_utilities.safe_make_dirs(PROBES_UPLOAD_FOLDER)
+    io_utilities.safe_make_dirs(PLATES_UPLOAD_FOLDER)
+    io_utilities.safe_make_dirs(RESULTS_FOLDER)
+    io_utilities.safe_make_dirs(REFS_FOLDER)
 
     # current_info: currently running process machine, pid, port, user, and 
     #               datestamp
@@ -215,7 +219,7 @@ def start(current_info):
     tornado.options.options.log_file_prefix = TORNADO_LOG_FILE_PREFIX
     tornado.options.parse_command_line()
     
-    logging.info("Starting up server on machine %s and port %s at %s." % 
+    GENERAL_LOGGER.info("Starting up server on machine %s and port %s at %s." % 
                  (current_info[MACHINE], current_info[PORT_HEADER], 
                   time.strftime("%I:%M:%S")))
     
@@ -375,7 +379,7 @@ def is_running(current_info, running_info_list):
             
     # Remove stale info from RUNINFO_FILENAME file
     if stale_info:
-        logging.info("Removing stale info: %s" % stale_info)
+        GENERAL_LOGGER.info("Removing stale info: %s" % stale_info)
         running_info_list.remove(stale_info)
         rewrite_info(running_info_list)
         
@@ -400,7 +404,7 @@ def sig_handler(sig, frame):
 
 def shutdown():
     current_info = get_current_info()
-    logging.info("Shutting down server on machine %s and port %s at %s." % 
+    GENERAL_LOGGER.info("Shutting down server on machine %s and port %s at %s." % 
                  (current_info[MACHINE], current_info[PORT_HEADER], 
                   time.strftime("%I:%M:%S")))
     IOLoop.instance().stop()

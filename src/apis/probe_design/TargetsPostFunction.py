@@ -27,11 +27,11 @@ from uuid import uuid4
 from flask import make_response, jsonify
 from datetime import datetime
 
-from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
+from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, \
     URL, DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
+from src import HOSTNAME, PORT, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
 from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
@@ -52,7 +52,19 @@ class TargetsPostFunction(AbstractPostFunction):
     
     @staticmethod
     def notes():
-        return "In depth description goes here."
+        return "The returned uuid identifies the uploaded file and must " \
+            "be used to select this file as input to APIs that consume " \
+            "targets files."
+   
+    def response_messages(self):
+        msgs = super(TargetsPostFunction, self).response_messages()
+        msgs.extend([
+                     { "code": 403, 
+                       "message": "File already exists. Delete the existing file and retry."},
+                     { "code": 415, 
+                       "message": "File is not a valid FASTA file."},
+                    ])
+        return msgs
     
     @classmethod
     def parameters(cls):
@@ -63,11 +75,8 @@ class TargetsPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        targets_file = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
-        json_response = {
-                          FILENAME: targets_file.filename,
-                          ERROR: ""
-                        }
+        targets_file     = params_dict[ParameterFactory.file("Targets FASTA file.")][0]
+        json_response    = {FILENAME: targets_file.filename}
         http_status_code = 200
         file_uuid        = str(uuid4())
         
@@ -81,10 +90,10 @@ class TargetsPostFunction(AbstractPostFunction):
             try:
                 targets_file.save(path)
                 targets_file.close()
-                json_response[URL]  = "http://%s/targets/%s" % (HOSTNAME, file_uuid)
-                json_response[FILEPATH] = path
-                json_response[UUID] = file_uuid
-                json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
+                json_response[URL]       = "http://%s/uploads/%s/targets/%s" % (HOSTNAME, PORT, file_uuid)
+                json_response[FILEPATH]  = path
+                json_response[UUID]      = file_uuid
+                json_response[DATESTAMP] = datetime.today()
                 json_response[TYPE]      = "targets"
                 if "." in targets_file.filename:
                     json_response[FORMAT] = targets_file.filename.split(".")[-1]

@@ -20,10 +20,13 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from collections import OrderedDict
+
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import TARGETS_COLLECTION
-from src.apis.ApiConstants import ID
+from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
+    DATESTAMP, TYPE, UUID
 
 #=============================================================================
 # Class
@@ -54,7 +57,22 @@ class TargetsGetFunction(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        return (cls._DB_CONNECTOR.find(TARGETS_COLLECTION, {}, {ID: 0}), None, None)
+        columns            = OrderedDict()
+        columns[ID]        = 0
+        columns[UUID]      = 1
+        columns[FILENAME]  = 1
+        columns[FILEPATH]  = 1
+        columns[URL]       = 1
+        columns[DATESTAMP] = 1
+        columns[FORMAT]    = 1
+        columns[TYPE]      = 1
+        
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, {}, columns)
+         
+        return (data, column_names, None)
          
 #===============================================================================
 # Run Main

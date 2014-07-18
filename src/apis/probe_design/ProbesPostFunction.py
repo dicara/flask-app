@@ -27,11 +27,11 @@ from uuid import uuid4
 from flask import make_response, jsonify
 from datetime import datetime
 
-from src.apis.ApiConstants import TIME_FORMAT, FORMAT, FILENAME, FILEPATH, ID, \
-    URL, DATESTAMP, TYPE, ERROR, UUID
+from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
+    DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
+from src import HOSTNAME, PORT, PROBES_UPLOAD_FOLDER, PROBES_COLLECTION
 from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
@@ -52,7 +52,19 @@ class ProbesPostFunction(AbstractPostFunction):
     
     @staticmethod
     def notes():
-        return "In depth description goes here."
+        return "The returned uuid identifies the uploaded file and must " \
+            "be used to select this file as input to APIs that consume " \
+            "probes files."
+    
+    def response_messages(self):
+        msgs = super(ProbesPostFunction, self).response_messages()
+        msgs.extend([
+                     { "code": 403, 
+                       "message": "File already exists. Delete the existing file and retry."},
+                     { "code": 415, 
+                       "message": "File is not a valid FASTA file."},
+                    ])
+        return msgs
     
     @classmethod
     def parameters(cls):
@@ -63,11 +75,8 @@ class ProbesPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        probes_file = params_dict[ParameterFactory.file("Probes file.")][0]
-        json_response = {
-                          FILENAME: probes_file.filename,
-                          ERROR: "",
-                        }
+        probes_file      = params_dict[ParameterFactory.file("Probes file.")][0]
+        json_response    = {FILENAME: probes_file.filename}
         http_status_code = 200
         file_uuid        = str(uuid4())
 
@@ -81,10 +90,10 @@ class ProbesPostFunction(AbstractPostFunction):
             try:
                 probes_file.save(path)
                 probes_file.close()
-                json_response[URL]       = "http://%s/probes/%s" % (HOSTNAME, file_uuid)
+                json_response[URL]       = "http://%s/uploads/%s/probes/%s" % (HOSTNAME, PORT, file_uuid)
                 json_response[FILEPATH]  = path
                 json_response[UUID]      = file_uuid
-                json_response[DATESTAMP] = datetime.today().strftime(TIME_FORMAT)
+                json_response[DATESTAMP] = datetime.today()
                 json_response[TYPE]      = "probes"
                 if "." in probes_file.filename:
                     json_response[FORMAT] = probes_file.filename.split(".")[-1]

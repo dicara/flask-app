@@ -86,30 +86,49 @@ PARAMETER_TYPES_TUPLE = namedtuple('ParameterTypes',
                                    ])
 PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 
+JOB_STATUS_TUPLE = namedtuple('JobStatus',
+                              [
+                               'submitted',
+                               'running',
+                               'succeeded',
+                               'failed',
+                              ])
+JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
+
 #=============================================================================
 # Miscellaneous Constants 
 #=============================================================================
-PAGE          = "page"
-FORMAT        = "format"
-MISSING_VALUE = ""
-SEQUENCE      = "sequence"
-SEQUENCE_NAME = "sequence_name"
-CHR_NUM       = "chr_num"
-CHR_START     = "chr_start"
-CHR_STOP      = "chr_stop"
-SNP_SEARCH_NAME = 'snp_search_name'
-PROBE         = "probe"
-FILE          = "file"
-FILENAME      = "filename"
-FILEPATH      = "filepath"
-FILENAMES     = "filenames"
-TIME_FORMAT   = "%Y_%m_%d__%H_%M_%S"
-ID            = "_id"
-URL           = "url"
-DATESTAMP     = "datestamp"
-TYPE          = "type"
-ERROR         = "error"
-UUID          = "uuid"
+PAGE             = "page"
+FORMAT           = "format"
+MISSING_VALUE    = ""
+SEQUENCE         = "sequence"
+SEQUENCE_NAME    = "sequence_name"
+CHR_NUM          = "chr_num"
+CHR_START        = "chr_start"
+CHR_STOP         = "chr_stop"
+SNP_SEARCH_NAME  = 'snp_search_name'
+PROBE            = "probe"
+FILE             = "file"
+FILENAME         = "filename"
+FILEPATH         = "filepath"
+FILENAMES        = "filenames"
+TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
+ID               = "_id"
+URL              = "url"
+DATESTAMP        = "datestamp"
+SUBMIT_DATESTAMP = "submit_datestamp"
+START_DATESTAMP  = "start_datestamp"
+FINISH_DATESTAMP = "finish_datestamp"
+TYPE             = "type"
+ERROR            = "error"
+UUID             = "uuid"
+STATUS           = "status"
+JOB_NAME         = "job_name"
+PROBES           = "probes"
+TARGETS          = "targets"
+ABSORB           = "absorb"
+NUM              = "num"
+RESULT           = "result"
 
 #=============================================================================
 # Miscellaneous namedtuples 

@@ -20,66 +20,68 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from collections import OrderedDict
+
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.melting_temperature.idtClient import IDTClient
+from src import ABSORPTION_COLLECTION
+from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
+    TARGETS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
+    RESULT, URL
 
 #=============================================================================
 # Class
 #=============================================================================
-class ValidationFunction(AbstractGetFunction):
-    
-    _IDT_CLIENT = IDTClient()
+class AbsorptionGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Validity"
+        return "Absorption"
    
     @staticmethod
     def summary():
-        return "Check the validity of a set of probes."
+        return "Retrieve list of absorption jobs."
     
     @staticmethod
     def notes():
-        return "In depth description goes here."
+        return ""
     
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
-                      ParameterFactory.probes(required=True),
-                      ParameterFactory.boolean("absorb", "Check for absorbed probes."),
-                      ParameterFactory.integer("num", "Minimum number of probes for a target.",
-                                               default=3, minimum=1),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-#         sequences      = params_dict[ParameterFactory.sequences(required=True)]
-#         sequence_names = params_dict[ParameterFactory.sequence_names(required=True)]
-#         
-#         # Every sequence must have an accompanying name
-#         if len(sequences) != len(sequence_names):
-#             return (None, None, None)
-#         
-#         data = list()
-#         for i, sequence in enumerate(sequences):
-#             melting_temp = cls._IDT_CLIENT.get_melting_temp(sequence)
-#             data.append({"Name": sequence_names[i], 
-#                          "Sequence": sequence,
-#                          "Tm": melting_temp.tm})
-#         columns = ["Name", "Sequence", "Tm"]
-#         return (data, columns, None)
-        return (None, None, None)
-
+        columns                   = OrderedDict()
+        columns[ID]               = 0
+        columns[JOB_NAME]         = 1
+        columns[UUID]             = 1
+        columns[STATUS]           = 1
+        columns[SUBMIT_DATESTAMP] = 1
+        columns[START_DATESTAMP]  = 1
+        columns[FINISH_DATESTAMP] = 1
+        columns[ERROR]            = 1
+        columns[URL]              = 1
+        columns[RESULT]           = 1
+        columns[PROBES]           = 1
+        columns[TARGETS]          = 1
+        
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find(ABSORPTION_COLLECTION, {}, columns)
+         
+        return (data, column_names, None)
          
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ValidationFunction()
+    function = AbsorptionGetFunction()
     print function

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:  Jun 12, 2014
+@date:  Jun 23, 2014
 '''
 
 #===============================================================================
@@ -24,14 +24,15 @@ import unittest
 import os
 import filecmp
 
-from src.analyses.melting_temperature.idtClient import IDTClient
+from src.analyses.probe_validation import absorption
 
 #===============================================================================
 # Global Private Variables
 #===============================================================================
-_PROBES_FILENAME = "test_probes.csv"
-_EXPECTED_RESULT_FILENAME = "expected_melting_temps.txt"
-_OBSERVED_RESULT_FILENAME = "observed_melting_temps.txt"
+_TARGETS_FILENAME = "targets.fasta"
+_PROBES_FILENAME  = "probes.fasta"
+_EXPECTED_RESULT_FILENAME = "expected_results.txt"
+_OBSERVED_RESULT_FILENAME = "observed_results.txt"
 
 #===============================================================================
 # Test
@@ -39,37 +40,22 @@ _OBSERVED_RESULT_FILENAME = "observed_melting_temps.txt"
 class Test(unittest.TestCase):
     
     def setUp(self):
-        self.idt_client = IDTClient()
+        self.targets_file         = os.path.join(os.path.abspath(os.path.dirname(__file__)), _TARGETS_FILENAME)
+        self.probes_file          = os.path.join(os.path.abspath(os.path.dirname(__file__)), _PROBES_FILENAME)
+        self.expected_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_RESULT_FILENAME)
+        self.absorb       = False
+        self.num          = 3
         
-        # Input Name,Sequence file
-        input_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                                  _PROBES_FILENAME)
-        self.assertTrue(os.path.isfile(input_path))
-        probes_dict = dict()
-        with open(input_path) as f:
-            f.readline()
-            i = 0
-            for line in f:
-                fields = line.strip().split(",")
-                probes_dict[fields[0]] = fields[1]
-        self.probes_dict = probes_dict
-        
-        # Expected Name,Sequence/Tm file
-        expected_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                                     _EXPECTED_RESULT_FILENAME)
-        self.assertTrue(os.path.isfile(expected_path))
-        self.expected_result_path = expected_path
+        msg = "%s targets FASTA file not found." % self.targets_file
+        self.assertTrue(os.path.isfile(self.targets_file), msg)
+        msg = "%s probes FASTA file not found." % self.probes_file
+        self.assertTrue(os.path.isfile(self.probes_file), msg)
+        msg = "%s file not found." % self.probes_file
+        self.assertTrue(os.path.isfile(self.expected_result_path), msg)
 
-    def test_idt_client(self):
-        observed_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                                            _OBSERVED_RESULT_FILENAME)
-        with open(observed_result_path, 'w') as f:
-            print >>f, ",".join(["Name","Sequence","Tm"])
-            for i, (k,v) in enumerate(self.probes_dict.iteritems()):
-                print "%s:\t%s\t%s" % (str(i),k,v)
-                melting_temp = self.idt_client.get_melting_temp(v)
-                print melting_temp
-                print >>f, ",".join([k,v,str(melting_temp.tm)])
+    def test_absorption(self):
+        observed_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _OBSERVED_RESULT_FILENAME)
+        absorption.execute_absorption(self.targets_file, self.probes_file, observed_result_path)
         
         msg = "%s file not found." % _OBSERVED_RESULT_FILENAME
         self.assertTrue(os.path.isfile(observed_result_path), msg)

@@ -26,25 +26,25 @@ import sys
 from flask import make_response, jsonify
 
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH, ERROR
+from src.apis.ApiConstants import ID, UUID, RESULT, ERROR
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import PROBES_COLLECTION
+from src import ABSORPTION_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProbesDeleteFunction(AbstractDeleteFunction):
+class AbsorptionDeleteFunction(AbstractDeleteFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Probes"
+        return "Absorption"
    
     @staticmethod
     def summary():
-        return "Delete probes FASTA files."
+        return "Delete absorption jobs."
     
     @staticmethod
     def notes():
@@ -53,7 +53,9 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
     @classmethod
     def parameters(cls):
         parameters = [
-                      ParameterFactory.uuid(),
+                      ParameterFactory.lc_string(UUID, "Comma separated UUID(s).", 
+                                                 allow_multiple=True,
+                                                 enum=cls._DB_CONNECTOR.distinct(ABSORPTION_COLLECTION, UUID)),
                      ]
         return parameters
     
@@ -61,11 +63,14 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
     def process_request(cls, params_dict):
         response         = {}
         http_status_code = 200
-        targets_uuids    = params_dict[ParameterFactory.uuid()]
-        criteria         = {UUID: {"$in": targets_uuids}}
+        uuid_param       = ParameterFactory.lc_string(UUID, "Comma separated UUID(s).", 
+                                                      allow_multiple=True,
+                                                      enum=cls._DB_CONNECTOR.distinct(ABSORPTION_COLLECTION, UUID))
+        absorption_uuids = params_dict[uuid_param]
+        criteria         = {UUID: {"$in": absorption_uuids}}
         
         try:
-            records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
+            records = cls._DB_CONNECTOR.find(ABSORPTION_COLLECTION, criteria, {ID:0})
             response["deleted"] = {}
             if len(records) > 0:
                 # Record records
@@ -73,12 +78,13 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
                     response["deleted"][record[UUID]] = record
                 
                 # Delete records from database
-                result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
+                result = cls._DB_CONNECTOR.remove(ABSORPTION_COLLECTION, criteria)
                 
                 # Delete files from disk only if removal from DB was successful
                 if result and result['n'] == len(response["deleted"]):
                     for _,record in response["deleted"].iteritems():
-                        os.remove(record[FILEPATH])
+                        if RESULT in record and os.path.isfile(record[RESULT]):
+                            os.remove(record[RESULT])
                 else:
                     del response["deleted"]
                     raise Exception("Error deleting records from the database: %s" % result)
@@ -94,5 +100,5 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProbesDeleteFunction()
+    function = AbsorptionDeleteFunction()
     print function

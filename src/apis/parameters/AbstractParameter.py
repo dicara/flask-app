@@ -21,11 +21,11 @@ limitations under the License.
 # Imports
 #=============================================================================
 import re
-import logging
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 from src.apis.ApiConstants import PARAMETER_TYPES
+from src.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Private Global Variables
@@ -167,7 +167,7 @@ class AbstractParameter(object):
         Convert input strings to their appropriate types.
         '''
         if len(raw_args) > 1 and not self.allow_multiple:
-            logging.warning("Multiple parameter values for %s are not permitted. Only using the first value: %s." % (self.name, raw_args[0]))
+            APP_LOGGER.warning("Multiple parameter values for %s are not permitted. Only using the first value: %s." % (self.name, raw_args[0]))
             raw_args = raw_args[:1]
          
         if len(raw_args) < 1:

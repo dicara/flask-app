@@ -50,18 +50,45 @@ class DbConnector(object):
     #===========================================================================
     # Simple get methods
     #===========================================================================
-    def insert(self, collection, rows):
+    @staticmethod
+    def insert(collection, rows):
         return DB[collection].insert(rows)
     
-    def find(self, collection, criteria, projection):
+    @staticmethod
+    def find(collection, criteria, projection):
         return list(DB[collection].find(criteria, projection))
     
-    def distinct(self, collection, column_name):
+    @staticmethod
+    def distinct(collection, column_name):
         return list(DB[collection].distinct(column_name))
     
-    def remove(self, collection, criteria):
+    @staticmethod
+    def remove(collection, criteria):
         return DB[collection].remove(criteria)
-        
+    
+    @staticmethod
+    def get_distinct(collection, column_name, is_string=True):
+        '''
+        Call distinct on the provide column_name in the provided collection. If
+        the column contains strings, then return case-insensitively sorted 
+        results. Otherwise, simply sort the results.
+        '''
+        if is_string:
+            return sorted(filter(lambda x: x is not None, 
+                                 DB[collection].distinct(column_name)), 
+                          key=lambda s: s.lower())
+        else:
+            return sorted(filter(lambda x: x is not None, 
+                                 DB[collection].distinct(column_name)))
+            
+    @staticmethod
+    def find_one(collection, column_name, column_value):
+        return DB[collection].find_one({column_name: column_value})
+    
+    @staticmethod
+    def update(collection, query, update):
+        DB[collection].update(query, update)
+            
 #===========================================================================
 # Ensure the initial instance is created.
 #===========================================================================    

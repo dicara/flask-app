@@ -25,15 +25,18 @@ from src.apis.parameters.LowerCaseStringParameter import LowerCaseStringParamete
 from src.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 from src.apis.parameters.FileParameter import FileParameter
-
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME
+from src.DbConnector import DbConnector
 
 #=============================================================================
 # Class
 #=============================================================================
 class ParameterFactory(object):
+    
+    _DB_CONNECTOR = DbConnector.Instance()
+    
     @classmethod
     def format(cls):
         """ Create a parameter instance for defining the return format of the result."""
@@ -95,9 +98,10 @@ class ParameterFactory(object):
                                         allow_multiple=allow_multiple)
 
     @classmethod
-    def boolean(cls, name, description, default_value=True):
+    def boolean(cls, name, description, default_value=True, required=False):
         """ Create a parameter instance for setting a flag to True or False."""
-        return BooleanParameter(name, description, default=default_value)
+        return BooleanParameter(name, description, default=default_value, 
+                                required=required)
 
     @classmethod
     def integer(cls, name, description, required=False, default=None,
@@ -128,3 +132,37 @@ class ParameterFactory(object):
         return LowerCaseStringParameter(UUID, "Comma separated uuid(s). ",
                                param_type=param_type, required=required,
                                allow_multiple=allow_multiple)
+
+    @classmethod
+    def file_uuid(cls, alias, collection, required=True, allow_multiple=False):
+        if allow_multiple:
+            description = "Comma separated UUID(s)."
+        else:
+            description = "File UUID."
+        return LowerCaseStringParameter(UUID, description,
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple, 
+                               enum=cls._DB_CONNECTOR.get_distinct(collection, 
+                                                                   UUID))    
+
+    @classmethod
+    def lc_string(cls, name, description, alias=None, required=True, 
+                  allow_multiple=False, enum=None):
+        return LowerCaseStringParameter(name, description,
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple, enum=enum)
+
+    @classmethod
+    def cs_string(cls, name, description, alias=None, required=True, 
+                  allow_multiple=False):
+        return CaseSensitiveStringParameter(name, description,
+                               alias=alias, required=required, 
+                               allow_multiple=allow_multiple)
+    @staticmethod
+    def float(name, description, alias=None, required=False, 
+              allow_multiple=False, default=None, enum=None, minimum=None,
+              maximum=None, equality=None):
+        return FloatParameter(name, description, alias=alias, required=required,
+                              allow_multiple=allow_multiple, default=None, 
+                              enum=None, minimum=None, maximum=None, 
+                              equality=None)

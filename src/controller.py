@@ -22,6 +22,7 @@ limitations under the License.
 #===============================================================================
 import time
 import os
+import logging
 
 from . import app
 from .crossdomain_decorator import crossdomain
@@ -50,7 +51,7 @@ def index():
 def api_resource_listing():
     t = time.time()
     swagger_resource_listing = API_MANAGER.getSwaggerResourceListing()
-    print "api_resource_listing took %s minutes" % ((time.time()-t)/60.0)
+#     logging.info("api_resource_listing took %s minutes" % ((time.time()-t)/60.0))
     if swagger_resource_listing:
         return jsonify(swagger_resource_listing)
     abort(404)
@@ -62,7 +63,7 @@ def api_declarations(version, name):
     
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
     
-    print "api_declarations took %s minutes" % ((time.time()-t)/60.0)
+#     logging.info("api_declarations took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -73,7 +74,7 @@ def api(version, name):
     #REPLACE WITH HTML DOCS!!!
     t = time.time()
     swagger_api_declaration = API_MANAGER.getSwaggerApiDeclaration(name, version)
-    print "api took %s minutes" % ((time.time()-t)/60.0)
+#     logging.info("api took %s minutes" % ((time.time()-t)/60.0))
     if swagger_api_declaration:
         return jsonify(swagger_api_declaration)
     abort(404)
@@ -81,13 +82,10 @@ def api(version, name):
 @app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST', 'DELETE', 'OPTIONS'])
 @crossdomain(origin=ORIGIN, headers="Origin, X-Requested-With, Content-Type, Accept")
 def function(version, name, path):
-    t = time.time()
     version = version.lower()
     api_function = API_MANAGER.get_api_function(name, version, path, request.method)
-    print "API FUNCTION: %s" % api_function
+#     logging.info("API FUNCTION: %s" % api_function)
     if api_function:
-        print "REQUEST FILES: %s" % request.files
-        print "REQUEST ARGS: %s" % request.args
         
         # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
         # dynamic_path_fields would be [<name>, <sequence>]
@@ -98,20 +96,15 @@ def function(version, name, path):
         # Make query parameter keys case-insensitive - force them all to lower 
         query_params = defaultdict(list)
         for k in request.args.keys():
-            print "ARGS: key: %s" % k
-            print "ARGS: value: %s" % request.args.getlist(k)
             for arg in request.args.getlist(k):
                 query_params[k.lower()].extend(arg.split(","))
         for k,v in request.files.iteritems():
-            print "FILES: key: %s" % k
-            print "FILES: value: %s" % v
             if isinstance(v,(list,tuple)):
                 query_params[k.lower()].extend(v)
             else:
                 query_params[k.lower()].append(v)
                 
-        response, format, page_info = api_function.handle_request(query_params, dynamic_fields)
-        print "function took %s minutes" % ((time.time()-t)/60.0)
+        response, _, page_info = api_function.handle_request(query_params, dynamic_fields)
         if response:
             pagination_headers = create_link_headers(api_function, request, page_info)
             if pagination_headers:

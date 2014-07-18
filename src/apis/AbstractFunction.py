@@ -27,6 +27,7 @@ from pprint import pformat
 from collections import Counter
 
 from src.DbConnector import DbConnector
+from src.execution_engine.ExecutionManager import ExecutionManager
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.apis.ApiConstants import FORMATS
 
@@ -37,6 +38,7 @@ class AbstractFunction(object):
     __metaclass__ = ABCMeta
     
     _DB_CONNECTOR = DbConnector.Instance()
+    _EXECUTION_MANAGER = ExecutionManager.Instance()
     
     #===========================================================================
     # Constructor
@@ -49,6 +51,16 @@ class AbstractFunction(object):
         if len(dups) > 0:
             raise Exception("Duplicate parameters not allowed: %s" % ", ".join(dups))
     
+    
+    #===========================================================================
+    # Overridable Instance Methods
+    #===========================================================================    
+    def response_messages(self):
+        return [
+                { "code": 200, "message": "Operation successful."},
+                { "code": 500, "message": "Operation failed."},
+               ]
+        
     #===========================================================================
     # Overridable Class Methods
     #===========================================================================    
@@ -73,10 +85,6 @@ class AbstractFunction(object):
         https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#526-models-object
         '''
         return {}
-    
-    @staticmethod
-    def response_messages():
-        return [{"code": 200, "message": "Operation successful."}]
     
     #===========================================================================
     # Abstract Class Methods
@@ -277,21 +285,20 @@ class AbstractFunction(object):
     #===========================================================================
     # Swagger Methods
     #===========================================================================    
-    @classmethod
-    def getSwaggerDeclaration(cls, resourcePath):
+    def getSwaggerDeclaration(self, resourcePath):
         function               = dict()
-        function["path"]       = os.path.join(resourcePath, cls.path())
+        function["path"]       = os.path.join(resourcePath, self.path())
         function["operations"] = list()
         
         operation               = dict()
-        operation["method"]     = cls.method()
-        operation["summary"]    = cls.summary()
-        operation["notes"]      = cls.notes()
-        operation["type"]       = cls.type()
-        operation["nickname"]   = cls.name()
+        operation["method"]     = self.method()
+        operation["summary"]    = self.summary()
+        operation["notes"]      = self.notes()
+        operation["type"]       = self.type()
+        operation["nickname"]   = self.name()
         operation["parameters"] = list()
-        operation["responseMessages"] = cls.response_messages()
-        for param in cls.parameters():
+        operation["responseMessages"] = self.response_messages()
+        for param in self.parameters():
             operation["parameters"].append(param.getParameterDict())
         function["operations"].append(operation)
         return function

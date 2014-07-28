@@ -112,6 +112,8 @@ FILE             = "file"
 FILENAME         = "filename"
 FILEPATH         = "filepath"
 FILENAMES        = "filenames"
+ARCHIVES         = "archives"
+ARCHIVE          = "archive"
 TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
 ID               = "_id"
 URL              = "url"
@@ -129,6 +131,11 @@ TARGETS          = "targets"
 ABSORB           = "absorb"
 NUM              = "num"
 RESULT           = "result"
+DYES             = "dyes"
+DYE              = "dye"
+DEVICES          = "devices"
+DEVICE           = "device"
+JOB_TYPE_NAME    = "job_type"
 
 #=============================================================================
 # Miscellaneous namedtuples 
@@ -160,3 +167,10 @@ EQUALITY_TUPLE = namedtuple('Equality',
                              'less_than_or_equal_to',
                             ])
 EQUALITY = EQUALITY_TUPLE(*EQUALITY_TUPLE._fields)
+
+JOB_TYPE_TUPLE = namedtuple('JobType',
+                            [
+                             'absorption',
+                             'pa_process',
+                            ])
+JOB_TYPE = JOB_TYPE_TUPLE(*JOB_TYPE_TUPLE._fields)

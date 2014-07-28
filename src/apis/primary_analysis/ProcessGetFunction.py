@@ -24,26 +24,26 @@ from collections import OrderedDict
 
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import ABSORPTION_COLLECTION
-from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, PROBES, \
-    TARGETS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
-    RESULT, URL, JOB_TYPE_NAME
+from src import PA_PROCESS_COLLECTION
+from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, JOB_TYPE_NAME, \
+    SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
+    RESULT, URL
 
 #=============================================================================
 # Class
 #=============================================================================
-class AbsorptionGetFunction(AbstractGetFunction):
+class ProcessGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Absorption"
+        return "Process"
    
     @staticmethod
     def summary():
-        return "Retrieve list of absorption jobs."
+        return "Retrieve list of primary analysis process jobs."
     
     @staticmethod
     def notes():
@@ -70,13 +70,11 @@ class AbsorptionGetFunction(AbstractGetFunction):
         columns[ERROR]            = 1
         columns[URL]              = 1
         columns[RESULT]           = 1
-        columns[PROBES]           = 1
-        columns[TARGETS]          = 1
         
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(ABSORPTION_COLLECTION, {}, columns)
+        data = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, {}, columns)
          
         return (data, column_names, None)
          
@@ -84,5 +82,5 @@ class AbsorptionGetFunction(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = AbsorptionGetFunction()
+    function = ProcessGetFunction()
     print function

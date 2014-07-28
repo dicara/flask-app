@@ -31,7 +31,7 @@ from src.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, \
     URL, DATESTAMP, TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, PORT, TARGETS_UPLOAD_FOLDER, TARGETS_COLLECTION
+from src import HOSTNAME, PORT, TARGETS_UPLOAD_PATH, TARGETS_COLLECTION
 from src.utilities.bio_utilities import validate_fasta
 
 #=============================================================================
@@ -80,7 +80,7 @@ class TargetsPostFunction(AbstractPostFunction):
         http_status_code = 200
         file_uuid        = str(uuid4())
         
-        path = os.path.join(TARGETS_UPLOAD_FOLDER, file_uuid)
+        path = os.path.join(TARGETS_UPLOAD_PATH, file_uuid)
         existing_filenames = cls._DB_CONNECTOR.distinct(TARGETS_COLLECTION, FILENAME)
         if os.path.exists(path) or targets_file.filename in existing_filenames:
             http_status_code     = 403

@@ -31,7 +31,7 @@ from src.apis.ApiConstants import FILENAME, FILEPATH, ID, URL, DATESTAMP, \
     TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import HOSTNAME, PORT, PLATES_UPLOAD_FOLDER, PLATES_COLLECTION
+from src import HOSTNAME, PORT, PLATES_UPLOAD_PATH, PLATES_COLLECTION
 
 #=============================================================================
 # Class
@@ -107,7 +107,7 @@ class ExperimentPostFunction(AbstractPostFunction):
         http_status_code = 200
         file_uuid        = str(uuid4())
 
-        path = os.path.join(PLATES_UPLOAD_FOLDER, file_uuid)
+        path = os.path.join(PLATES_UPLOAD_PATH, file_uuid)
         existing_filenames = cls._DB_CONNECTOR.distinct(PLATES_COLLECTION, FILENAME)
         if os.path.exists(path) or plate_file.filename in existing_filenames:
             http_status_code     = 403

@@ -14,39 +14,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:   Jun 1, 2014
+@date:   Jul 23, 2014
 '''
 
 #=============================================================================
 # Imports
 #=============================================================================
-
-from src.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from src import ABSORPTION_COLLECTION
+from src.apis.AbstractGetFunction import AbstractGetFunction
+from src.apis.parameters.ParameterFactory import ParameterFactory
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_devices
 
 #=============================================================================
 # Class
 #=============================================================================
-class AbsorptionDeleteFunction(AbstractDeleteJobFunction):
+class DevicesGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Absorption"
+        return "Devices"
    
     @staticmethod
     def summary():
-        return "Delete absorption jobs."
-
+        return "Retrieve list of available devices."
+    
+    @staticmethod
+    def notes():
+        return "Returns a list of the names of the devices that exist in " \
+            "the dye profiles datastore."
+    
     @classmethod
-    def get_collection(cls):
-        return ABSORPTION_COLLECTION
-
+    def parameters(cls):
+        parameters = [
+                      ParameterFactory.format(),
+                     ]
+        return parameters
+    
+    @classmethod
+    def process_request(cls, params_dict):
+        devices   = [ {"device": a} for a in get_devices() ]
+        return (devices, None, None)
+    
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = AbsorptionDeleteFunction()
+    function = DevicesGetFunction()
     print function

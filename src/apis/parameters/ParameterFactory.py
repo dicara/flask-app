@@ -27,8 +27,10 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVES, DYES, DEVICES
 from src.DbConnector import DbConnector
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
+    get_dyes, get_devices
 
 #=============================================================================
 # Class
@@ -126,6 +128,30 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple)
         
     @classmethod
+    def archives(cls, required=True, allow_multiple=True,
+                 param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        return CaseSensitiveStringParameter(ARCHIVES, "Comma separated list of archive directory names.",
+                               required=required, 
+                               allow_multiple=allow_multiple,
+                               enum=get_archives())
+
+    @classmethod
+    def dyes(cls, required=True, allow_multiple=True,
+             param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        return CaseSensitiveStringParameter(DYES, "Comma separated list of dye names.",
+                               required=required, 
+                               allow_multiple=allow_multiple,
+                               enum=get_dyes())
+
+    @classmethod
+    def devices(cls, required=True, allow_multiple=True,
+             param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        return CaseSensitiveStringParameter(DEVICES, "Comma separated list of device names.",
+                               required=required, 
+                               allow_multiple=allow_multiple,
+                               enum=get_devices())
+        
+    @classmethod
     def uuid(cls, required=True, allow_multiple=True,
              param_type=PARAMETER_TYPES.query): # @UndefinedVariable
         ''' Create a parameter instance for specifying uuid(s). '''
@@ -144,17 +170,16 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple, 
                                enum=cls._DB_CONNECTOR.get_distinct(collection, 
                                                                    UUID))    
-
-    @classmethod
-    def lc_string(cls, name, description, alias=None, required=True, 
+    @staticmethod
+    def lc_string(name, description, alias=None, required=True, 
                   allow_multiple=False, enum=None):
         return LowerCaseStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, enum=enum)
 
-    @classmethod
-    def cs_string(cls, name, description, alias=None, required=True, 
-                  allow_multiple=False):
+    @staticmethod
+    def cs_string(name, description, alias=None, required=True, 
+                  allow_multiple=False, enum=None):
         return CaseSensitiveStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
@@ -166,3 +191,9 @@ class ParameterFactory(object):
                               allow_multiple=allow_multiple, default=None, 
                               enum=None, minimum=None, maximum=None, 
                               equality=None)
+        
+    @classmethod
+    def job_uuid(cls, collection):
+        job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)
+        return cls.lc_string(UUID, "Comma separated job UUID(s).", 
+                             allow_multiple=True, enum=job_uuids)

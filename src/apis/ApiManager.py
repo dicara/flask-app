@@ -25,6 +25,7 @@ from collections import defaultdict
 from src.apis.snp_search.SnpSearchApi import SnpSearchApiV1
 from src.apis.melting_temperature.MeltingTemperatureApi import MeltingTemperatureApiV1
 from src.apis.probe_design.ProbeDesignApi import ProbeDesignApiV1
+from src.apis.primary_analysis.PrimaryAnalysisApi import PrimaryAnalysisApiV1
 from src.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
 #=============================================================================
@@ -40,6 +41,7 @@ _APIS = [
          SnpSearchApiV1(),
          MeltingTemperatureApiV1(),
          ProbeDesignApiV1(),
+         PrimaryAnalysisApiV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

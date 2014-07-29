@@ -27,7 +27,7 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME, ARCHIVES, DYES, DEVICES
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE
 from src.DbConnector import DbConnector
 from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
@@ -128,11 +128,10 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple)
         
     @classmethod
-    def archives(cls, required=True, allow_multiple=True,
-                 param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
-        return CaseSensitiveStringParameter(ARCHIVES, "Comma separated list of archive directory names.",
+    def archive(cls, required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        return CaseSensitiveStringParameter(ARCHIVE, "Archive directory name.",
                                required=required, 
-                               allow_multiple=allow_multiple,
+                               allow_multiple=False,
                                enum=get_archives())
 
     @classmethod
@@ -144,11 +143,10 @@ class ParameterFactory(object):
                                enum=get_dyes())
 
     @classmethod
-    def devices(cls, required=True, allow_multiple=True,
-             param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
-        return CaseSensitiveStringParameter(DEVICES, "Comma separated list of device names.",
+    def device(cls, required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        return CaseSensitiveStringParameter(DEVICE, "Device name.",
                                required=required, 
-                               allow_multiple=allow_multiple,
+                               allow_multiple=False,
                                enum=get_devices())
         
     @classmethod

@@ -59,7 +59,7 @@ def get_devices():
     stderr, _ = pa_job.run() 
     return sorted(stderr.split(), key=lambda s: s.lower())
 
-def execute_process(archive, dyes, device, outfile_path, uuid):
+def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     '''
     Execute the primary analysis process command. This function copies the 
     provided archive to tmp space and executes primary analysis process on 
@@ -69,14 +69,15 @@ def execute_process(archive, dyes, device, outfile_path, uuid):
     @param dyes         - Set of dyes used in this run.
     @param device       - Device used to generate the TDI images for this run.
     @param outfile_path - Path where the final analysis.txt file should live.
+    @param config_path  - Path where the final configuration file should live.
     @param uuid         - Unique identifier for this job.
     '''
-    archive_path = os.path.join(ARCHIVES_PATH, archive)
-    tmp_path     = os.path.join(TMP_PATH, uuid)
-    config_path  = os.path.join(tmp_path, "config.txt")
+    archive_path     = os.path.join(ARCHIVES_PATH, archive)
+    tmp_path         = os.path.join(TMP_PATH, uuid)
+    tmp_config_path  = os.path.join(tmp_path, "config.txt")
     shutil.copytree(archive_path, tmp_path)
     
-    with open(config_path, "w") as f:
+    with open(tmp_config_path, "w") as f:
         print >>f, "dye_map:"
         print >>f, "  device: %s" % device
         print >>f, "  dyes: [%s]" % ", ".join(map(lambda x: "\"%s\"" % x, dyes))
@@ -84,7 +85,7 @@ def execute_process(archive, dyes, device, outfile_path, uuid):
     pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
     pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
     pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
-                                *pngs, d=tmp_path, c=config_path)
+                                *pngs, d=tmp_path, c=tmp_config_path)
     try:
         stderr, stdout       = pa_job.run()
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
@@ -94,6 +95,7 @@ def execute_process(archive, dyes, device, outfile_path, uuid):
                             (stderr, stdout))
         else:
             shutil.copy(analysis_output_path, outfile_path)
+            shutil.copy(tmp_config_path, config_path)
     finally:
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)

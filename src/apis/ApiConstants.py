@@ -136,6 +136,7 @@ DYE              = "dye"
 DEVICES          = "devices"
 DEVICE           = "device"
 JOB_TYPE_NAME    = "job_type"
+CONFIG           = "config"
 
 #=============================================================================
 # Miscellaneous namedtuples 

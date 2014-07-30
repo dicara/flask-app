@@ -39,74 +39,100 @@ class ParameterFactory(object):
     
     _DB_CONNECTOR = DbConnector.Instance()
     
-    @classmethod
-    def format(cls):
-        """ Create a parameter instance for defining the return format of the result."""
+    @staticmethod
+    def format():
+        """ 
+        Create a parameter instance for defining the return format of the 
+        result.
+        """
         return CaseSensitiveStringParameter(FORMAT, "Format of result.",
                                             FORMATS._fields,
-                                            default=FORMATS.json,  # @UndefinedVariable
+                                            default=FORMATS.json, # @UndefinedVariable
                                             allow_multiple=False)
 
-    @classmethod
-    def sequences(cls, required=False, allow_multiple=True,
-                  param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def sequences(required=False, allow_multiple=True,
+                  param_type=PARAMETER_TYPES.query):        # @UndefinedVariable
         """ Create a parameter instance for specifying sequence(s). """
-        return CaseSensitiveStringParameter(SEQUENCE, "Comma separated sequence(s). ",
-                                            param_type=param_type, required=required,
+        return CaseSensitiveStringParameter(SEQUENCE, "Comma separated " \
+                                            "sequence(s). ",
+                                            param_type=param_type, 
+                                            required=required,
                                             allow_multiple=allow_multiple)
 
-    @classmethod
-    def sequence_names(cls, required=False, allow_multiple=True,
-                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def sequence_names(required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query):   # @UndefinedVariable
         """ Create a parameter instance for specifying sequence name(s). """
-        return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated sequence name(s). ",
-                                            param_type=param_type, required=required,
+        return CaseSensitiveStringParameter(SEQUENCE_NAME, "Comma separated " \
+                                            "sequence name(s). ",
+                                            param_type=param_type, 
+                                            required=required,
                                             allow_multiple=allow_multiple)
 
-    @classmethod
-    def snpsearch_name(cls, required=False, allow_multiple=True,
-                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def snpsearch_name(required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query):   # @UndefinedVariable
         """ Create a parameter instance for specifying chromosome number. """
-        return CaseSensitiveStringParameter(SNP_SEARCH_NAME, "Comma separated integers specifying snp search name. ",
-                                required=required, allow_multiple=allow_multiple,
-                                param_type=param_type)
+        return CaseSensitiveStringParameter(SNP_SEARCH_NAME, "Comma " \
+                                            "separated integers specifying " \
+                                            "snp search name. ",
+                                            required=required, 
+                                            allow_multiple=allow_multiple,
+                                            param_type=param_type)
 
-    @classmethod
-    def chromosome_num(cls, required=False, allow_multiple=True,
-                       param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def chromosome_num(required=False, allow_multiple=True,
+                       param_type=PARAMETER_TYPES.query):   # @UndefinedVariable
         """ Create a parameter instance for specifying chromosome number. """
-        return CaseSensitiveStringParameter(CHR_NUM, "Comma separated integers specifying chromosome numbers. ",
-                                required=required, allow_multiple=allow_multiple,
-                                param_type=param_type)
+        return CaseSensitiveStringParameter(CHR_NUM, "Comma separated " \
+                                            "integers specifying chromosome " \
+                                            "numbers. ", required=required, 
+                                            allow_multiple=allow_multiple,
+                                            param_type=param_type)
 
-    @classmethod
-    def chromosome_start(cls, required=False, allow_multiple=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
-        """ Create a parameter instance for specifying start position of chromosome. """
-        return CaseSensitiveStringParameter(CHR_START, "Comma separated integers specifying chromosome start position. ",
-                                required=required, allow_multiple=allow_multiple, param_type=param_type)
+    @staticmethod
+    def chromosome_start(required=False, allow_multiple=True, 
+                         param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+        """ 
+        Create a parameter instance for specifying start position of chromosome. 
+        """
+        return CaseSensitiveStringParameter(CHR_START, "Comma separated " \
+                                            "integers specifying chromosome " \
+                                            "start position. ", 
+                                            required=required, 
+                                            allow_multiple=allow_multiple, 
+                                            param_type=param_type)
 
-    @classmethod
-    def chromosome_stop(cls, required=False, allow_multiple=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
-        """ Create a parameter instance for specifying end position of chromosome. """
-        return CaseSensitiveStringParameter(CHR_STOP, "Comma separated integers  specifying chromosome end position. ",
-                                required=required, allow_multiple=allow_multiple, param_type=param_type)
+    @staticmethod
+    def chromosome_stop(required=False, allow_multiple=True, 
+                        param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+        """ 
+        Create a parameter instance for specifying end position of chromosome. 
+        """
+        return CaseSensitiveStringParameter(CHR_STOP, "Comma separated "\
+                                            "integers  specifying chromosome " \
+                                            "end position.", required=required, 
+                                            allow_multiple=allow_multiple, 
+                                            param_type=param_type)
 
-    @classmethod
-    def probes(cls, required=False, allow_multiple=True,
-               param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def probes(required=False, allow_multiple=True,
+               param_type=PARAMETER_TYPES.query):           # @UndefinedVariable
         """ Create a parameter instance for specifying probe(s). """
         return UpperCaseStringParameter(PROBE, "Comma separated probe(s). ",
-                                        param_type=param_type, required=required,
+                                        param_type=param_type, 
+                                        required=required,
                                         allow_multiple=allow_multiple)
 
-    @classmethod
-    def boolean(cls, name, description, default_value=True, required=False):
+    @staticmethod
+    def boolean(name, description, default_value=True, required=False):
         """ Create a parameter instance for setting a flag to True or False."""
         return BooleanParameter(name, description, default=default_value, 
                                 required=required)
 
-    @classmethod
-    def integer(cls, name, description, required=False, default=None,
+    @staticmethod
+    def integer(name, description, required=False, default=None,
                 minimum=None, maximum=None):
         """ Create a parameter instance for specifying an integer. """
         return IntegerParameter(name, description, required=required,
@@ -114,48 +140,51 @@ class ParameterFactory(object):
                                 minimum=minimum, maximum=maximum,
                                 equality=EQUALITY.less_than_or_equal_to)  # @UndefinedVariable
 
-    @classmethod
-    def file(cls, description):
+    @staticmethod
+    def file(description):
         """ Create a parameter instance for uploading a file."""
         return FileParameter(FILE, description)
 
-    @classmethod
-    def filenames(cls, required=True, allow_multiple=True,
-                  param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def filenames(required=True, allow_multiple=True,
+                  param_type=PARAMETER_TYPES.query):        # @UndefinedVariable
         """ Create a parameter instance for specifying filename(s). """
-        return CaseSensitiveStringParameter(FILENAMES, "Comma separated list of target filename(s) to delete. ",
-                               param_type=param_type, required=required,
-                               allow_multiple=allow_multiple)
+        return CaseSensitiveStringParameter(FILENAMES, "Comma separated list " \
+                                            "of target filename(s) to delete.",
+                                            param_type=param_type, 
+                                            required=required,
+                                            allow_multiple=allow_multiple)
         
-    @classmethod
-    def archive(cls, required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def archive(required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
         return CaseSensitiveStringParameter(ARCHIVE, "Archive directory name.",
                                required=required, 
                                allow_multiple=False,
                                enum=get_archives())
 
-    @classmethod
-    def dyes(cls, required=True, allow_multiple=True,
-             param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
-        return CaseSensitiveStringParameter(DYES, "Comma separated list of dye names.",
-                               required=required, 
-                               allow_multiple=allow_multiple,
-                               enum=get_dyes())
+    @staticmethod
+    def dyes(required=True, allow_multiple=True,
+             param_type=PARAMETER_TYPES.query):             # @UndefinedVariable
+        return CaseSensitiveStringParameter(DYES, "Comma separated list of " \
+                                            "dye names.", required=required, 
+                                            allow_multiple=allow_multiple,
+                                            enum=get_dyes())
 
-    @classmethod
-    def device(cls, required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    @staticmethod
+    def device(required=True, param_type=PARAMETER_TYPES.query): # @UndefinedVariable
         return CaseSensitiveStringParameter(DEVICE, "Device name.",
-                               required=required, 
-                               allow_multiple=False,
-                               enum=get_devices())
+                                            required=required, 
+                                            allow_multiple=False,
+                                            enum=get_devices())
         
-    @classmethod
-    def uuid(cls, required=True, allow_multiple=True,
-             param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+    @staticmethod
+    def uuid(required=True, allow_multiple=True,
+             param_type=PARAMETER_TYPES.query):             # @UndefinedVariable
         ''' Create a parameter instance for specifying uuid(s). '''
         return LowerCaseStringParameter(UUID, "Comma separated uuid(s). ",
-                               param_type=param_type, required=required,
-                               allow_multiple=allow_multiple)
+                                        param_type=param_type, 
+                                        required=required,
+                                        allow_multiple=allow_multiple)
 
     @classmethod
     def file_uuid(cls, alias, collection, required=True, allow_multiple=False):

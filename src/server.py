@@ -45,6 +45,9 @@ from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     PLATES_UPLOAD_PATH, TMP_PATH
 from src.utilities import io_utilities
 from src.utilities.logging_utilities import GENERAL_LOGGER
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import update_archives
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import update_devices
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import update_dyes
 
 #===============================================================================
 # Class private variables
@@ -170,6 +173,11 @@ USAGE
     # Clean up tmp dir.
     shutil.rmtree(TMP_PATH, ignore_errors=True)
     io_utilities.safe_make_dirs(TMP_PATH)
+    
+    # Update database with latest information
+    update_archives()
+    update_devices()
+    update_dyes()
 
     # current_info: currently running process machine, pid, port, user, and 
     #               datestamp

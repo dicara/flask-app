@@ -22,7 +22,8 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives
+from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
+    update_archives
 
 #=============================================================================
 # Class
@@ -46,13 +47,22 @@ class ArchivesGetFunction(AbstractGetFunction):
     
     @classmethod
     def parameters(cls):
+        cls.refresh_parameter = ParameterFactory.boolean("refresh", 
+                                                         "Refresh available " \
+                                                         "archives.",
+                                                         default_value=False)
         parameters = [
+                      cls.refresh_parameter,
                       ParameterFactory.format(),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
+        if cls.refresh_parameter in params_dict and \
+           params_dict[cls.refresh_parameter][0]:
+            update_archives()
+            
         archives = [ {"archive": a} for a in get_archives()]
         return (archives, None, None)
          

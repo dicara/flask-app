@@ -21,11 +21,21 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
+import sys
 import shutil
 
-from src import ARCHIVES_PATH, TMP_PATH
+from src import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
+    ARCHIVES_COLLECTION
 from src.analyses.primary_analysis.PrimaryAnalysisJob import PrimaryAnalysisJob
 from src.analyses.primary_analysis.PrimaryAnalysisJob import PA_TOOL
+from src.utilities.logging_utilities import APP_LOGGER
+from src.DbConnector import DbConnector
+from src.apis.ApiConstants import ARCHIVE, DYE, DEVICE
+
+#=============================================================================
+# Private Static Variables
+#=============================================================================
+_DB_CONNECTOR = DbConnector.Instance()
 
 #=============================================================================
 # RESTful location of services
@@ -34,30 +44,96 @@ def get_archives():
     '''
     Return a listing of the archives directory.
     '''
-    return sorted(os.listdir(ARCHIVES_PATH), key=lambda s: s.lower())
+    return _DB_CONNECTOR.get_distinct(ARCHIVES_COLLECTION, ARCHIVE)
 
 def get_dyes():
     '''
-    Run pa dyes to retrieve a list of available dye names.
+    Retrieve a list of available dye names.
     '''
-    pa_job    = PrimaryAnalysisJob(PA_TOOL.dyes)            # @UndefinedVariable
-    stderr, _ = pa_job.run() 
-    
-    # dyes are printed to stdder - parse stderr removing unwanted characters
-    dyes = [ dye for dye in stderr.split() ]
-    dyes = map(lambda x: x.replace(":",""), dyes)
-    dyes = map(lambda x: x.replace("\"",""), dyes)
-    
-    return sorted(dyes, key=lambda s: s.lower())
+    return _DB_CONNECTOR.get_distinct(DYES_COLLECTION, DYE)
 
 def get_devices():
     '''
-    Run pa devices to retrieve a list of available devices
+    Retrieve a list of available devices.
     '''
-    # devices are printed to stderr 
-    pa_job    = PrimaryAnalysisJob(PA_TOOL.devices)         # @UndefinedVariable
-    stderr, _ = pa_job.run() 
-    return sorted(stderr.split(), key=lambda s: s.lower())
+    return _DB_CONNECTOR.get_distinct(DEVICES_COLLECTION, DEVICE)
+
+def update_archives():
+    '''
+    Update the database with available primary analysis archives.
+    
+    @return True if database is successfully updated, False otherwise
+    '''
+    APP_LOGGER.info("Updating database with available archives...")
+    if os.path.isdir(ARCHIVES_PATH):
+        archives = filter(lambda x: os.path.isdir(os.path.join(ARCHIVES_PATH,x)), os.listdir(ARCHIVES_PATH))
+        records  = [{ARCHIVE: archive} for archive in archives]
+        
+        # There is a possible race condition here. Ideally these operations 
+        # would be performed in concert atomically
+        _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
+        _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
+    else:
+        APP_LOGGER.error("Couldn't locate archives path to update database.")
+        return False
+
+    APP_LOGGER.info("Database successfully updated with available archives.")
+    return True
+    
+def update_dyes():
+    '''
+    Update the database with available dyes.
+    
+    @return True if database is successfully updated, False otherwise
+    '''
+    APP_LOGGER.info("Updating database with available dyes...")
+    try:
+        pa_job    = PrimaryAnalysisJob(PA_TOOL.dyes)            # @UndefinedVariable
+        stderr, _ = pa_job.run() 
+        
+        # dyes are printed to stdder - parse stderr removing unwanted characters
+        dyes = [ dye for dye in stderr.split() ]
+        dyes = map(lambda x: x.replace(":",""), dyes)
+        dyes = map(lambda x: x.replace("\"",""), dyes)
+        
+        records = [{DYE: dye} for dye in dyes]
+        
+        # There is a possible race condition here. Ideally these operations 
+        # would be performed in concert atomically
+        _DB_CONNECTOR.remove(DYES_COLLECTION, {})
+        _DB_CONNECTOR.insert(DYES_COLLECTION, records)
+    except:
+        APP_LOGGER.info("Failed to update database with available dyes: %s" 
+                        % str(sys.exc_info()))
+        return False
+    
+    APP_LOGGER.info("Database successfully updated with available dyes.")
+    return True
+
+def update_devices():
+    '''
+    Update the database with available devices.
+    
+    @return True if database is successfully updated, False otherwise
+    '''
+    APP_LOGGER.info("Updating database with available devices...")
+    try:
+        # devices are printed to stderr 
+        pa_job    = PrimaryAnalysisJob(PA_TOOL.devices)     # @UndefinedVariable
+        stderr, _ = pa_job.run() 
+        records   = [{DEVICE: device} for device in stderr.split()]
+        
+        # There is a possible race condition here. Ideally these operations 
+        # would be performed in concert atomically
+        _DB_CONNECTOR.remove(DEVICES_COLLECTION, {})
+        _DB_CONNECTOR.insert(DEVICES_COLLECTION, records)
+    except:
+        APP_LOGGER.info("Failed to update database with available devices: %s" 
+                        % str(sys.exc_info()))
+        return False
+    
+    APP_LOGGER.info("Database successfully updated with available devices.")
+    return True
 
 def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     '''

@@ -43,12 +43,14 @@ DATABASE_PORT = 27017
 
 # Directories
 HOME_DIR                = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
-TARGETS_UPLOAD_FOLDER   = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
-PROBES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
-PLATES_UPLOAD_FOLDER    = os.path.join(HOME_DIR, "uploads", str(PORT), "plates")
-RESULTS_FOLDER          = os.path.join(HOME_DIR, "results", str(PORT))
-REFS_FOLDER             = os.path.join(HOME_DIR, "refs")
+TARGETS_UPLOAD_PATH     = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
+PROBES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
+PLATES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "plates")
+RESULTS_PATH            = os.path.join(HOME_DIR, "results", str(PORT))
+REFS_PATH               = os.path.join(HOME_DIR, "refs")
+TMP_PATH                = os.path.join(HOME_DIR, "tmp")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
+ARCHIVES_PATH           = "/mnt/runs"
 
 # MongoDb Collections
 TARGETS_COLLECTION      = "targets"
@@ -56,3 +58,7 @@ PROBES_COLLECTION       = "probes"
 PLATES_COLLECTION       = "plates"
 VALIDATION_COLLECTION   = "validation"
 ABSORPTION_COLLECTION   = "absorption"
+PA_PROCESS_COLLECTION   = "pa_process"
+DYES_COLLECTION         = "dyes"
+DEVICES_COLLECTION      = "devices"
+ARCHIVES_COLLECTION     = "archives"

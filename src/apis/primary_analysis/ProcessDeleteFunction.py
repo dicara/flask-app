@@ -22,31 +22,31 @@ limitations under the License.
 #=============================================================================
 
 from src.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from src import ABSORPTION_COLLECTION
+from src import PA_PROCESS_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class AbsorptionDeleteFunction(AbstractDeleteJobFunction):
+class ProcessDeleteFunction(AbstractDeleteJobFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Absorption"
+        return "Process"
    
     @staticmethod
     def summary():
-        return "Delete absorption jobs."
-
+        return "Delete primary analysis process jobs."
+    
     @classmethod
     def get_collection(cls):
-        return ABSORPTION_COLLECTION
+        return PA_PROCESS_COLLECTION
 
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = AbsorptionDeleteFunction()
+    function = ProcessDeleteFunction()
     print function

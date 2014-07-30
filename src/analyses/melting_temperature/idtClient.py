@@ -3,6 +3,7 @@
 from collections import namedtuple
 from redis import StrictRedis
 from suds.client import Client
+from src.utilities.logging_utilities import APP_LOGGER
 
 import sys
 
@@ -20,25 +21,32 @@ class DimerResult(namedtuple('dimerResult', 'self_dimer deltaG compPercent')):
 
 class IDTClient(object):
     def __init__(self, seq_type='DNA'):
-        self.client = Client(URL, timeout=30)
-        self.seq_type = seq_type
+        try:
+            self.client = Client(URL, timeout=30)
+            self.seq_type = seq_type
+        except Exception, e:
+            APP_LOGGER.error("Cannot establish IDT connection: %s\n" % repr(e))
+            self.client = None
+            self.seq_type = None
 
     def get_melting_temp(self, sequence, oligo=2, na=40, mg=2, dntp=0.2):
         """Get the melting temperature for sequence.
           \param oligo is the concentration of the oligo in uM
         """
-        i = 0
-        while True:
+        result = None
+        i      = 0
+        while self.client and True:
             try: 
                 result = self.client.service.Analyze(sequence.upper(), self.seq_type, oligo, na, mg, dntp)
                 break;
             except:
+                print i
                 i += 1
                 if i > RETRY_ATTEMPTS: 
                     return OligoTemp(-1, -1, -1)
       
         #log this.... result
-        if not result['Errors']:
+        if result and not result['Errors']:
             return OligoTemp(result['MinMeltTemp'], result['MaxMeltTemp'], result['MeltTemp'])
         else:
             return OligoTemp(-1, -1, -1)

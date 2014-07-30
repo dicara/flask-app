@@ -26,6 +26,7 @@ import subprocess
 
 from collections import namedtuple
 from src import USER_HOME_DIR
+from src.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Global Variables
@@ -68,6 +69,8 @@ class PrimaryAnalysisJob(object):
             raise Exception("Unrecognized primary analysis tool: %s." % 
                             pa_tool)
 
+        self._pa_tool = pa_tool
+        
         # Collect command line arguments        
         cmd_args = [PA_PATH, pa_tool]
         for key, value in kwargs.items():
@@ -92,6 +95,7 @@ class PrimaryAnalysisJob(object):
         
         
     def run(self):
+        APP_LOGGER.info("Running primary analysis job: %s" % self._pa_tool)
         process = subprocess.Popen(self._cmd_args, stdout=subprocess.PIPE, 
                                    stderr=subprocess.PIPE)
         return process.communicate()        

@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 import os
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from src import PORT, HOSTNAME
 
 #=============================================================================
@@ -101,7 +101,6 @@ JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
 PAGE             = "page"
 FORMAT           = "format"
 MISSING_VALUE    = ""
-SEQUENCE         = "sequence"
 SEQUENCE_NAME    = "sequence_name"
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
@@ -117,6 +116,7 @@ ARCHIVE          = "archive"
 TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
 ID               = "_id"
 URL              = "url"
+DATE             = "date"
 DATESTAMP        = "datestamp"
 SUBMIT_DATESTAMP = "submit_datestamp"
 START_DATESTAMP  = "start_datestamp"
@@ -137,6 +137,43 @@ DEVICES          = "devices"
 DEVICE           = "device"
 JOB_TYPE_NAME    = "job_type"
 CONFIG           = "config"
+RUN_ID           = "run_id"
+SAMPLE_ID        = "sample_id"
+
+
+#=============================================================================
+# Probe Experiment Constants
+#=============================================================================
+PROBE_ID         = "probe_id"
+FAM              = "fam"
+FAM_SD           = "fam_sd"
+JOE              = "joe"
+JOE_SD           = "joe_sd"
+OBSERVED_RESULT  = "observed_result"
+EXPECTED_RESULT  = "expected_result"
+
+PROBE_EXPERIMENT_HEADERS                  = OrderedDict()
+PROBE_EXPERIMENT_HEADERS[PROBE_ID]        = lambda x: x
+PROBE_EXPERIMENT_HEADERS[FAM]             = lambda x: float(x)
+PROBE_EXPERIMENT_HEADERS[FAM_SD]          = lambda x: float(x)
+PROBE_EXPERIMENT_HEADERS[JOE]             = lambda x: float(x)
+PROBE_EXPERIMENT_HEADERS[JOE_SD]          = lambda x: float(x)
+PROBE_EXPERIMENT_HEADERS[OBSERVED_RESULT] = lambda x: False if x.lower() == "false" else True
+PROBE_EXPERIMENT_HEADERS[EXPECTED_RESULT] = lambda x: False if x.lower() == "false" else True
+
+# Metadata
+APPLICATION       = "application"
+SEQUENCE          = "sequence"
+COSMIC_ID         = "cosmic_id"
+MUTATION_POSITION = "mutation_position"
+
+PROBE_METADATA_HEADERS = [
+                          PROBE_ID,
+                          APPLICATION,
+                          SEQUENCE,
+                          COSMIC_ID,
+                          MUTATION_POSITION,
+                         ]
 
 #=============================================================================
 # Miscellaneous namedtuples 

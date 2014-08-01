@@ -29,6 +29,7 @@ from datetime import datetime
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
+from src.utilities.io_utilities import silently_remove_file
 from src import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
 from src.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
@@ -101,8 +102,8 @@ class ProcessPostFunction(AbstractPostFunction):
                         }
         http_status_code = 200
         
-        if job_name in cls._DB_CONNECTOR.get_distinct(PA_PROCESS_COLLECTION, 
-                                                      JOB_NAME):
+        if job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
+                                                  JOB_NAME):
             http_status_code     = 403
         else:
             try:
@@ -179,10 +180,8 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
             if len(db_connector.find(PA_PROCESS_COLLECTION, query, {})) > 0:
                 db_connector.update(PA_PROCESS_COLLECTION, query, update)
             else:
-                if os.path.isfile(outfile_path):
-                    os.remove(outfile_path)
-                if os.path.isfile(config_path):
-                    os.remove(config_path)
+                silently_remove_file(outfile_path)
+                silently_remove_file(config_path)
         except:
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
@@ -193,10 +192,9 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
             if len(db_connector.find(PA_PROCESS_COLLECTION, query, {})) > 0:
                 db_connector.update(PA_PROCESS_COLLECTION, query, update)
             else:
-                if os.path.isfile(outfile_path):
-                    os.remove(outfile_path)
-                if os.path.isfile(config_path):
-                    os.remove(config_path)
+                silently_remove_file(outfile_path)
+                silently_remove_file(config_path)
+        
     return process_callback
          
 #===============================================================================

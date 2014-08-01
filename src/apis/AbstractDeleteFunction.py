@@ -20,10 +20,15 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import sys
+import traceback
+
 from abc import ABCMeta
+from flask import make_response, jsonify
 
 from src.apis.AbstractFunction import AbstractFunction 
-from src.apis.ApiConstants import METHODS
+from src.apis.ApiConstants import METHODS, ERROR
+from src.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Class
@@ -61,4 +66,14 @@ class AbstractDeleteFunction(AbstractFunction):
         (params_dict, _) = cls._parse_query_params(query_params)
         cls._handle_path_fields(path_fields, params_dict)
         
-        return (cls.process_request(params_dict), None, None)
+        response         = {}
+        http_status_code = None
+        try:
+            response, http_status_code = cls.process_request(params_dict)
+        except:
+            APP_LOGGER.error("Failed to delete records: %s" % 
+                             traceback.format_exc())
+            http_status_code = 500
+            response[ERROR]  = str(sys.exc_info()[1])
+        
+        return (make_response(jsonify(response), http_status_code), None, None)

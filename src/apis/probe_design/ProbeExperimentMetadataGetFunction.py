@@ -20,72 +20,61 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
+from collections import OrderedDict
 
-from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH
+from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import TARGETS_COLLECTION
+from src import PROBE_METADATA_COLLECTION
+from src.apis.ApiConstants import ID, PROBE_METADATA_HEADERS, PROBE_ID
 
 #=============================================================================
 # Class
 #=============================================================================
-class TargetsDeleteFunction(AbstractDeleteFunction):
+class ProbeExperimentMetadataGetFunction(AbstractGetFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Targets"
+        return "ProbeExperimentMetadata"
    
     @staticmethod
     def summary():
-        return "Delete targets FASTA files."
-    
-    @staticmethod
-    def notes():
-        return ""
+        return "Retrieve probe design experiment metadata."
     
     @classmethod
     def parameters(cls):
+        pid_enum = cls._DB_CONNECTOR.distinct(PROBE_METADATA_COLLECTION,
+                                              PROBE_ID)
+
         parameters = [
-                      ParameterFactory.uuid(),
+                      ParameterFactory.format(),
+                      ParameterFactory.lc_string(PROBE_ID, "Probe ID(s).",
+                                                 required=False,
+                                                 allow_multiple=True,
+                                                 enum=pid_enum),
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        response         = {}
-        http_status_code = 200
-        targets_uuids    = params_dict[ParameterFactory.uuid()]
-        criteria         = {UUID: {"$in": targets_uuids}}
-        
-        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0})
-        response["deleted"] = {}
-        if len(records) > 0:
-            # Record records
-            for record in records:
-                response["deleted"][record[UUID]] = record
-            
-            # Delete records from database
-            result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
-            
-            # Delete files from disk only if removal from DB was successful
-            if result and result['n'] == len(response["deleted"]):
-                for _,record in response["deleted"].iteritems():
-                    os.remove(record[FILEPATH])
-            else:
-                del response["deleted"]
-                raise Exception("Error deleting records from the database: %s" % result)
-        else:
-            http_status_code = 404
-            
-        return(response, http_status_code)
+        columns            = OrderedDict()
+        columns[ID]        = 0
+        for header in PROBE_METADATA_HEADERS:
+            columns[header] = 1
 
+        column_names = columns.keys()  
+        column_names.remove(ID)         
+        
+        data = cls._DB_CONNECTOR.find_from_params(PROBE_METADATA_COLLECTION, 
+                                                  params_dict, columns)
+         
+        return (data, column_names, None)
+         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = TargetsDeleteFunction()
+    function = ProbeExperimentMetadataGetFunction()
     print function

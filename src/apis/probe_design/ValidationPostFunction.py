@@ -98,7 +98,7 @@ class ValidationPostFunction(AbstractPostFunction):
                         }
         http_status_code = 200
         
-        if job_name in cls._DB_CONNECTOR.get_distinct(VALIDATION_COLLECTION, JOB_NAME):
+        if job_name in cls._DB_CONNECTOR.distinct(VALIDATION_COLLECTION, JOB_NAME):
             http_status_code     = 403
         else:
             try:

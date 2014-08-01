@@ -21,13 +21,11 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
-import sys
 
 from abc import ABCMeta
-from flask import make_response, jsonify
 
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, RESULT, ERROR
+from src.apis.ApiConstants import ID, UUID, RESULT
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.utilities.logging_utilities import APP_LOGGER
 
@@ -71,40 +69,34 @@ class AbstractDeleteJobFunction(AbstractDeleteFunction):
         uuids     = params_dict[ParameterFactory.job_uuid(cls.get_collection())]
         criteria  = {UUID: {"$in": uuids}}
         
-        try:
-            APP_LOGGER.info("Deleting the following jobs: %s" % ",".join(uuids))
-            records = cls._DB_CONNECTOR.find(cls.get_collection(), criteria, 
-                                             {ID:0})
-            response["deleted"] = {}
-            if len(records) > 0:
-                # Record records
-                for record in records:
-                    response["deleted"][record[UUID]] = record
-                
-                # Delete records from database
-                result = cls._DB_CONNECTOR.remove(cls.get_collection(), 
-                                                  criteria)
-                
-                # Delete files from disk only if removal from DB was successful
-                if result and result['n'] == len(response["deleted"]):
-                    for _,record in response["deleted"].iteritems():
-                        if RESULT in record and os.path.isfile(record[RESULT]):
-                            os.remove(record[RESULT])
-                else:
-                    del response["deleted"]
-                    raise Exception("Error deleting records from the " \
-                                    "database: %s" % result)
-                APP_LOGGER.info("Successfully deleted the following jobs: %s" \
-                                % ",".join(uuids))
-            else:
-                http_status_code = 404
-        except:
-            APP_LOGGER.info("Failed to delete job(s) (%s): %s" % 
-                            (",".join(uuids), str(sys.exc_info())))
-            response[ERROR]  = str(sys.exc_info()[1])
-            http_status_code = 500
+        APP_LOGGER.info("Deleting the following jobs: %s" % ",".join(uuids))
+        records = cls._DB_CONNECTOR.find(cls.get_collection(), criteria, 
+                                         {ID:0})
+        response["deleted"] = {}
+        if len(records) > 0:
+            # Record records
+            for record in records:
+                response["deleted"][record[UUID]] = record
             
-        return make_response(jsonify(response), http_status_code)
+            # Delete records from database
+            result = cls._DB_CONNECTOR.remove(cls.get_collection(), 
+                                              criteria)
+            
+            # Delete files from disk only if removal from DB was successful
+            if result and result['n'] == len(response["deleted"]):
+                for _,record in response["deleted"].iteritems():
+                    if RESULT in record and os.path.isfile(record[RESULT]):
+                        os.remove(record[RESULT])
+            else:
+                del response["deleted"]
+                raise Exception("Error deleting records from the " \
+                                "database: %s" % result)
+            APP_LOGGER.info("Successfully deleted the following jobs: %s" \
+                            % ",".join(uuids))
+        else:
+            http_status_code = 404
+            
+        return response, http_status_code
 
 #===============================================================================
 # Run Main

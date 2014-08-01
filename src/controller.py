@@ -21,11 +21,13 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
+import traceback
 
 from . import app
 from .crossdomain_decorator import crossdomain
 from .apis.ApiManager import ApiManager, API_BASE_ROUTE, API_DOCS_BASE_ROUTE
 from .apis.ApiConstants import PAGE
+from .utilities.logging_utilities import APP_LOGGER 
 
 from flask import jsonify, abort, make_response, request
 from collections import defaultdict
@@ -72,33 +74,37 @@ def api(version, name):
 @app.route('%s/<version>/<name>/<path:path>' % API_BASE_ROUTE, methods=['GET', 'POST', 'DELETE', 'OPTIONS'])
 @crossdomain(origin=ORIGIN, headers="Origin, X-Requested-With, Content-Type, Accept")
 def function(version, name, path):
-    version = version.lower()
-    api_function = API_MANAGER.get_api_function(name, version, path, request.method)
-    if api_function:
-        
-        # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
-        # dynamic_path_fields would be [<name>, <sequence>]
-        dynamic_path   = path[len(api_function.static_path()):]
-        dynamic_path   = dynamic_path.lstrip(os.path.sep)
-        dynamic_fields = dynamic_path.split(os.path.sep)
-        
-        # Make query parameter keys case-insensitive - force them all to lower 
-        query_params = defaultdict(list)
-        for k in request.args.keys():
-            for arg in request.args.getlist(k):
-                query_params[k.lower()].extend(arg.split(","))
-        for k,v in request.files.iteritems():
-            if isinstance(v,(list,tuple)):
-                query_params[k.lower()].extend(v)
-            else:
-                query_params[k.lower()].append(v)
-                
-        response, _, page_info = api_function.handle_request(query_params, dynamic_fields)
-        if response:
-            pagination_headers = create_link_headers(api_function, request, page_info)
-            if pagination_headers:
-                response.headers["Link"] = ",".join(pagination_headers)
-            return response
+    try:
+        version = version.lower()
+        api_function = API_MANAGER.get_api_function(name, version, path, request.method)
+        if api_function:
+            
+            # For example path "MeltingTemperatures/IDT/{name}/{sequence}", 
+            # dynamic_path_fields would be [<name>, <sequence>]
+            dynamic_path   = path[len(api_function.static_path()):]
+            dynamic_path   = dynamic_path.lstrip(os.path.sep)
+            dynamic_fields = dynamic_path.split(os.path.sep)
+            
+            # Make query parameter keys case-insensitive - force them all to lower 
+            query_params = defaultdict(list)
+            for k in request.args.keys():
+                for arg in request.args.getlist(k):
+                    query_params[k.lower()].extend(arg.split(","))
+            for k,v in request.files.iteritems():
+                if isinstance(v,(list,tuple)):
+                    query_params[k.lower()].extend(v)
+                else:
+                    query_params[k.lower()].append(v)
+                    
+            response, _, page_info = api_function.handle_request(query_params, dynamic_fields)
+            if response:
+                pagination_headers = create_link_headers(api_function, request, page_info)
+                if pagination_headers:
+                    response.headers["Link"] = ",".join(pagination_headers)
+                return response
+    except:
+        APP_LOGGER.info("Error processing API request: %s" % traceback.format_exc())
+        abort(500)
     abort(404)
     
 def create_link_headers(api_function, request, pagination_info):
@@ -135,3 +141,7 @@ def create_link_headers(api_function, request, pagination_info):
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify( { 'error': 'Not found' } ), 404)
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return make_response(jsonify({'error': 'Internal Server Error'}), 500)

@@ -22,6 +22,8 @@ limitations under the License.
 import os
 import stat
 import errno
+import csv
+import collections
 
 #===============================================================================
 # Utility Methods
@@ -38,6 +40,66 @@ def safe_make_dirs(dir_name):
             pass  # Directory already existed
         else:
             raise  # Reraise other errors
+        
+def silently_remove_file(filename):
+    '''
+    Attempt to remove a file, ignoring any thrown exceptions.
+    '''
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+    
+def get_case_insensitive_dictreader(f, dialect, required_headers=None):
+    '''
+    Create a DictReader with the provided file handle and convert all headers to
+    lowercase. If duplicate headers are found, raise an IOError. Similarly, if
+    required_headers are included, raise an IOError if the file doesn't 
+    contain any of the required headers.
+    
+    @param f       - File handle.
+    @param dialect - Dialect of file being read.
+    
+    @return DictReader with all lowercase headers.
+    '''
+    reader = csv.DictReader(f, dialect=dialect)
+    
+    reader.fieldnames = map(lambda x: x.lower(), reader.fieldnames)
+    
+    # Ensure there aren't any duplicate headers.
+    if len(reader.fieldnames) != len(set(reader.fieldnames)):
+        raise IOError("File contains duplicate headers: %s" % 
+                      find_duplicates(reader.fieldnames))
+        
+    # Ensure that required headers are present in the file. 
+    if required_headers and not set(reader.fieldnames) >= set(required_headers):
+        raise IOError("Required headers are missing: %s" % 
+                      list(set(required_headers) - set(reader.fieldnames)))
+    
+    return reader
+
+def find_duplicates(in_list):
+    '''
+    Return a list of all duplicate items found in the provded list.
+    '''
+    return [x for x, y in collections.Counter(in_list).items() if y > 1]
+    
+def get_dialect(file_path, delimiters="\t,"):
+    '''
+    Return the dialect of the file. If dialect cannot be determined, return
+    None. If the file doesn't exist, throw an IOError exception. 
+    '''
+    if not os.path.isfile(file_path):
+        raise IOError("File not found: %s" % file_path)
+    
+    dialect = None
+    with open(file_path) as f:
+        try:
+            dialect = csv.Sniffer().sniff(f.read(),delimiters=delimiters)
+        except:
+            pass
+        
+    return dialect
 
 def get_python_mode(permissions):
     '''

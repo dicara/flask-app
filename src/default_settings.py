@@ -30,6 +30,7 @@ DEV           = True
 HOSTNAME      = "localhost"
 # HOSTNAME      = "bioweb"
 USER_HOME_DIR = expanduser("~")
+ROOT_DIR      = "/mnt/bigdisk/"
 
 if DEV:
     PORT = 8020
@@ -42,7 +43,11 @@ DATABASE_URL  = HOSTNAME
 DATABASE_PORT = 27017
 
 # Directories
-HOME_DIR                = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
+if HOSTNAME == "bioweb":
+    HOME_DIR = os.path.join(ROOT_DIR, "api")
+else:
+    HOME_DIR = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
+
 TARGETS_UPLOAD_PATH     = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
 PLATES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "plates")

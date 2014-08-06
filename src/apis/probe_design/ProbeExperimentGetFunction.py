@@ -86,6 +86,9 @@ class ProbeExperimentGetFunction(AbstractGetFunction):
         
         data = cls._DB_CONNECTOR.find_from_params(PROBE_EXPERIMENTS_COLLECTION, 
                                                   params_dict, columns)
+        
+        for entry in data:
+            entry[DATE] = entry[DATE].strftime("%Y_%m_%d")
          
         return (data, column_names, None)
          

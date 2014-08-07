@@ -27,7 +27,7 @@ from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import PA_PROCESS_COLLECTION
 from src.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, JOB_TYPE_NAME, \
     SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
-    RESULT, URL, ARCHIVE, DYES, DEVICE, CONFIG
+    RESULT, URL, CONFIG_URL, ARCHIVE, DYES, DEVICE, CONFIG
 
 #=============================================================================
 # Class
@@ -72,6 +72,7 @@ class ProcessGetFunction(AbstractGetFunction):
         columns[FINISH_DATESTAMP] = 1
         columns[ERROR]            = 1
         columns[URL]              = 1
+        columns[CONFIG_URL]       = 1
         columns[RESULT]           = 1
         columns[CONFIG]           = 1
         

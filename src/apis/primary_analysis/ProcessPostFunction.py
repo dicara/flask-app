@@ -33,7 +33,7 @@ from src.utilities.io_utilities import silently_remove_file
 from src import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
 from src.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
-    FINISH_DATESTAMP, URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG
+    FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG
     
 from src.analyses.primary_analysis.PrimaryAnalysisUtils import execute_process
 
@@ -171,11 +171,15 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
     def process_callback(future):
         try:
             _ = future.result()
-            update = { "$set": {STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
-                                RESULT: outfile_path,
-                                CONFIG: config_path,
-                                FINISH_DATESTAMP: datetime.today(),
-                                URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid)}}
+            update = { "$set": { 
+                                 STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
+                                 RESULT: outfile_path,
+                                 CONFIG: config_path,
+                                 FINISH_DATESTAMP: datetime.today(),
+                                 URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid),
+                                 CONFIG_URL: "http://%s/results/%s/%s.cfg" % (HOSTNAME, PORT, uuid),
+                               }
+                    }
             # If job has been deleted, then delete result and don't update DB.
             if len(db_connector.find(PA_PROCESS_COLLECTION, query, {})) > 0:
                 db_connector.update(PA_PROCESS_COLLECTION, query, update)

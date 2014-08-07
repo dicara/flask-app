@@ -30,9 +30,11 @@ from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src.utilities.io_utilities import get_dialect, silently_remove_file, \
     get_case_insensitive_dictreader
-from src import TMP_PATH, PROBE_EXPERIMENTS_COLLECTION
+from src import TMP_PATH, PROBE_EXPERIMENTS_COLLECTION, \
+    PROBE_METADATA_COLLECTION
 from src.apis.ApiConstants import FILENAME, ERROR, RUN_ID, SAMPLE_ID, DATE, \
-    PROBE_EXPERIMENT_HEADERS
+    PROBE_EXPERIMENT_HEADERS, OBSERVED_RESULT, EXPECTED_RESULT, PROBE_ID, \
+    PASS, FAIL
 
 #=============================================================================
 # Class
@@ -125,7 +127,9 @@ class ProbeExperimentPostFunction(AbstractPostFunction):
         '''
         Read the experiments file and update the DB with its contents.
         '''
-        records = list()
+        records         = list()
+        valid_probe_ids = cls._DB_CONNECTOR.distinct(PROBE_METADATA_COLLECTION,
+                                               PROBE_ID)
         with open(path) as f:
             reader = get_case_insensitive_dictreader(f, dialect, 
                                                      PROBE_EXPERIMENT_HEADERS.keys())
@@ -133,6 +137,13 @@ class ProbeExperimentPostFunction(AbstractPostFunction):
                 # Add file information and convert fields to their appropriate type
                 record = {h: c(row[h]) for h,c in PROBE_EXPERIMENT_HEADERS.items()}
                 
+                # Validate file contents
+                record[OBSERVED_RESULT] = cls.ensure_result(record, 
+                                                            OBSERVED_RESULT)
+                record[EXPECTED_RESULT] = cls.ensure_result(record, 
+                                                            EXPECTED_RESULT)
+                cls.ensure_probe_id(record, valid_probe_ids)
+
                 # Add common information
                 record[RUN_ID]    = run_id
                 record[DATE]      = run_date
@@ -140,6 +151,29 @@ class ProbeExperimentPostFunction(AbstractPostFunction):
                 records.append(record)
                 
         cls._DB_CONNECTOR.insert(PROBE_EXPERIMENTS_COLLECTION, records)
+        
+    @staticmethod
+    def ensure_result(record, header):
+        '''
+        Ensure the result is either pass or fail (case-insensitively). If so,
+        return the result in lowercase. If not, thrown an IOError. 
+        '''
+        result = record[header].lower()
+        if result not in [PASS, FAIL]:
+            raise IOError("The %s field must be either pass or fail " \
+                          "(case-insensitive), but found: %s" % 
+                          (header, record[header]))
+        return result
+        
+    @classmethod
+    def ensure_probe_id(cls, record, valid_probe_ids):
+        '''
+        If the probe id doesn't not exist in the metadata collection, then 
+        raise an IOError. Otherwise, do nothing.
+        '''
+        if record[PROBE_ID] not in valid_probe_ids:
+            raise IOError("Probe ID does not exist in metadata: %s" % 
+                          record[PROBE_ID])
         
 #===============================================================================
 # Run Main

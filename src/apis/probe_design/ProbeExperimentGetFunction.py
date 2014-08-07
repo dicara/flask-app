@@ -46,12 +46,15 @@ class ProbeExperimentGetFunction(AbstractGetFunction):
     
     @classmethod
     def parameters(cls):
-        sid_enum = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
-                                              SAMPLE_ID)
-        rid_enum = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
-                                              RUN_ID)
-        pid_enum = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
-                                              PROBE_ID)
+        sid_enum  = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
+                                               SAMPLE_ID)
+        rid_enum  = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
+                                               RUN_ID)
+        pid_enum  = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
+                                               PROBE_ID)
+        date_enum = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
+                                               DATE)
+        date_enum = map(lambda x: x.strftime("%Y_%m_%d"), date_enum)
 
         parameters = [
                       ParameterFactory.format(),
@@ -68,6 +71,7 @@ class ProbeExperimentGetFunction(AbstractGetFunction):
                                                  required=False,
                                                  allow_multiple=True,
                                                  enum=pid_enum),
+                      ParameterFactory.date(required=False, enum=date_enum)
                      ]
         return parameters
     

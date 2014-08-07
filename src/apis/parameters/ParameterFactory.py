@@ -226,7 +226,7 @@ class ParameterFactory(object):
                              allow_multiple=True, enum=job_uuids)
         
     @classmethod
-    def date(cls, required=True):
+    def date(cls, required=True, enum=None):
         ''' Create a parameter instance for selecting date(s). '''
         return DateParameter(DATE, "Run date of the form YYYY_MM_DD.", 
-                             required=required)
+                             required=required, enum=enum)

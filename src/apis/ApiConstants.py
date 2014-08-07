@@ -116,6 +116,7 @@ ARCHIVE          = "archive"
 TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
 ID               = "_id"
 URL              = "url"
+CONFIG_URL       = "config_url"
 DATE             = "date"
 DATESTAMP        = "datestamp"
 SUBMIT_DATESTAMP = "submit_datestamp"
@@ -139,7 +140,8 @@ JOB_TYPE_NAME    = "job_type"
 CONFIG           = "config"
 RUN_ID           = "run_id"
 SAMPLE_ID        = "sample_id"
-
+PASS             = "pass"
+FAIL             = "fail"
 
 #=============================================================================
 # Probe Experiment Constants
@@ -158,8 +160,8 @@ PROBE_EXPERIMENT_HEADERS[FAM]             = lambda x: float(x)
 PROBE_EXPERIMENT_HEADERS[FAM_SD]          = lambda x: float(x)
 PROBE_EXPERIMENT_HEADERS[JOE]             = lambda x: float(x)
 PROBE_EXPERIMENT_HEADERS[JOE_SD]          = lambda x: float(x)
-PROBE_EXPERIMENT_HEADERS[OBSERVED_RESULT] = lambda x: False if x.lower() == "false" else True
-PROBE_EXPERIMENT_HEADERS[EXPECTED_RESULT] = lambda x: False if x.lower() == "false" else True
+PROBE_EXPERIMENT_HEADERS[OBSERVED_RESULT] = lambda x: x
+PROBE_EXPERIMENT_HEADERS[EXPECTED_RESULT] = lambda x: x
 
 # Metadata
 APPLICATION       = "application"

@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
-from src import server
+# from src import server
 from setuptools import setup, find_packages
 
 #===============================================================================
@@ -35,7 +35,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'flask-api',
-      version          = server.__version__,
+      version          = "0.1",
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com', 
       entry_points     = {'console_scripts': [

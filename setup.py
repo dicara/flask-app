@@ -51,8 +51,11 @@ setup(
                           'suds==0.4',
                           'nose==1.3.3',
                           'futures==2.1.6',
-                          'git+ssh://git@github.com/ddicara-gb/idtAnalyzer@packaging#egg=idtAnalyzer',
+                          'idt-analyzer==0.1',
                          ],
+      dependency_links = [
+                          'git+ssh://git@github.com/ddicara-gb/idtAnalyzer@packaging#egg=idt-analyzer',
+                          ],
       package_data     = {'': ['src/templates/*'],},
       description      = _LONG_DESCRIPTION,
       test_suite       = 'nose.collector',

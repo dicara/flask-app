@@ -21,7 +21,6 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
-# from src import server
 from setuptools import setup, find_packages
 
 #===============================================================================
@@ -52,6 +51,7 @@ setup(
                           'suds==0.4',
                           'nose==1.3.3',
                           'futures==2.1.6',
+                          'git+ssh://git@github.com/ddicara-gb/idtAnalyzer@packaging#egg=idtAnalyzer',
                          ],
       package_data     = {'': ['src/templates/*'],},
       description      = _LONG_DESCRIPTION,

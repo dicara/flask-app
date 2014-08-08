@@ -34,16 +34,27 @@ _LONG_DESCRIPTION = open(_README).read()
 # Setup
 #===============================================================================
 setup(
-      name         = 'flask-api',
-      version      = server.__version__,
-      author       = 'Dan DiCara',
-      author_email = 'ddicara@gnubio.com', 
-      entry_points = {'console_scripts': [
+      name             = 'flask-api',
+      version          = server.__version__,
+      author           = 'Dan DiCara',
+      author_email     = 'ddicara@gnubio.com', 
+      entry_points     = {'console_scripts': [
                                           'flask_api = src.server:main',
                                          ]},
-      packages     = find_packages(),
-      package_data = {'': ['src/templates/*'],},
-      description  = _LONG_DESCRIPTION,
-      test_suite   = 'nose.collector',
-      zip_safe     = False,
+      packages         = find_packages(),
+      install_requires = [
+                          'pymongo==2.7',
+                          'pyyaml==3.10',
+                          'simplejson==3.3.1',
+                          'Flask==0.10.1',
+                          'tornado==3.2',
+                          'redis==2.9.1',
+                          'suds==0.4',
+                          'nose==1.3.3',
+                          'futures==2.1.6',
+                         ],
+      package_data     = {'': ['src/templates/*'],},
+      description      = _LONG_DESCRIPTION,
+      test_suite       = 'nose.collector',
+      zip_safe         = False,
 )

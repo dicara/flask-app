@@ -53,7 +53,7 @@ setup(
                           'idt-analyzer==0.1',
                          ],
       dependency_links = [
-                          'got+ssh://git@github.com/ddicara-gb/idtAnalyzer.git@packaging#egg=idt-analyzer',
+                          'git+ssh://git@github.com:ddicara-gb/idtAnalyzer.git@packaging#egg=idt-analyzer-0.1',
                           ],
       package_data     = {'': ['src/templates/*'],},
       description      = _LONG_DESCRIPTION,

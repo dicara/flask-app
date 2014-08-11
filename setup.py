@@ -50,10 +50,10 @@ setup(
                           'redis==2.9.1',
                           'nose==1.3.3',
                           'futures==2.1.6',
-                          'idt-analyzer',
+                          'idt-analyzer==0.1',
                          ],
       dependency_links = [
-                          'git+ssh://git@github.com:ddicara-gb/idtAnalyzer.git@packaging#egg=idt-analyzer-0.1',
+                          'got+ssh://git@github.com/ddicara-gb/idtAnalyzer.git@packaging#egg=idt-analyzer',
                           ],
       package_data     = {'': ['src/templates/*'],},
       description      = _LONG_DESCRIPTION,

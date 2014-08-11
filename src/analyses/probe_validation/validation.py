@@ -30,9 +30,9 @@ import logging
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from multiprocessing.pool import Pool
+from idt_analyzer.idtClient import CachedIDTClient
 
 from src.analyses.probe_validation.probe_util import get_targets, global_probe_counts_refgenome
-from src.analyses.melting_temperature.idtClient import CachedIDTClient
 
 #===============================================================================
 # Main

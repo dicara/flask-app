@@ -24,7 +24,7 @@ import unittest
 import os
 import filecmp
 
-from src.analyses.melting_temperature.idtClient import IDTClient
+from idt_analyzer.idtClient import IDTClient
 
 #===============================================================================
 # Global Private Variables

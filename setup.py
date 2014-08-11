@@ -48,7 +48,6 @@ setup(
                           'Flask==0.10.1',
                           'tornado==3.2',
                           'redis==2.9.1',
-                          'suds==0.4',
                           'nose==1.3.3',
                           'futures==2.1.6',
                           'idt-analyzer==0.1',

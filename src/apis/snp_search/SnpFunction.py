@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.apis.snp_search.ncbi_utilities import snps_in_interval_multiple
+from ncbi_utilities.ncbi_util import snps_in_interval_multiple
 
 #=============================================================================
 # Class

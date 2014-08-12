@@ -8,9 +8,9 @@ from Bio.Seq import Seq, reverse_complement
 from Bio.SeqRecord import SeqRecord
 from redis import StrictRedis
 from idt_analyzer.idtClient import IDTClient
+from ncbi_utilities.ncbi_util import chromosome_for_ref_assembly
 
 from src.analyses.probe_validation import settings
-from src.analyses.probe_validation.ncbi_util import chromosome_for_ref_assembly
 from src.utilities.logging_utilities import APP_LOGGER
 
 

@@ -1,0 +1,2 @@
+git+ssh://git@github.com/ddicara-gb/idtAnalyzer@master#egg=idt-analyzer
+git+ssh://git@github.com/ddicara-gb/ncbi-utils@master#egg=ncbi-utils

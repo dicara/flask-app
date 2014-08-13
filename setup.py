@@ -51,7 +51,7 @@ setup(
                           'nose==1.3.3',
                           'futures==2.1.6',
                           'idt-analyzer==0.1',
-                          'ncbi-utilities=0.1',
+                          'ncbi-utilities==0.1',
                          ],
       package_data     = {'': ['src/templates/*'],},
       description      = _LONG_DESCRIPTION,

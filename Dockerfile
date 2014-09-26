@@ -9,9 +9,11 @@ RUN apt-get -y install python-yaml
 RUN apt-get -y install python-pip
 RUN easy_install -f http://biopython.org/DIST/ biopython
 
-RUN echo 'HOSTNAME = 127.0.0.1' >>flaskr_settings.cfg
-RUN export FLASKR_SETTINGS=/flaskr_settings.cfg
+#RUN echo "HOSTNAME='\$MONGODB_DB_PORT_28017_TCP_ADDR' >>flaskr_settings.cfg
+#RUN export FLASKR_SETTINGS=/flaskr_settings.cfg
 
 ADD . bioweb-api
 WORKDIR bioweb-api
 RUN pip install -r requirements.txt
+
+CMD echo "HOSTNAME='$MONGODB_DB_PORT_28017_TCP_ADDR' >>flaskr_settings.cfg && export FLASKR_SETTINGS=/flaskr_settings.cfg && python setup.py nosetests

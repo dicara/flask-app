@@ -20,7 +20,15 @@ limitations under the License.
 #===============================================================================
 # Imports
 #===============================================================================
-from . import DB
+from pymongo import MongoClient
+
+from . import DATABASE_URL, DATABASE_PORT, DATABASE_NAME
+
+#=============================================================================
+# Connect to MongoDB
+#=============================================================================
+_CLIENT = MongoClient(DATABASE_URL, DATABASE_PORT)
+_DB     = _CLIENT[DATABASE_NAME]
 
 #===============================================================================
 # Class
@@ -28,7 +36,7 @@ from . import DB
 class DbConnector(object):
     '''
     This class is intended to be a singleton. It handles communication (i.e.
-    queries) with MongoDB. Every call to the DB should go through this 
+    queries) with MongoDB. Every call to the _DB should go through this 
     class.
     '''
     _INSTANCE = None
@@ -52,7 +60,7 @@ class DbConnector(object):
     #===========================================================================
     @staticmethod
     def insert(collection, records):
-        return DB[collection].insert(records)
+        return _DB[collection].insert(records)
     
     @staticmethod
     def find(collection, criteria, projection=None):
@@ -69,7 +77,7 @@ class DbConnector(object):
         
         @return List of records - empty list if no records are found.
         '''
-        return list(DB[collection].find(criteria, projection))
+        return list(_DB[collection].find(criteria, projection))
     
     @staticmethod
     def find_one(collection, field_name, field_value):
@@ -83,7 +91,7 @@ class DbConnector(object):
         
         @return First record found meeting search criteria.
         '''
-        return DB[collection].find_one({field_name: field_value})
+        return _DB[collection].find_one({field_name: field_value})
     
     @classmethod
     def find_from_params(cls, collection, params_dict, fields):
@@ -107,7 +115,7 @@ class DbConnector(object):
         '''
         Call distinct on the provide column_name in the provided collection.
         '''
-        return list(DB[collection].distinct(column_name))
+        return list(_DB[collection].distinct(column_name))
     
     @classmethod
     def distinct_sorted(cls, collection, column_name, is_string=True):
@@ -126,11 +134,11 @@ class DbConnector(object):
             
     @staticmethod
     def remove(collection, criteria):
-        return DB[collection].remove(criteria)
+        return _DB[collection].remove(criteria)
     
     @staticmethod
     def update(collection, query, update):
-        DB[collection].update(query, update)
+        _DB[collection].update(query, update)
         
 #===========================================================================
 # Ensure the initial instance is created.

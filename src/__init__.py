@@ -2,7 +2,7 @@
 # Imports
 #=============================================================================
 from flask import Flask
-from pymongo import MongoClient
+from src.default_settings import DATABASE_URL, DATABASE_NAME, DATABASE_PORT
 
 #=============================================================================
 # Create Flask app and read in configuration files
@@ -12,17 +12,14 @@ app.config.from_object('src.default_settings')
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 #=============================================================================
-# Connect to MongoDB
-#=============================================================================
-CLIENT = MongoClient(app.config['DATABASE_URL'], app.config['DATABASE_PORT'])
-DB     = CLIENT[app.config['DATABASE_NAME']]
-
-#=============================================================================
 # Parse configuration
 #=============================================================================
 DEV                          = app.config['DEV']                 
 HOSTNAME                     = app.config['HOSTNAME']                 
 PORT                         = app.config['PORT']
+DATABASE_URL                 = app.config['DATABASE_URL']
+DATABASE_NAME                = app.config['DATABASE_NAME']
+DATABASE_PORT                = app.config['DATABASE_PORT']
 USER_HOME_DIR                = app.config['USER_HOME_DIR']
 HOME_DIR                     = app.config['HOME_DIR']
 TARGETS_UPLOAD_PATH          = app.config['TARGETS_UPLOAD_PATH']

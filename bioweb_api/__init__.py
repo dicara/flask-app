@@ -2,7 +2,6 @@
 # Imports
 #=============================================================================
 from flask import Flask
-from src.default_settings import DATABASE_URL, DATABASE_NAME, DATABASE_PORT
 
 #=============================================================================
 # Create Flask app and read in configuration files

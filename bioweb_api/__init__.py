@@ -7,7 +7,7 @@ from flask import Flask
 # Create Flask app and read in configuration files
 #=============================================================================
 app = Flask(__name__)
-app.config.from_object('src.default_settings')
+app.config.from_object('bioweb_api.default_settings')
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 #=============================================================================

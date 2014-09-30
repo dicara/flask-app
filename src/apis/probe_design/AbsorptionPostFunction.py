@@ -26,17 +26,16 @@ import os
 from flask import make_response, jsonify
 from uuid import uuid4
 from datetime import datetime
+from probe_design.absorption import execute_absorption
 
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import PROBES_COLLECTION, TARGETS_COLLECTION, ABSORPTION_COLLECTION, \
-    RESULTS_PATH, HOSTNAME, PORT
+    RESULTS_PATH, HOSTNAME, PORT, REFS_PATH, USER_HOME_DIR
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, JOB_TYPE, JOB_TYPE_NAME
-# TODO USE EXTERNAL PACKAGE probe-design
-from src.analyses.probe_validation.absorption import execute_absorption
-
+    
 #=============================================================================
 # Class
 #=============================================================================
@@ -65,8 +64,6 @@ class AbsorptionPostFunction(AbstractPostFunction):
         msgs.extend([
                      { "code": 403, 
                        "message": "Job name already exists. Delete the existing job or pick a new name."},
-#                      { "code": 415, 
-#                        "message": "File is not a valid FASTA file."},
                     ])
         return msgs
     
@@ -101,12 +98,18 @@ class AbsorptionPostFunction(AbstractPostFunction):
         else:
             try:
                 # Gather inputs
+                ref_genome_path = os.path.join(REFS_PATH, "genome.fa")
+                if not os.path.isfile(ref_genome_path):
+                    raise Exception("Invalid reference genome: %s" % ref_genome_path)
+                blat_path = os.path.join(USER_HOME_DIR, "bin", "blat")
+                if not os.path.isfile(blat_path):
+                    raise Exception("Invalid blat location: %s" % blat_path)
                 probes_path  = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
                 targets_path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
                 outfile_path = os.path.join(RESULTS_PATH, json_response[UUID])
                 
                 # Create helper functions
-                abs_callable = AbsorbtionCallable(targets_path, probes_path, outfile_path, json_response[UUID], cls._DB_CONNECTOR)
+                abs_callable = AbsorbtionCallable(blat_path, ref_genome_path, targets_path, probes_path, outfile_path, json_response[UUID], cls._DB_CONNECTOR)
                 callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
                 
                 # Add to queue and update DB
@@ -126,19 +129,22 @@ class AbsorbtionCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, targets_path, probes_path, outfile_path, uuid, 
-                 db_connector):
-        self.targets_path = targets_path
-        self.probes_path  = probes_path
-        self.outfile_path = outfile_path
-        self.db_connector = db_connector
-        self.query        = {UUID: uuid}
+    def __init__(self, blat_path, ref_genome_path, targets_path, probes_path, 
+                 outfile_path, uuid, db_connector):
+        self.blat_path       = blat_path
+        self.ref_genome_path = ref_genome_path
+        self.targets_path    = targets_path
+        self.probes_path     = probes_path
+        self.outfile_path    = outfile_path
+        self.db_connector    = db_connector
+        self.query           = {UUID: uuid}
     
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
                            START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(ABSORPTION_COLLECTION, self.query, update)
-        return execute_absorption(self.targets_path, self.probes_path, 
+        return execute_absorption(self.blat_path, self.ref_genome_path, 
+                                  self.targets_path, self.probes_path, 
                                   self.outfile_path)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):

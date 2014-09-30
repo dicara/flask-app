@@ -34,6 +34,7 @@ from src import PROBES_COLLECTION, TARGETS_COLLECTION, ABSORPTION_COLLECTION, \
 from src.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, JOB_TYPE, JOB_TYPE_NAME
+# TODO USE EXTERNAL PACKAGE probe-design
 from src.analyses.probe_validation.absorption import execute_absorption
 
 #=============================================================================
@@ -95,7 +96,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                         }
         http_status_code = 200
         
-        if job_name in cls._DB_CONNECTOR.get_distinct(ABSORPTION_COLLECTION, JOB_NAME):
+        if job_name in cls._DB_CONNECTOR.distinct(ABSORPTION_COLLECTION, JOB_NAME):
             http_status_code     = 403
         else:
             try:

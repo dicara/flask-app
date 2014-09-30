@@ -21,12 +21,9 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
-import sys
-
-from flask import make_response, jsonify
 
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH, ERROR
+from src.apis.ApiConstants import ID, UUID, FILEPATH
 from src.apis.parameters.ParameterFactory import ParameterFactory
 from src import PROBES_COLLECTION
 
@@ -64,31 +61,27 @@ class ProbesDeleteFunction(AbstractDeleteFunction):
         targets_uuids    = params_dict[ParameterFactory.uuid()]
         criteria         = {UUID: {"$in": targets_uuids}}
         
-        try:
-            records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
-            response["deleted"] = {}
-            if len(records) > 0:
-                # Record records
-                for record in records:
-                    response["deleted"][record[UUID]] = record
-                
-                # Delete records from database
-                result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
-                
-                # Delete files from disk only if removal from DB was successful
-                if result and result['n'] == len(response["deleted"]):
-                    for _,record in response["deleted"].iteritems():
-                        os.remove(record[FILEPATH])
-                else:
-                    del response["deleted"]
-                    raise Exception("Error deleting records from the database: %s" % result)
-            else:
-                http_status_code = 404
-        except:
-            response[ERROR]  = str(sys.exc_info()[1])
-            http_status_code = 500
+        records = cls._DB_CONNECTOR.find(PROBES_COLLECTION, criteria, {ID:0})
+        response["deleted"] = {}
+        if len(records) > 0:
+            # Record records
+            for record in records:
+                response["deleted"][record[UUID]] = record
             
-        return make_response(jsonify(response), http_status_code)
+            # Delete records from database
+            result = cls._DB_CONNECTOR.remove(PROBES_COLLECTION, criteria)
+            
+            # Delete files from disk only if removal from DB was successful
+            if result and result['n'] == len(response["deleted"]):
+                for _,record in response["deleted"].iteritems():
+                    os.remove(record[FILEPATH])
+            else:
+                del response["deleted"]
+                raise Exception("Error deleting records from the database: %s" % result)
+        else:
+            http_status_code = 404
+            
+        return response, http_status_code
 
 #===============================================================================
 # Run Main

@@ -27,7 +27,7 @@ from src.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveString
 from src.apis.parameters.FileParameter import FileParameter
 from src.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE
 from src.DbConnector import DbConnector
 from src.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
@@ -195,8 +195,8 @@ class ParameterFactory(object):
         return LowerCaseStringParameter(UUID, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, 
-                               enum=cls._DB_CONNECTOR.get_distinct(collection, 
-                                                                   UUID))    
+                               enum=cls._DB_CONNECTOR.distinct_sorted(collection, 
+                                                                      UUID))    
     @staticmethod
     def lc_string(name, description, alias=None, required=True, 
                   allow_multiple=False, enum=None):
@@ -224,3 +224,9 @@ class ParameterFactory(object):
         job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)
         return cls.lc_string(UUID, "Comma separated job UUID(s).", 
                              allow_multiple=True, enum=job_uuids)
+        
+    @classmethod
+    def date(cls, required=True, enum=None):
+        ''' Create a parameter instance for selecting date(s). '''
+        return DateParameter(DATE, "Run date of the form YYYY_MM_DD.", 
+                             required=required, enum=enum)

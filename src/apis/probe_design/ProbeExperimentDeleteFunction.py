@@ -20,28 +20,28 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
+from collections import defaultdict
 
 from src.apis.AbstractDeleteFunction import AbstractDeleteFunction
-from src.apis.ApiConstants import ID, UUID, FILEPATH
+from src.apis.ApiConstants import ID, RUN_ID
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src import TARGETS_COLLECTION
+from src import PROBE_EXPERIMENTS_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class TargetsDeleteFunction(AbstractDeleteFunction):
+class ProbeExperimentDeleteFunction(AbstractDeleteFunction):
     
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return "Targets"
+        return "ProbeExperiment"
    
     @staticmethod
     def summary():
-        return "Delete targets FASTA files."
+        return "Delete probe design experiment run."
     
     @staticmethod
     def notes():
@@ -49,8 +49,14 @@ class TargetsDeleteFunction(AbstractDeleteFunction):
     
     @classmethod
     def parameters(cls):
+        rid_enum = cls._DB_CONNECTOR.distinct(PROBE_EXPERIMENTS_COLLECTION,
+                                              RUN_ID)
+        cls._rid_param  = ParameterFactory.lc_string(RUN_ID, "Run ID.", 
+                                                     required=True, 
+                                                     allow_multiple=True,
+                                                     enum=rid_enum)
         parameters = [
-                      ParameterFactory.uuid(),
+                      cls._rid_param,
                      ]
         return parameters
     
@@ -58,34 +64,36 @@ class TargetsDeleteFunction(AbstractDeleteFunction):
     def process_request(cls, params_dict):
         response         = {}
         http_status_code = 200
-        targets_uuids    = params_dict[ParameterFactory.uuid()]
-        criteria         = {UUID: {"$in": targets_uuids}}
+        run_ids          = params_dict[cls._rid_param]
+        criteria         = {RUN_ID: {"$in": run_ids}}
         
-        records = cls._DB_CONNECTOR.find(TARGETS_COLLECTION, criteria, {ID:0})
-        response["deleted"] = {}
+        records = cls._DB_CONNECTOR.find(PROBE_EXPERIMENTS_COLLECTION, 
+                                         criteria, {ID:0})
+        response["deleted"]    = defaultdict(list)
+        num_expected_deletions = 0
         if len(records) > 0:
             # Record records
             for record in records:
-                response["deleted"][record[UUID]] = record
+                response["deleted"][record[RUN_ID]].append(record)
+                num_expected_deletions += 1
             
             # Delete records from database
-            result = cls._DB_CONNECTOR.remove(TARGETS_COLLECTION, criteria)
+            result = cls._DB_CONNECTOR.remove(PROBE_EXPERIMENTS_COLLECTION, 
+                                              criteria)
             
-            # Delete files from disk only if removal from DB was successful
-            if result and result['n'] == len(response["deleted"]):
-                for _,record in response["deleted"].iteritems():
-                    os.remove(record[FILEPATH])
-            else:
+            # Check that all records were deleted successfully.
+            if not result or result['n'] != num_expected_deletions:
                 del response["deleted"]
-                raise Exception("Error deleting records from the database: %s" % result)
+                raise Exception("Error deleting records from the " \
+                                "database: %s" % result)
         else:
             http_status_code = 404
             
-        return(response, http_status_code)
+        return response, http_status_code
 
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = TargetsDeleteFunction()
+    function = ProbeExperimentDeleteFunction()
     print function

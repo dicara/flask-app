@@ -21,7 +21,6 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
-from src import server
 from setuptools import setup, find_packages
 
 #===============================================================================
@@ -34,16 +33,28 @@ _LONG_DESCRIPTION = open(_README).read()
 # Setup
 #===============================================================================
 setup(
-      name         = 'flask-api',
-      version      = server.__version__,
-      author       = 'Dan DiCara',
-      author_email = 'ddicara@gnubio.com', 
-      entry_points = {'console_scripts': [
-                                          'flask_api = src.server:main',
+      name             = 'bioweb-api',
+      version          = "0.1",
+      author           = 'Dan DiCara',
+      author_email     = 'ddicara@gnubio.com', 
+      entry_points     = {'console_scripts': [
+                                          'bioweb_api = src.server:main',
                                          ]},
-      packages     = find_packages(),
-      package_data = {'': ['src/templates/*'],},
-      description  = _LONG_DESCRIPTION,
-      test_suite   = 'nose.collector',
-      zip_safe     = False,
+      packages         = find_packages(),
+      install_requires = [
+                          'nose',
+                          'pymongo',
+                          'pyyaml',
+                          'simplejson',
+                          'Flask',
+                          'tornado',
+                          'redis',
+                          'futures',
+                          'idt-analyzer',
+                          'ncbi-utilities',
+                         ],
+      package_data     = {'': ['src/templates/*'],},
+      description      = _LONG_DESCRIPTION,
+      test_suite       = 'nose.collector',
+      zip_safe         = False,
 )

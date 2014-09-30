@@ -27,11 +27,12 @@ from uuid import uuid4
 from flask import make_response, jsonify
 from datetime import datetime
 
-from src.apis.ApiConstants import FILENAME, FILEPATH, ID, URL, DATESTAMP, \
-    TYPE, ERROR, UUID
 from src.apis.AbstractPostFunction import AbstractPostFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
+from src.utilities.io_utilities import silently_remove_file
 from src import HOSTNAME, PORT, PLATES_UPLOAD_PATH, PLATES_COLLECTION
+from src.apis.ApiConstants import FILENAME, FILEPATH, ID, URL, DATESTAMP, \
+    TYPE, ERROR, UUID
 
 #=============================================================================
 # Class
@@ -111,8 +112,6 @@ class ExperimentPostFunction(AbstractPostFunction):
         existing_filenames = cls._DB_CONNECTOR.distinct(PLATES_COLLECTION, FILENAME)
         if os.path.exists(path) or plate_file.filename in existing_filenames:
             http_status_code     = 403
-#         elif validate_fasta(probes_file) == False:
-#             http_status_code     = 415
         else:
             try:
                 plate_file.save(path)
@@ -129,6 +128,8 @@ class ExperimentPostFunction(AbstractPostFunction):
             except:
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
+            finally:
+                silently_remove_file(path)
         
         return make_response(jsonify(json_response), http_status_code)
 

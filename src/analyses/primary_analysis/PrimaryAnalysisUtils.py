@@ -44,19 +44,19 @@ def get_archives():
     '''
     Return a listing of the archives directory.
     '''
-    return _DB_CONNECTOR.get_distinct(ARCHIVES_COLLECTION, ARCHIVE)
+    return _DB_CONNECTOR.distinct_sorted(ARCHIVES_COLLECTION, ARCHIVE)
 
 def get_dyes():
     '''
     Retrieve a list of available dye names.
     '''
-    return _DB_CONNECTOR.get_distinct(DYES_COLLECTION, DYE)
+    return _DB_CONNECTOR.distinct_sorted(DYES_COLLECTION, DYE)
 
 def get_devices():
     '''
     Retrieve a list of available devices.
     '''
-    return _DB_CONNECTOR.get_distinct(DEVICES_COLLECTION, DEVICE)
+    return _DB_CONNECTOR.distinct_sorted(DEVICES_COLLECTION, DEVICE)
 
 def update_archives():
     '''

@@ -87,6 +87,18 @@ class AbstractFunction(object):
         return {}
     
     #===========================================================================
+    # Overridable Static Methods
+    #===========================================================================    
+    @staticmethod
+    def notes():
+        '''
+        For use in the Swagger documentation.
+         
+        A verbose explanation of the operation behavior. 
+        '''
+        return ""
+    
+    #===========================================================================
     # Abstract Class Methods
     #===========================================================================    
     @classmethod
@@ -159,16 +171,6 @@ class AbstractFunction(object):
                                   "summary method.")
 
     @staticmethod
-    def notes():
-        '''
-        For use in the Swagger documentation.
-         
-        A verbose explanation of the operation behavior. 
-        '''
-        raise NotImplementedError("AbstractFunction subclass must implement " \
-                                  "notes method.")
-    
-    @staticmethod
     def method():
         raise NotImplementedError("AbstractFunction subclass must implement " \
                                   "method method.")
@@ -179,11 +181,11 @@ class AbstractFunction(object):
     @classmethod
     def path(cls):
         '''
-        Example: /MeltingTemperatures/IDT/{name}/{sequence}
+        Example: /foo/bar/IDT/{name}/{sequence}
         
-        The returned path is a combination of the function name 
-        (MeltingTemperatures), static path fields (IDT which would be provided 
-        by the static_path_fields function), and dynamic path fields (name and 
+        The returned path is a combination of the static path fields (foo
+        and bar which would be provided by the static_path_fields function),
+        the function name (IDT), and dynamic path fields (name and 
         sequence). Dynamic path fields are defined by parameters that have 
         param_type == PARAMETER_TYPES.path. They must be included in the 
         parameters list in the order in which you want them included in the URL. 
@@ -196,7 +198,13 @@ class AbstractFunction(object):
     
     @classmethod
     def static_path(cls):
-        ''' Return the static portion of the path (empty string if none) '''
+        ''' 
+        Example: /Foo/Bar/IDT
+        
+        Return the static portion of the path which consists of the static
+        path fields (Foo and Bar in this instance) followed by the function
+        name (IDT). 
+        '''
         path =""
         for static_path_field in cls.static_path_fields():
             path = os.path.join(path, static_path_field)
@@ -217,11 +225,11 @@ class AbstractFunction(object):
     def static_path_fields():
         ''' 
         This allows for greater flexibility in defining an API function's path.
-        These fields will be added to the path (separated by os.path.sep) after 
-        the function's name and before any dynamic path fields (i.e. parameters 
+        These fields will be added to the path (separated by os.path.sep)  
+        before the function's name and any dynamic path fields (i.e. parameters 
         that have param_type=path).
         
-        Example Path: /MeltingTemperatures/IDT/Foo/Bar/{name}/{sequence} in which 
+        Example Path: /MeltingTemperatures/Foo/Bar/IDT/{name}/{sequence} in which 
         MeltingTemperatures is the API name, IDT is the function name, Foo and 
         Bar are the static path fields provided in this function call, and
         {name} and {sequence} are function parameters with param_type=path.

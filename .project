@@ -3,6 +3,8 @@
 	<name>bioweb-api</name>
 	<comment></comment>
 	<projects>
+		<project>IDT_Analyzer</project>
+		<project>NCBI_Utilities</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

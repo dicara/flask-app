@@ -129,12 +129,18 @@ class AbstractApiV1(object):
         ''' 
         Return true if the function path signature matches the provided 
         path_fields signature. For example, if the function path signature is
-        MeltingTemperatures/IDT/{name}/{sequence}, then ensure path_fields is of
-        the form [MeltingTemperatures, IDT, {name}, {sequence}] where {name}
+        /Foo/Bar/IDT/{name}/{sequence}, then ensure path_fields is of
+        the form [Foo, Bar, IDT, {name}, {sequence}] where Foo and Bar are 
+        static path fields, IDT is the function name, and {name}
         and {sequence} could actually be any string (i.e. this doesn't ensure 
         that dynamic fields are valid).
         '''
-        if not path.startswith(function.static_path()):
+        split_path    = path.split(os.pathsep)
+        static_fields = function.static_path_fields()
+        for i, static_field in enumerate(static_fields):
+            if static_field != split_path[i]:
+                return False
+        if function.name() != split_path[len(static_fields)]:
             return False
         
         # Ensure provided number of path fields matches expected.

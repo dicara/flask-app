@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from src.apis.AbstractGetFunction import AbstractGetFunction
 from src.apis.parameters.ParameterFactory import ParameterFactory
-from src.analyses.melting_temperature.idtClient import IDTClient
+from idt_analyzer.idtClient import IDTClient
 
 #=============================================================================
 # Class

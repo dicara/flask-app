@@ -25,6 +25,12 @@ from src.apis.AbstractApi import AbstractApiV1
 # from src.apis.probe_design.ValidationGetFunction import ValidationGetFunction
 from src.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
 from src.apis.probe_design.ExperimentGetFunction import ExperimentGetFunction
+from src.apis.probe_design.ProbeExperimentMetadataPostFunction import ProbeExperimentMetadataPostFunction
+from src.apis.probe_design.ProbeExperimentMetadataGetFunction import ProbeExperimentMetadataGetFunction
+from src.apis.probe_design.ProbeExperimentMetadataDeleteFunction import ProbeExperimentMetadataDeleteFunction
+from src.apis.probe_design.ProbeExperimentPostFunction import ProbeExperimentPostFunction
+from src.apis.probe_design.ProbeExperimentGetFunction import ProbeExperimentGetFunction
+from src.apis.probe_design.ProbeExperimentDeleteFunction import ProbeExperimentDeleteFunction
 from src.apis.probe_design.AbsorptionPostFunction import AbsorptionPostFunction
 from src.apis.probe_design.AbsorptionGetFunction import AbsorptionGetFunction
 from src.apis.probe_design.AbsorptionDeleteFunction import AbsorptionDeleteFunction
@@ -41,8 +47,14 @@ from src.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
 class ProbeDesignApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
-                  ExperimentPostFunction(),
-                  ExperimentGetFunction(),
+                  ProbeExperimentMetadataPostFunction(),
+                  ProbeExperimentMetadataGetFunction(),
+                  ProbeExperimentMetadataDeleteFunction(),
+                  ProbeExperimentPostFunction(),
+                  ProbeExperimentGetFunction(),
+                  ProbeExperimentDeleteFunction(),
+#                   ExperimentPostFunction(),
+#                   ExperimentGetFunction(),
                   AbsorptionPostFunction(),
                   AbsorptionGetFunction(),
                   AbsorptionDeleteFunction(),

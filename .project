@@ -5,6 +5,7 @@
 	<projects>
 		<project>IDT_Analyzer</project>
 		<project>NCBI_Utilities</project>
+		<project>probe-design</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

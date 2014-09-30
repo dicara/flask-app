@@ -38,7 +38,7 @@ setup(
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com', 
       entry_points     = {'console_scripts': [
-                                          'bioweb_api = src.server:main',
+                                          'bioweb_api = bioweb_api.server:main',
                                          ]},
       packages         = find_packages(),
       install_requires = [
@@ -53,7 +53,7 @@ setup(
                           'idt-analyzer',
                           'ncbi-utilities',
                          ],
-      package_data     = {'': ['src/templates/*'],},
+      package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,
       test_suite       = 'nose.collector',
       zip_safe         = False,

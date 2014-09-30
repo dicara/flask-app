@@ -29,7 +29,9 @@ import time
 from uuid import uuid4
 from StringIO import StringIO
 
-from src import app
+from src.utilities import io_utilities
+from src import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
+    RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH
 
 #===============================================================================
 # Global Private Variables
@@ -42,6 +44,13 @@ _PROBE_DESIGN_URL         = "/api/v1/ProbeDesign"
 _PROBES_URL               = os.path.join(_PROBE_DESIGN_URL, 'Probes')
 _TARGETS_URL              = os.path.join(_PROBE_DESIGN_URL, 'Targets')
 _ABSORPTION_URL           = os.path.join(_PROBE_DESIGN_URL, 'Absorption')
+
+io_utilities.safe_make_dirs(HOME_DIR)
+io_utilities.safe_make_dirs(TARGETS_UPLOAD_PATH)
+io_utilities.safe_make_dirs(PROBES_UPLOAD_PATH)
+io_utilities.safe_make_dirs(PLATES_UPLOAD_PATH)
+io_utilities.safe_make_dirs(RESULTS_PATH)
+io_utilities.safe_make_dirs(REFS_PATH)
 
 #===============================================================================
 # Test
@@ -139,9 +148,7 @@ class Test(unittest.TestCase):
                                    url, 
                                    data={'file': (StringIO(f.read()), filename)}
                                   )
-        msg = "Expected response code (%s) doesn't match observed (%s) for " \
-              "upload file %s." % (exp_resp_code, response.status_code, filename)
-        self.assertEqual(response.status_code, exp_resp_code, msg)
+        self.assert_response_code(exp_resp_code, response, url)
         return json.loads(response.data)
     
     def post(self, url, exp_resp_code):

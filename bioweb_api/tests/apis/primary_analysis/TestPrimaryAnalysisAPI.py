@@ -102,15 +102,18 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         
         running = True
         while running:
-            time.sleep(1)
+            time.sleep(10)
             response = get_data(self, _PROCESS_URL, 200)
             for job in response['Process']:
                 if process_uuid == job['uuid']:
                     job_details = job
                     running     = job_details['status'] == 'running'
         
-        msg = "Expected pa process job status succeeded, but found: %s" % \
-              job_details['status']
+        error = ""
+        if 'error' in job_details:
+            error = job_details['error']
+        msg = "Expected pa process job status succeeded, but found %s. " \
+              "Error: %s" % (job_details['status'], error)
         self.assertEquals(job_details['status'], "succeeded", msg)
         
         exp_analysis_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_ANALYSIS_RESULT)
@@ -125,7 +128,7 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
 
         # Delete absorption job
         delete_data(self, _PROCESS_URL + "?uuid=%s" % process_uuid, 200)
-        
+         
         # Ensure job no longer exists in the database
         response = get_data(self, _PROCESS_URL, 200)
         for job in response['Process']:

@@ -24,7 +24,7 @@ import os
 import sys
 import shutil
 
-from gbdrops import DropFinder
+from gbdrops import DropFinder, DROP_PROFILE
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis import analyze_stack
 from primary_analysis import dye_datastore
@@ -37,6 +37,7 @@ from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECT
 from bioweb_api.analyses.primary_analysis.PrimaryAnalysisJob import PrimaryAnalysisJob
 from bioweb_api.analyses.primary_analysis.PrimaryAnalysisJob import PA_TOOL
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
+from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE
 
@@ -153,6 +154,7 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     try:
         # shutil.copytree does not play nicely when copying from samba drive to
         # Mac, so use a system command.
+        io_utilities.safe_make_dirs(tmp_path)
         os.system("cp -fr %s %s" % (archive_path, tmp_path))
         
         with open(tmp_config_path, "w") as f:
@@ -165,7 +167,10 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
         pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
                                     *pngs, d=tmp_path, c=tmp_config_path)
         stderr, stdout       = pa_job.run()
+#         run(tmp_config_path, pngs, tmp_path)
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
+#         if not os.path.isfile(analysis_output_path): 
+#             raise Exception("Process job failed: analysis.txt not generated.")
         if not os.path.isfile(analysis_output_path): 
             raise Exception("Primary Analysis Process job failed.\n"\
                             "Standard Error: %s\nStandard Output: %s\n" % 

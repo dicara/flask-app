@@ -7,6 +7,7 @@ RUN apt-get -y install python-numpy
 RUN apt-get -y install python-scipy
 RUN apt-get -y install python-yaml
 RUN apt-get -y install python-pip
+RUN apt-get -y install python-matplotlib
 RUN easy_install -f http://biopython.org/DIST/ biopython
 
 ENV FLASKR_SETTINGS /flaskr_settings.cfg

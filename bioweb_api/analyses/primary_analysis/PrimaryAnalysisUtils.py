@@ -24,6 +24,8 @@ import os
 import sys
 import shutil
 
+from primary_analysis.dye_datastore import Datastore
+
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
     ARCHIVES_COLLECTION
 from bioweb_api.analyses.primary_analysis.PrimaryAnalysisJob import PrimaryAnalysisJob
@@ -36,6 +38,7 @@ from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE
 # Private Static Variables
 #=============================================================================
 _DB_CONNECTOR = DbConnector.Instance()
+_DATASTORE    = Datastore()
 
 #=============================================================================
 # RESTful location of services
@@ -88,15 +91,7 @@ def update_dyes():
     '''
     APP_LOGGER.info("Updating database with available dyes...")
     try:
-        pa_job    = PrimaryAnalysisJob(PA_TOOL.dyes)            # @UndefinedVariable
-        stderr, _ = pa_job.run() 
-        
-        # dyes are printed to stdder - parse stderr removing unwanted characters
-        dyes = [ dye for dye in stderr.split() ]
-        dyes = map(lambda x: x.replace(":",""), dyes)
-        dyes = map(lambda x: x.replace("\"",""), dyes)
-        
-        records = [{DYE: dye} for dye in dyes]
+        records = [{DYE: dye} for dye in _DATASTORE.dyes()]
         
         # There is a possible race condition here. Ideally these operations 
         # would be performed in concert atomically
@@ -119,9 +114,7 @@ def update_devices():
     APP_LOGGER.info("Updating database with available devices...")
     try:
         # devices are printed to stderr 
-        pa_job    = PrimaryAnalysisJob(PA_TOOL.devices)     # @UndefinedVariable
-        stderr, _ = pa_job.run() 
-        records   = [{DEVICE: device} for device in stderr.split()]
+        records   = [{DEVICE: device} for device in _DATASTORE.devices()]
         
         # There is a possible race condition here. Ideally these operations 
         # would be performed in concert atomically

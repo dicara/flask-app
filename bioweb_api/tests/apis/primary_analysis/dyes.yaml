@@ -1,0 +1,6 @@
+{!!python/unicode 'Dyes': [{!!python/unicode 'dye': !!python/unicode '594'}, {!!python/unicode 'dye': !!python/unicode '633'},
+    {!!python/unicode 'dye': !!python/unicode 'alexa'}, {!!python/unicode 'dye': !!python/unicode 'cy5.5'},
+    {!!python/unicode 'dye': !!python/unicode 'fam'}, {!!python/unicode 'dye': !!python/unicode 'fam-du'},
+    {!!python/unicode 'dye': !!python/unicode 'joe'}, {!!python/unicode 'dye': !!python/unicode 'pe'},
+    {!!python/unicode 'dye': !!python/unicode 'pe-cy7'}, {!!python/unicode 'dye': !!python/unicode 'percp'},
+    {!!python/unicode 'dye': !!python/unicode 'percp-cy7'}]}

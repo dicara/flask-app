@@ -52,6 +52,7 @@ setup(
                           'futures',
                           'idt-analyzer',
                           'ncbi-utilities',
+                          'primary-analysis',
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,

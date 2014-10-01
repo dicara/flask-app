@@ -10,3 +10,4 @@ futures>=2.1.6
 idt-analyzer>=0.1
 ncbi-utilities>=0.1
 probe-design>=0.1
+primary-analysis>=0.2

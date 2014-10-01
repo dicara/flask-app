@@ -24,7 +24,13 @@ import os
 import sys
 import shutil
 
+from gbdrops import DropFinder
 from primary_analysis.dye_datastore import Datastore
+from primary_analysis import analyze_stack
+from primary_analysis import dye_datastore
+from primary_analysis import dye_model
+from primary_analysis.numpy_utils import read_image
+
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
     ARCHIVES_COLLECTION
@@ -144,18 +150,20 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     archive_path     = os.path.join(ARCHIVES_PATH, archive)
     tmp_path         = os.path.join(TMP_PATH, uuid)
     tmp_config_path  = os.path.join(tmp_path, "config.txt")
-    shutil.copytree(archive_path, tmp_path)
-    
-    with open(tmp_config_path, "w") as f:
-        print >>f, "dye_map:"
-        print >>f, "  device: %s" % device
-        print >>f, "  dyes: [%s]" % ", ".join(map(lambda x: "\"%s\"" % x, dyes))
-        
-    pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
-    pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
-    pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
-                                *pngs, d=tmp_path, c=tmp_config_path)
     try:
+        # shutil.copytree does not play nicely when copying from samba drive to
+        # Mac, so use a system command.
+        os.system("cp -fr %s %s" % (archive_path, tmp_path))
+        
+        with open(tmp_config_path, "w") as f:
+            print >>f, "dye_map:"
+            print >>f, "  device: %s" % device
+            print >>f, "  dyes: [%s]" % ", ".join(map(lambda x: "\"%s\"" % x, dyes))
+            
+        pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
+        pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
+        pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
+                                    *pngs, d=tmp_path, c=tmp_config_path)
         stderr, stdout       = pa_job.run()
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
         if not os.path.isfile(analysis_output_path): 
@@ -168,3 +176,28 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     finally:
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
+    
+    
+def run(config_path, pngs, dest):
+    import yaml
+    with open(config_path) as fd:
+        config = yaml.load(fd)
+        
+    profile_func = DROP_PROFILE.peak                    # @UndefinedVariable
+
+    drop_finder = DropFinder(backsub=True, profile_func=profile_func)
+
+    dye_map = dye_datastore.Datastore().dye_map_from_config(config)
+    
+    def images():
+        for filename in pngs:
+            yield read_image(filename)
+
+    def profiles():
+        for image in images():
+            for drop in drop_finder.find(image):
+                yield drop.profile
+                
+    model = dye_model.DyeModel.create_dye_model(config, dye_map, profiles())
+    
+    analyze_stack.DropProcessor(model, drop_finder).run(dest, pngs)

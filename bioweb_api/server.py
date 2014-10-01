@@ -39,7 +39,7 @@ from datetime import datetime
 from tornado.wsgi import WSGIContainer
 from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
-bioweb_apifrom . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
+from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, RESULTS_PATH, REFS_PATH, \
     PLATES_UPLOAD_PATH, TMP_PATH
 from bioweb_api.utilities import io_utilities

@@ -112,6 +112,7 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
                     job_details = job
                     running     = job_details['status'] == 'running'
         
+        # Copy result files to cwd for bamboo to ingest as artifacts
         analysis_txt_path = None
         if _RESULT in job_details:
             analysis_txt_path = job_details[_RESULT]

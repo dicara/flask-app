@@ -24,12 +24,14 @@ import unittest
 import os
 import filecmp
 import time
+import shutil
 
 from uuid import uuid4
 
 from bioweb_api.tests.test_utils import upload_file, post_data, get_data, \
     delete_data
 from bioweb_api.utilities import io_utilities
+from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH
 
@@ -42,9 +44,12 @@ _PROBES_FILENAME          = "probes.fasta"
 _INVALID_FASTA_FILENAME   = "invalid.fasta"
 _EXPECTED_RESULT_FILENAME = "expected_results.txt"
 _PROBE_DESIGN_URL         = "/api/v1/ProbeDesign"
+_ABSORPTION               = "Absorption"
+_STATUS                   = "status"
+_RESULT                   = "result"
 _PROBES_URL               = os.path.join(_PROBE_DESIGN_URL, 'Probes')
 _TARGETS_URL              = os.path.join(_PROBE_DESIGN_URL, 'Targets')
-_ABSORPTION_URL           = os.path.join(_PROBE_DESIGN_URL, 'Absorption')
+_ABSORPTION_URL           = os.path.join(_PROBE_DESIGN_URL, _ABSORPTION)
 
 io_utilities.safe_make_dirs(HOME_DIR)
 io_utilities.safe_make_dirs(TARGETS_UPLOAD_PATH)
@@ -71,48 +76,54 @@ class TestProbeDesignAPI(unittest.TestCase):
         # Upload targets and probes files
         response     = upload_file(self, _TEST_DIR, _PROBES_URL, 
                                    _PROBES_FILENAME, 200)
-        probes_uuid  = response['uuid']
+        probes_uuid  = response[UUID]
         response     = upload_file(self, _TEST_DIR, _TARGETS_URL, 
                                    _TARGETS_FILENAME, 200)
-        targets_uuid = response['uuid']
+        targets_uuid = response[UUID]
         
         # Post absorption job
         url = _ABSORPTION_URL + "?probes=%s&targets=%s&job_name=test_job" % \
              (probes_uuid, targets_uuid)
         response = post_data(self, url, 200)
-        abs_job_uuid = response['uuid']
+        abs_job_uuid = response[UUID]
         
         running     = True
         job_details = None
         while running:
             time.sleep(10)
             response = get_data(self, _ABSORPTION_URL, 200)
-            for job in response['Absorption']:
-                if abs_job_uuid == job['uuid']:
+            for job in response[_ABSORPTION]:
+                if abs_job_uuid == job[UUID]:
                     job_details = job
-                    running     = job_details['status'] == 'running'
+                    running     = job_details[_STATUS] == 'running'
                     
+        # Copy result file to cwd for bamboo to ingest as an artifact
+        if _RESULT in job_details:
+            absorption_path = job_details[_RESULT]
+            if os.path.isfile(absorption_path):
+                shutil.copy(absorption_path, "observed_absorption.txt")
+            
         # Clean up by removing targets and probes files
         delete_data(self, _PROBES_URL + "?uuid=%s" % probes_uuid, 200)
         delete_data(self, _TARGETS_URL + "?uuid=%s" % targets_uuid, 200)
 
         msg = "Expected absorption job status succeeded, but found: %s" % \
-              job_details['status']
-        self.assertEquals(job_details['status'], "succeeded", msg)
+              job_details[_STATUS]
+        self.assertEquals(job_details[_STATUS], "succeeded", msg)
         
         exp_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_RESULT_FILENAME)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
-              (job_details['result'], exp_result_path)
-        self.assertTrue(filecmp.cmp(exp_result_path, job_details['result']), msg)
+              (job_details[_RESULT], exp_result_path)
+        self.assertTrue(filecmp.cmp(exp_result_path, job_details[_RESULT]), msg)
 
         # Delete absorption job
         delete_data(self, _ABSORPTION_URL + "?uuid=%s" % abs_job_uuid, 200)
         
         # Ensure job no longer exists in the database
         response = get_data(self, _ABSORPTION_URL, 200)
-        for job in response['Absorption']:
+        for job in response[_ABSORPTION]:
             msg = "Absorption job %s still exists in database." % abs_job_uuid
-            self.assertNotEqual(abs_job_uuid, job['uuid'], msg)
+            self.assertNotEqual(abs_job_uuid, job[UUID], msg)
 
         
     #===========================================================================
@@ -123,7 +134,7 @@ class TestProbeDesignAPI(unittest.TestCase):
         
         # Test successful file upload
         response   = upload_file(self, _TEST_DIR, url, filename, 200)
-        uuid       = response['uuid']
+        uuid       = response[UUID]
         
         # Test error code 403: File already exists.
         upload_file(self, _TEST_DIR, url, filename, 403)
@@ -133,7 +144,7 @@ class TestProbeDesignAPI(unittest.TestCase):
         
         # Test successful retrieval of uploaded file
         response       = get_data(self, url, 200) 
-        retrieved_uuid = response[response_key][0]['uuid']
+        retrieved_uuid = response[response_key][0][UUID]
         msg = "Expected uuid (%s) doesn't match observed uuid (%s) for %s" % \
               (uuid, retrieved_uuid, url)
         self.assertEqual(uuid, retrieved_uuid, msg)

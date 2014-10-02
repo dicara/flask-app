@@ -154,7 +154,7 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     try:
         # shutil.copytree does not play nicely when copying from samba drive to
         # Mac, so use a system command.
-        io_utilities.safe_make_dirs(tmp_path)
+        io_utilities.safe_make_dirs(TMP_PATH)
         os.system("cp -fr %s %s" % (archive_path, tmp_path))
         
         with open(tmp_config_path, "w") as f:
@@ -164,17 +164,17 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
             
         pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
         pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
-        pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
-                                    *pngs, d=tmp_path, c=tmp_config_path)
-        stderr, stdout       = pa_job.run()
-#         run(tmp_config_path, pngs, tmp_path)
+#         pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
+#                                     *pngs, d=tmp_path, c=tmp_config_path)
+#         stderr, stdout       = pa_job.run()
+        run(tmp_config_path, pngs, tmp_path)
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
 #         if not os.path.isfile(analysis_output_path): 
-#             raise Exception("Process job failed: analysis.txt not generated.")
+#             raise Exception("Primary Analysis Process job failed.\n"\
+#                             "Standard Error: %s\nStandard Output: %s\n" % 
+#                             (stderr, stdout))
         if not os.path.isfile(analysis_output_path): 
-            raise Exception("Primary Analysis Process job failed.\n"\
-                            "Standard Error: %s\nStandard Output: %s\n" % 
-                            (stderr, stdout))
+            raise Exception("Process job failed: analysis.txt not generated.")
         else:
             shutil.copy(analysis_output_path, outfile_path)
             shutil.copy(tmp_config_path, config_path)

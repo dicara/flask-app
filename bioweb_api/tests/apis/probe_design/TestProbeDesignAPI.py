@@ -98,6 +98,7 @@ class TestProbeDesignAPI(unittest.TestCase):
                     running     = job_details[_STATUS] == 'running'
                     
         # Copy result file to cwd for bamboo to ingest as an artifact
+        absorption_path = None
         if _RESULT in job_details:
             absorption_path = job_details[_RESULT]
             if os.path.isfile(absorption_path):
@@ -113,8 +114,8 @@ class TestProbeDesignAPI(unittest.TestCase):
         
         exp_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_RESULT_FILENAME)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
-              (job_details[_RESULT], exp_result_path)
-        self.assertTrue(filecmp.cmp(exp_result_path, job_details[_RESULT]), msg)
+              (absorption_path, exp_result_path)
+        self.assertTrue(filecmp.cmp(exp_result_path, absorption_path), msg)
 
         # Delete absorption job
         delete_data(self, _ABSORPTION_URL + "?uuid=%s" % abs_job_uuid, 200)

@@ -29,6 +29,7 @@ import shutil
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, read_yaml
 from bioweb_api.utilities import io_utilities
+from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH, TMP_PATH
 
@@ -45,6 +46,7 @@ _DYES_URL                 = os.path.join(_PRIMARY_ANALYSIS_URL, 'Dyes')
 _PROCESS_URL              = os.path.join(_PRIMARY_ANALYSIS_URL, 'Process')
 _RESULT                   = "result"
 _CONFIG                   = "config"
+_STATUS                   = "status"
 
 io_utilities.safe_make_dirs(HOME_DIR)
 io_utilities.safe_make_dirs(TARGETS_UPLOAD_PATH)
@@ -101,16 +103,16 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         
         # Submit process job
         response     = post_data(self, url, 200)
-        process_uuid = response['uuid']
+        process_uuid = response[UUID]
         
         running = True
         while running:
             time.sleep(10)
             response = get_data(self, _PROCESS_URL, 200)
             for job in response['Process']:
-                if process_uuid == job['uuid']:
+                if process_uuid == job[UUID]:
                     job_details = job
-                    running     = job_details['status'] == 'running'
+                    running     = job_details[_STATUS] == 'running'
         
         # Copy result files to cwd for bamboo to ingest as artifacts
         analysis_txt_path = None
@@ -129,18 +131,18 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         if 'error' in job_details:
             error = job_details['error']
         msg = "Expected pa process job status succeeded, but found %s. " \
-              "Error: %s" % (job_details['status'], error)
-        self.assertEquals(job_details['status'], "succeeded", msg)
+              "Error: %s" % (job_details[_STATUS], error)
+        self.assertEquals(job_details[_STATUS], "succeeded", msg)
         
         exp_analysis_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_ANALYSIS_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
               (analysis_txt_path, exp_analysis_path)
-        self.assertTrue(filecmp.cmp(exp_analysis_path, job_details['result']), msg)
+        self.assertTrue(filecmp.cmp(exp_analysis_path, analysis_txt_path), msg)
 
         exp_config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_CONFIG_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
               (config_path, exp_config_path)
-        self.assertTrue(filecmp.cmp(exp_config_path, job_details['result']), msg)
+        self.assertTrue(filecmp.cmp(exp_config_path, config_path), msg)
 
         # Delete absorption job
         delete_data(self, _PROCESS_URL + "?uuid=%s" % process_uuid, 200)
@@ -149,4 +151,4 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         response = get_data(self, _PROCESS_URL, 200)
         for job in response['Process']:
             msg = "PA process job %s still exists in database." % process_uuid
-            self.assertNotEqual(process_uuid, job['uuid'], msg)
+            self.assertNotEqual(process_uuid, job[UUID], msg)

@@ -24,6 +24,7 @@ import unittest
 import os
 import filecmp
 import time
+import shutil
 
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, read_yaml
@@ -42,6 +43,8 @@ _ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
 _DEVICES_URL              = os.path.join(_PRIMARY_ANALYSIS_URL, 'Devices')
 _DYES_URL                 = os.path.join(_PRIMARY_ANALYSIS_URL, 'Dyes')
 _PROCESS_URL              = os.path.join(_PRIMARY_ANALYSIS_URL, 'Process')
+_RESULT                   = "result"
+_CONFIG                   = "config"
 
 io_utilities.safe_make_dirs(HOME_DIR)
 io_utilities.safe_make_dirs(TARGETS_UPLOAD_PATH)
@@ -109,6 +112,18 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
                     job_details = job
                     running     = job_details['status'] == 'running'
         
+        analysis_txt_path = None
+        if _RESULT in job_details:
+            analysis_txt_path = job_details[_RESULT]
+            if os.path.isfile(analysis_txt_path):
+                shutil.copy(analysis_txt_path, "observed_analysis.txt")
+              
+        config_path = None  
+        if _CONFIG in job_details:
+            config_path = job_details[_CONFIG]
+            if os.path.isfile(config_path):
+                shutil.copy(config_path, "observed.cfg")
+        
         error = ""
         if 'error' in job_details:
             error = job_details['error']
@@ -118,12 +133,12 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         
         exp_analysis_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_ANALYSIS_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
-              (job_details['result'], exp_analysis_path)
+              (analysis_txt_path, exp_analysis_path)
         self.assertTrue(filecmp.cmp(exp_analysis_path, job_details['result']), msg)
 
-        exp_config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_ANALYSIS_RESULT)
+        exp_config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_CONFIG_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
-              (job_details['result'], exp_config_path)
+              (config_path, exp_config_path)
         self.assertTrue(filecmp.cmp(exp_config_path, job_details['result']), msg)
 
         # Delete absorption job

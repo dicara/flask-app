@@ -44,9 +44,9 @@ from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     PLATES_UPLOAD_PATH, TMP_PATH
 from bioweb_api.utilities import io_utilities
 from bioweb_api.utilities.logging_utilities import GENERAL_LOGGER
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_archives
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_devices
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_dyes
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_archives
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_devices
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_dyes
 
 #===============================================================================
 # Class private variables

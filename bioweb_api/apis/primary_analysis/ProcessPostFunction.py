@@ -30,12 +30,13 @@ from datetime import datetime
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file
-from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
+from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH, \
+    ARCHIVES_PATH
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG
     
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import execute_process
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process
 
 #=============================================================================
 # Class
@@ -131,6 +132,19 @@ class ProcessPostFunction(AbstractPostFunction):
                 http_status_code     = 500
         
         return make_response(jsonify(json_response), http_status_code)
+    
+    def get_archives(self, archive):
+        archives = list()
+        archive_path = os.path.join(ARCHIVES_PATH, archive)
+        if not os.path.isdir(archive_path):
+            pass
+        
+        for root, _, files in os.walk(archive_path):
+            if filter(lambda x: x.endswith(".png"), files):
+                
+                archives.append(root.lstrip(ARCHIVES_PATH).lstrip("/"))
+        return archives
+        
 #===============================================================================
 # Callable/Callback Functionality
 #===============================================================================

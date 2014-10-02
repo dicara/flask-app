@@ -23,6 +23,7 @@ limitations under the License.
 import os
 import sys
 import shutil
+import yaml
 
 from gbdrops import DropFinder, DROP_PROFILE
 from primary_analysis.dye_datastore import Datastore
@@ -34,8 +35,6 @@ from primary_analysis.numpy_utils import read_image
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
     ARCHIVES_COLLECTION
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisJob import PrimaryAnalysisJob
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisJob import PA_TOOL
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
@@ -164,15 +163,8 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
             
         pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
         pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
-#         pa_job = PrimaryAnalysisJob(PA_TOOL.process,            # @UndefinedVariable
-#                                     *pngs, d=tmp_path, c=tmp_config_path)
-#         stderr, stdout       = pa_job.run()
         run(tmp_config_path, pngs, tmp_path)
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
-#         if not os.path.isfile(analysis_output_path): 
-#             raise Exception("Primary Analysis Process job failed.\n"\
-#                             "Standard Error: %s\nStandard Output: %s\n" % 
-#                             (stderr, stdout))
         if not os.path.isfile(analysis_output_path): 
             raise Exception("Process job failed: analysis.txt not generated.")
         else:
@@ -182,9 +174,8 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
     
-    
+# TODO DDICARA this 
 def run(config_path, pngs, dest):
-    import yaml
     with open(config_path) as fd:
         config = yaml.load(fd)
         

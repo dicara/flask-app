@@ -29,7 +29,7 @@ from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUE
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
 
 #=============================================================================

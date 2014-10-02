@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import get_devices, \
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_devices, \
     update_devices
 
 #=============================================================================

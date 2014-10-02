@@ -23,15 +23,9 @@ limitations under the License.
 import os
 import sys
 import shutil
-import yaml
 
-from gbdrops import DropFinder, DROP_PROFILE
 from primary_analysis.dye_datastore import Datastore
-from primary_analysis import analyze_stack
-from primary_analysis import dye_datastore
-from primary_analysis import dye_model
-from primary_analysis.numpy_utils import read_image
-
+from primary_analysis.cmds.process import process
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
     ARCHIVES_COLLECTION
@@ -163,7 +157,11 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
             
         pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
         pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
-        run(tmp_config_path, pngs, tmp_path)
+        
+        # Run primary analysis process
+        process(tmp_config_path, pngs, tmp_path)
+        
+        # Ensure output file exists
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
         if not os.path.isfile(analysis_output_path): 
             raise Exception("Process job failed: analysis.txt not generated.")
@@ -173,27 +171,3 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     finally:
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
-    
-# TODO DDICARA this 
-def run(config_path, pngs, dest):
-    with open(config_path) as fd:
-        config = yaml.load(fd)
-        
-    profile_func = DROP_PROFILE.peak                    # @UndefinedVariable
-
-    drop_finder = DropFinder(backsub=True, profile_func=profile_func)
-
-    dye_map = dye_datastore.Datastore().dye_map_from_config(config)
-    
-    def images():
-        for filename in pngs:
-            yield read_image(filename)
-
-    def profiles():
-        for image in images():
-            for drop in drop_finder.find(image):
-                yield drop.profile
-                
-    model = dye_model.DyeModel.create_dye_model(config, dye_map, profiles())
-    
-    analyze_stack.DropProcessor(model, drop_finder).run(dest, pngs)

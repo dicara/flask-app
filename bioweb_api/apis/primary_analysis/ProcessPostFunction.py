@@ -38,9 +38,15 @@ from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, 
     
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process
 
-#=============================================================================
+#===============================================================================
+# Private Static Variables
+#===============================================================================
+_MIN_NUM_PNGS = 10 # Minimum number of images required to run 
+_PROCESS      = "Process"
+
+#===============================================================================
 # Class
-#=============================================================================
+#===============================================================================
 class ProcessPostFunction(AbstractPostFunction):
     
     #===========================================================================
@@ -64,6 +70,9 @@ class ProcessPostFunction(AbstractPostFunction):
                      { "code": 403, 
                        "message": "Job name already exists. Delete the " \
                                   "existing job or pick a new name."},
+                     { "code": 404, 
+                       "message": "Submission unsuccessful. At least 10 "\
+                                  "images must exist in archive."},
                     ])
         return msgs
     
@@ -86,62 +95,82 @@ class ProcessPostFunction(AbstractPostFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        archive  = params_dict[cls.archives_param][0]
-        dyes     = params_dict[cls.dyes_param]
-        device   = params_dict[cls.devices_param][0]
-        job_name = params_dict[cls.job_name_param][0]
+        archive_name  = params_dict[cls.archives_param][0]
+        dyes          = params_dict[cls.dyes_param]
+        device        = params_dict[cls.devices_param][0]
+        job_name      = params_dict[cls.job_name_param][0]
         
-        json_response = {
-                         ARCHIVE: archive,
-                         DYES: dyes,
-                         DEVICE: device,
-                         UUID: str(uuid4()),
-                         STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
-                         JOB_NAME: job_name,
-                         JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
-                         SUBMIT_DATESTAMP: datetime.today(),
-                        }
-        http_status_code = 200
+        json_response = {_PROCESS: []}
         
-        if job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
-                                                  JOB_NAME):
-            http_status_code     = 403
-        else:
-            try:
-                outfile_path = os.path.join(RESULTS_PATH, json_response[UUID])
-                config_path  = outfile_path + ".cfg"
-                
-                # Create helper functions
-                abs_callable = PaProcessCallable(archive, dyes, device, 
-                                                 outfile_path, 
-                                                 config_path,
-                                                 json_response[UUID], 
-                                                 cls._DB_CONNECTOR)
-                callback     = make_process_callback(json_response[UUID], 
+        # Ensure archive directory is valid
+        try:
+            archives = cls.get_archives(archive_name)
+        except:
+            json_response[ERROR] = str(sys.exc_info()[1])
+            return make_response(jsonify(json_response), 500)
+        
+        # Ensure at least one valid archive is found
+        if len(archives) < 1:
+            return make_response(jsonify(json_response), 404)
+        
+        # Process each archive
+        status_codes  = []
+        for i, archive in enumerate(archives):
+            response = {
+                        ARCHIVE: archive,
+                        DYES: dyes,
+                        DEVICE: device,
+                        UUID: str(uuid4()),
+                        STATUS: JOB_STATUS.submitted,       # @UndefinedVariable
+                        JOB_NAME: "%s-%d" % (job_name, i),
+                        JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
+                        SUBMIT_DATESTAMP: datetime.today(),
+                       }
+            status_code = 200
+            
+            if job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
+                                                      JOB_NAME):
+                status_code = 403
+            else:
+                try:
+                    outfile_path = os.path.join(RESULTS_PATH, response[UUID])
+                    config_path  = outfile_path + ".cfg"
+                    
+                    # Create helper functions
+                    abs_callable = PaProcessCallable(archive, dyes, device, 
+                                                     outfile_path, 
+                                                     config_path,
+                                                     response[UUID], 
+                                                     cls._DB_CONNECTOR)
+                    callback = make_process_callback(response[UUID], 
                                                      outfile_path, 
                                                      config_path,
                                                      cls._DB_CONNECTOR)
-
-                # Add to queue and update DB
-                cls._DB_CONNECTOR.insert(PA_PROCESS_COLLECTION, [json_response])
-                cls._EXECUTION_MANAGER.add_job(json_response[UUID], 
-                                               abs_callable, callback)
-                del json_response[ID]
-            except:
-                json_response[ERROR] = str(sys.exc_info()[1])
-                http_status_code     = 500
-        
-        return make_response(jsonify(json_response), http_status_code)
     
-    def get_archives(self, archive):
+                    # Add to queue and update DB
+                    cls._DB_CONNECTOR.insert(PA_PROCESS_COLLECTION, [response])
+                    cls._EXECUTION_MANAGER.add_job(response[UUID], 
+                                                   abs_callable, callback)
+                    del response[ID]
+                except:
+                    response[ERROR]  = str(sys.exc_info()[1])
+                    status_code = 500
+            json_response[_PROCESS].append(response)
+            status_codes.append(status_code)
+        
+        # If all jobs submitted successfully, then 200 should be returned.
+        # Otherwise, the maximum status code seems good enough.
+        return make_response(jsonify(json_response), max(status_codes))
+    
+    @staticmethod
+    def get_archives(archive):
         archives = list()
         archive_path = os.path.join(ARCHIVES_PATH, archive)
         if not os.path.isdir(archive_path):
-            pass
-        
+            raise Exception("Invalid archive: %s" % archive_path)
         for root, _, files in os.walk(archive_path):
-            if filter(lambda x: x.endswith(".png"), files):
-                
+            pngs = filter(lambda x: x.endswith(".png"), files)
+            if len(pngs) > _MIN_NUM_PNGS:
                 archives.append(root.lstrip(ARCHIVES_PATH).lstrip("/"))
         return archives
         

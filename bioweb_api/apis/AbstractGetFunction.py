@@ -20,13 +20,14 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import math    
+import math
 
 from abc import ABCMeta
 from flask import jsonify, make_response
 
 from bioweb_api.apis.AbstractFunction import AbstractFunction 
 from bioweb_api.apis.ApiConstants import FORMATS, MISSING_VALUE, METHODS
+from bioweb_api.utilities.io_utilities import make_clean_response
 
 #=============================================================================
 # Class
@@ -65,9 +66,8 @@ class AbstractGetFunction(AbstractFunction):
                 dict_items = True
         
         if _format == FORMATS.json:                         # @UndefinedVariable
-            # jsonify allows NaNs which are not valid json, so replace with None
-            jsonified_data = jsonify({cls.name(): cls._remove_nans_from_list(items)})
-            return make_response(jsonified_data, 200), _format, page_info
+            response = {cls.name(): items}
+            return make_clean_response(response, 200), _format, page_info
         elif _format == FORMATS.tsv:                        # @UndefinedVariable
             if dict_items:
                 return cls._generate_delimited_output(items, "\t", column_names), _format, page_info
@@ -90,35 +90,6 @@ class AbstractGetFunction(AbstractFunction):
     #===========================================================================
     # Helper Methods
     #===========================================================================    
-    @classmethod
-    def _remove_nans_from_list(cls, l):
-        ''' Create new list replacing NaN with None. '''
-        new_list = list()
-        for item in l:
-            if isinstance(item, list):
-                new_list.append(cls.handle_list(item))
-            elif isinstance(item, dict):
-                for k,v in item.iteritems():
-                    cls._remove_nans_from_dict(item, k, v)
-                new_list.append(item)
-            elif isinstance(item, float) and math.isnan(item):
-                new_list.append(None)
-            else:
-                new_list.append(item)
-        return new_list
-    
-    @classmethod
-    def _remove_nans_from_dict(cls, in_dict, in_key, in_value):
-        ''' Update in-place replacing NaN with None.'''
-        if isinstance(in_value, list):
-            in_dict[in_key] = cls._remove_nans_from_list(in_value)
-        elif isinstance(in_value, dict):
-            for key, value in in_value.iteritems():
-                cls.a(in_value, key, value)
-        elif isinstance(in_value, float) and math.isnan(in_value):
-            in_dict[in_key] = None
-        
-        
     @classmethod
     def _generate_delimited_output(cls, records, delimiter, column_names=None):
         ''' This method converts records into TSV or CSV output formats. '''

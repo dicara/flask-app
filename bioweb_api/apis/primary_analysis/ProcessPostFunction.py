@@ -23,10 +23,10 @@ limitations under the License.
 import sys
 import os
 
-from flask import make_response, jsonify
 from uuid import uuid4
 from datetime import datetime
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file
@@ -107,11 +107,11 @@ class ProcessPostFunction(AbstractPostFunction):
             archives = cls.get_archives(archive_name)
         except:
             json_response[ERROR] = str(sys.exc_info()[1])
-            return make_response(jsonify(json_response), 500)
+            return make_clean_response(json_response, 500)
         
         # Ensure at least one valid archive is found
         if len(archives) < 1:
-            return make_response(jsonify(json_response), 404)
+            return make_clean_response(json_response, 404)
         
         # Process each archive
         status_codes  = []
@@ -165,7 +165,7 @@ class ProcessPostFunction(AbstractPostFunction):
         
         # If all jobs submitted successfully, then 200 should be returned.
         # Otherwise, the maximum status code seems good enough.
-        return make_response(jsonify(json_response), max(status_codes))
+        return make_clean_response(json_response, max(status_codes))
     
     @staticmethod
     def get_archives(archive):

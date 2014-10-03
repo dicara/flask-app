@@ -24,9 +24,9 @@ import os
 import sys
 
 from uuid import uuid4
-from flask import make_response, jsonify
 from datetime import datetime
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
     DATESTAMP, TYPE, ERROR, UUID
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
@@ -107,7 +107,7 @@ class ProbesPostFunction(AbstractPostFunction):
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
         
-        return make_response(jsonify(json_response), http_status_code)
+        return make_clean_response(json_response, http_status_code)
 
 #===============================================================================
 # Run Main

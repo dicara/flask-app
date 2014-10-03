@@ -65,7 +65,6 @@ PID               = "pid"
 USER              = "user"
 MACHINE           = "machine"
 START_DATETIME    = "start_datetime"
-TIME_FORMAT       = "%Y_%m_%d__%H_%M_%S"
 HEADER            = [ MACHINE, PID, PORT_HEADER, USER, START_DATETIME]
 
 # Mode for reading/writing server info file is rw:rw:r
@@ -360,7 +359,7 @@ def get_current_info():
     pid     = os.getpid()
     user    = getpass.getuser()
     machine = platform.node()
-    date    = datetime.today().strftime(TIME_FORMAT)
+    date    = io_utilities.clean_item(datetime.today())
 
     return { 
             MACHINE: machine,

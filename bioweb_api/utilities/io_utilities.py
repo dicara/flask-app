@@ -24,6 +24,16 @@ import stat
 import errno
 import csv
 import collections
+import numbers
+import math
+
+from datetime import datetime
+from flask import make_response, jsonify
+
+#===============================================================================
+# Public Global Variables
+#===============================================================================
+TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
 
 #===============================================================================
 # Utility Methods
@@ -167,3 +177,44 @@ def get_python_mode(permissions):
         raise Exception("Other mode must be 1 <= mode <= 7 but is: %d" % mode)
     
     return mode
+
+def make_clean_response(response, http_status_code):
+    """
+    Responses cannot contain python objects. Therefore, check that the response
+    contains strings or numbers. If datetime is encountered, convert to a
+    string. If NaN is encountered, convert it to None.
+    
+    @param response:
+    @param http_status_code:
+    """
+    return make_response(jsonify(clean_item(response)), http_status_code)   
+
+def clean_item(item):
+    """
+    This function ensures the provided item can be serialized and throws an 
+    exception if not. Item may be a list, dict, string, number, or datetime 
+    object. If the item is a list or dict, all of its elements must be a string, 
+    number, or datetime object. Datetime objects are converted to strings of the
+    form  YYYY_mm_dd__HH_MM_SS. Furthermore, NaN float values are converted to 
+    None. The cleaned item is then returned.
+    
+    @param item: May be a list, dict, string, number, or datetime object.
+    """
+    if isinstance(item, list):
+        for i in range(len(item)):
+            item[i] = clean_item(item[i])
+    elif isinstance(item, dict):
+        for k,v in item.iteritems():
+            item[k] = clean_item(v)
+    elif isinstance(item, datetime):
+        item = item.strftime(TIME_FORMAT)
+    elif isinstance(item, basestring):
+        pass
+    elif isinstance(item, numbers.Number):
+        # jsonify allows NaNs which are not valid json, so replace with None
+        if isinstance(item, float) and math.isnan(item):
+            item = None
+    else:
+        raise Exception("Unhandled type: %s" % type(item))
+    
+    return item

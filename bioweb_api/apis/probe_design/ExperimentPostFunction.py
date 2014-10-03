@@ -24,9 +24,9 @@ import os
 import sys
 
 from uuid import uuid4
-from flask import make_response, jsonify
 from datetime import datetime
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file
@@ -130,8 +130,8 @@ class ExperimentPostFunction(AbstractPostFunction):
                 http_status_code     = 500
             finally:
                 silently_remove_file(path)
-        
-        return make_response(jsonify(json_response), http_status_code)
+                
+        return make_clean_response(json_response, http_status_code)
 
 #===============================================================================
 # Run Main

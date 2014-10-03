@@ -116,19 +116,24 @@ class ProcessPostFunction(AbstractPostFunction):
         # Process each archive
         status_codes  = []
         for i, archive in enumerate(archives):
+            if len(archives) == 1:
+                cur_job_name = job_name
+            else:
+                cur_job_name = "%s-%d" % (job_name, i)
+                
             response = {
                         ARCHIVE: archive,
                         DYES: dyes,
                         DEVICE: device,
                         UUID: str(uuid4()),
                         STATUS: JOB_STATUS.submitted,       # @UndefinedVariable
-                        JOB_NAME: "%s-%d" % (job_name, i),
+                        JOB_NAME: cur_job_name,
                         JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
                        }
             status_code = 200
             
-            if job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
+            if cur_job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
                                                       JOB_NAME):
                 status_code = 403
             else:

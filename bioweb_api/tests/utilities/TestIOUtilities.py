@@ -33,7 +33,7 @@ from bioweb_api.utilities.io_utilities import clean_item, TIME_FORMAT
 #=============================================================================
 # Class
 #=============================================================================
-class Test(unittest.TestCase):
+class TestIOUtilities(unittest.TestCase):
     def test_clean_item(self):
         item = {
                 "Numbers": [float('NaN'), 1, 2.0],

@@ -48,6 +48,7 @@ class TestIOUtilities(unittest.TestCase):
                                 "a",
                                 1,
                                 3.0,
+                                None,
                                ]
                }  
         exp_clean_item = deepcopy(item)

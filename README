@@ -8,3 +8,5 @@ GnuBio Flask API.
    * Forgot probe-design dependency in setup.py.
  * v0.1.2
    * Datetime objects are not json serializable. Therefore, I wrote a method to clean json responses of unserializable items. I also included a test for this method.
+ * v0.1.3
+   * Forgot to handle 'None' case in new method for serializing responses.

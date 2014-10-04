@@ -200,7 +200,9 @@ def clean_item(item):
     
     @param item: May be a list, dict, string, number, or datetime object.
     """
-    if isinstance(item, list):
+    if item is None:
+        return None
+    elif isinstance(item, list):
         for i in range(len(item)):
             item[i] = clean_item(item[i])
     elif isinstance(item, dict):

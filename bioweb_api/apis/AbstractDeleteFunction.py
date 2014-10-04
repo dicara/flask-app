@@ -24,8 +24,8 @@ import sys
 import traceback
 
 from abc import ABCMeta
-from flask import make_response, jsonify
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractFunction import AbstractFunction 
 from bioweb_api.apis.ApiConstants import METHODS, ERROR
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -76,4 +76,4 @@ class AbstractDeleteFunction(AbstractFunction):
             http_status_code = 500
             response[ERROR]  = str(sys.exc_info()[1])
         
-        return (make_response(jsonify(response), http_status_code), None, None)
+        return (make_clean_response(response, http_status_code), None, None)

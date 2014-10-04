@@ -10,3 +10,5 @@ GnuBio Flask API.
    * Datetime objects are not json serializable. Therefore, I wrote a method to clean json responses of unserializable items. I also included a test for this method.
  * v0.1.3
    * Forgot to handle 'None' case in new method for serializing responses.
+ * v0.1.4
+   * Forgot a few instances where reponses needed to be cleaned for serialization.

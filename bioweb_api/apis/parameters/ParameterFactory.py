@@ -1,12 +1,17 @@
 '''
-Copyright (c) 2013 The Broad Institute, Inc. 
-SOFTWARE COPYRIGHT NOTICE 
-This software and its documentation are the copyright of the Broad Institute,
-Inc. All rights are reserved.
+Copyright 2014 Bio-Rad Laboratories, Inc.
 
-This software is supplied without any warranty or guaranteed support
-whatsoever. The Broad Institute is not responsible for its use, misuse, or
-functionality.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 @author: Dan DiCara
 @date:   Mar 12, 2014
@@ -29,7 +34,7 @@ from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUE
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import get_archives, \
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
 
 #=============================================================================

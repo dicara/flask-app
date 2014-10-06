@@ -39,14 +39,14 @@ from datetime import datetime
 from tornado.wsgi import WSGIContainer
 from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
-bioweb_apifrom . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
+from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, RESULTS_PATH, REFS_PATH, \
     PLATES_UPLOAD_PATH, TMP_PATH
 from bioweb_api.utilities import io_utilities
 from bioweb_api.utilities.logging_utilities import GENERAL_LOGGER
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_archives
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_devices
-from bioweb_api.analyses.primary_analysis.PrimaryAnalysisUtils import update_dyes
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_archives
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_devices
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_dyes
 
 #===============================================================================
 # Class private variables
@@ -65,7 +65,6 @@ PID               = "pid"
 USER              = "user"
 MACHINE           = "machine"
 START_DATETIME    = "start_datetime"
-TIME_FORMAT       = "%Y_%m_%d__%H_%M_%S"
 HEADER            = [ MACHINE, PID, PORT_HEADER, USER, START_DATETIME]
 
 # Mode for reading/writing server info file is rw:rw:r
@@ -360,7 +359,7 @@ def get_current_info():
     pid     = os.getpid()
     user    = getpass.getuser()
     machine = platform.node()
-    date    = datetime.today().strftime(TIME_FORMAT)
+    date    = io_utilities.clean_item(datetime.today())
 
     return { 
             MACHINE: machine,

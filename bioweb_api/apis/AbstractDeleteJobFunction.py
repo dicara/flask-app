@@ -62,7 +62,7 @@ class AbstractDeleteJobFunction(AbstractDeleteFunction):
         return parameters
 
     @classmethod
-    def process_request(cls, params_dict):
+    def process_request(cls, params_dict, del_file_keys=[RESULT]):
         response         = {}
         http_status_code = 200
         
@@ -85,8 +85,9 @@ class AbstractDeleteJobFunction(AbstractDeleteFunction):
             # Delete files from disk only if removal from DB was successful
             if result and result['n'] == len(response["deleted"]):
                 for _,record in response["deleted"].iteritems():
-                    if RESULT in record and os.path.isfile(record[RESULT]):
-                        os.remove(record[RESULT])
+                    for key in del_file_keys:
+                        if key in record and os.path.isfile(record[key]):
+                            os.remove(record[key])
             else:
                 del response["deleted"]
                 raise Exception("Error deleting records from the " \

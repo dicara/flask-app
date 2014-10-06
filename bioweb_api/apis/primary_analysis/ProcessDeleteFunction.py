@@ -22,6 +22,7 @@ limitations under the License.
 #=============================================================================
 
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
+from bioweb_api.apis.ApiConstants import RESULT
 from bioweb_api import PA_PROCESS_COLLECTION
 
 #=============================================================================
@@ -43,6 +44,10 @@ class ProcessDeleteFunction(AbstractDeleteJobFunction):
     @classmethod
     def get_collection(cls):
         return PA_PROCESS_COLLECTION
+    
+    @classmethod
+    def process_request(cls, params_dict, del_file_keys=[RESULT, 'config']):
+        return super(ProcessDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================
 # Run Main

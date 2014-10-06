@@ -7,12 +7,14 @@ RUN apt-get -y install python-numpy
 RUN apt-get -y install python-scipy
 RUN apt-get -y install python-yaml
 RUN apt-get -y install python-pip
+RUN apt-get -y install python-matplotlib
 RUN easy_install -f http://biopython.org/DIST/ biopython
 
 ENV FLASKR_SETTINGS /flaskr_settings.cfg
 
-ADD . bioweb-api
+ADD     . bioweb-api
 WORKDIR bioweb-api
-RUN pip install -r requirements.txt
+RUN     easy_install -U distribute
+RUN     pip install -r requirements.txt
 
 CMD echo "DATABASE_URL='$MONGODB_DB_PORT_27017_TCP_ADDR'" >>/flaskr_settings.cfg && python setup.py nosetests

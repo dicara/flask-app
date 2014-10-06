@@ -24,8 +24,8 @@ import os
 import sys
 
 from uuid import uuid4
-from flask import make_response, jsonify
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import get_dialect, silently_remove_file, \
@@ -120,7 +120,7 @@ class ProbeExperimentPostFunction(AbstractPostFunction):
             finally:
                 silently_remove_file(path)
         
-        return make_response(jsonify(json_response), http_status_code)
+        return make_clean_response(json_response, http_status_code)
     
     @classmethod
     def update_db(cls, dialect, path, sample_id, run_id, run_date):

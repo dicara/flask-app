@@ -23,11 +23,11 @@ limitations under the License.
 import sys
 import os
 
-from flask import make_response, jsonify
 from uuid import uuid4
 from datetime import datetime
 from probe_design.absorption import execute_absorption
 
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import PROBES_COLLECTION, TARGETS_COLLECTION, ABSORPTION_COLLECTION, \
@@ -120,7 +120,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
         
-        return make_response(jsonify(json_response), http_status_code)
+        return make_clean_response(json_response, http_status_code)
 
 #===============================================================================
 # Callable/Callback Functionality

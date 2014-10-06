@@ -83,7 +83,7 @@ class TestMeltingTemperatureAPI(unittest.TestCase):
                 print >>f, "\t".join([name, seq, tm])
                 
         msg = "Expected Tm's (%s) don't match observed Tm's (%s)." % \
-            (self.expected_result_path, self.observed_result_path)
+            (_EXPECTED_RESULT_FILENAME, _OBSERVED_RESULT_FILENAME)
         self.assertTrue(filecmp.cmp(self.expected_result_path, 
                                     _OBSERVED_RESULT_FILENAME), msg)
                 

@@ -12,3 +12,7 @@ GnuBio Flask API.
    * Forgot to handle 'None' case in new method for serializing responses.
  * v0.1.4
    * Forgot a few instances where reponses needed to be cleaned for serialization.
+ * v0.1.5
+   * Added test for melting temperatures API. 
+   * Removed datetime conversion in ProbeExperimentGetFunction - this is now being done automatically by the abstract base class. 
+   * Fixed header license info in a few files.

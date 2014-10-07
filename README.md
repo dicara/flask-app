@@ -18,3 +18,5 @@ GnuBio Flask API.
    * Fixed header license info in a few files.
  * v0.1.6
    * Removed unnecessary Makefiles.
+ * v0.1.7
+   * No changes. Bumping version to test out bamboo deployment plan.

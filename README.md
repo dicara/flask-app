@@ -16,3 +16,5 @@ GnuBio Flask API.
    * Added test for melting temperatures API. 
    * Removed datetime conversion in ProbeExperimentGetFunction - this is now being done automatically by the abstract base class. 
    * Fixed header license info in a few files.
+ * v0.1.6
+   * Removed unnecessary Makefiles.

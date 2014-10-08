@@ -302,7 +302,7 @@ def print_status(current_info, running_info_list):
                   "other machines: " % len(running_info_other_machines)
             print "\t%s" % "\t".join(HEADER)
             print "\t%s" % "\t".join(["====" for _ in range(len(HEADER))])
-            for info in running_info_this_machine:
+            for info in running_info_other_machines:
                 print "\t%s" % "\t".join([str(info[col]) for col in HEADER])
         print "\n"
 

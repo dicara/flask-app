@@ -20,3 +20,5 @@ GnuBio Flask API.
    * Removed unnecessary Makefiles.
  * v0.1.7
    * No changes. Bumping version to test out bamboo deployment plan.
+ * v0.1.8
+   * Status of running instances on other hosts now reported correctly.

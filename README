@@ -22,3 +22,5 @@ GnuBio Flask API.
    * No changes. Bumping version to test out bamboo deployment plan.
  * v0.1.8
    * Status of running instances on other hosts now reported correctly.
+ * v0.1.9
+   * Incorporate probe-design v0.1.1.

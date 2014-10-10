@@ -171,7 +171,7 @@ class AbstractParameter(object):
             raw_args = raw_args[:1]
          
         if len(raw_args) < 1:
-            if self.default:
+            if self.default is not None:
                 raw_args = [self.default]
             elif self.required:
                 raise Exception("Required argument %s not provided." % self.name)

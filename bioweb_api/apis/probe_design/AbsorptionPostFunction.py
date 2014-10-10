@@ -30,11 +30,11 @@ from probe_design.absorption import execute_absorption
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api import PROBES_COLLECTION, TARGETS_COLLECTION, ABSORPTION_COLLECTION, \
-    RESULTS_PATH, HOSTNAME, PORT, REFS_PATH, USER_HOME_DIR
-from bioweb_api.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, ID, \
-    ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
-    START_DATESTAMP, FINISH_DATESTAMP, JOB_TYPE, JOB_TYPE_NAME
+from bioweb_api import PROBES_COLLECTION, TARGETS_COLLECTION, \
+    ABSORPTION_COLLECTION, RESULTS_PATH, HOSTNAME, PORT
+from bioweb_api.apis.ApiConstants import UUID, FILEPATH, JOB_STATUS, STATUS, \
+    ID, ERROR, JOB_NAME, PROBES, TARGETS, RESULT, URL, SUBMIT_DATESTAMP, \
+    START_DATESTAMP, FINISH_DATESTAMP, JOB_TYPE, JOB_TYPE_NAME, STRICT
     
 #=============================================================================
 # Class
@@ -50,7 +50,8 @@ class AbsorptionPostFunction(AbstractPostFunction):
    
     @staticmethod
     def summary():
-        return "Check the absorption of a set of probes for a given set of targets."
+        return "Check the absorption of a set of probes for a given set of " \
+            "targets."
     
     @staticmethod
     def notes():
@@ -63,32 +64,47 @@ class AbsorptionPostFunction(AbstractPostFunction):
         msgs = super(AbsorptionPostFunction, self).response_messages()
         msgs.extend([
                      { "code": 403, 
-                       "message": "Job name already exists. Delete the existing job or pick a new name."},
+                       "message": "Job name already exists. Delete the "\
+                       "existing job or pick a new name."},
                     ])
         return msgs
     
     @classmethod
     def parameters(cls):
+        cls._probes_param   = ParameterFactory.file_uuid(PROBES, 
+                                                         PROBES_COLLECTION)
+        cls._targets_param  = ParameterFactory.file_uuid(TARGETS, 
+                                                         TARGETS_COLLECTION)
+        cls._strict_param   = ParameterFactory.integer(STRICT, "Restrict " \
+            "each probe to this number of bases from the 3' end of its " \
+            "sequence (0 to use entire probe)", default=0, minimum=0)
+        cls._job_name_param = ParameterFactory.cs_string(JOB_NAME, 
+                                                         "Unique name to " \
+                                                         "give this job.")
+        
         parameters = [
-                      ParameterFactory.file_uuid(PROBES, PROBES_COLLECTION),
-                      ParameterFactory.file_uuid(TARGETS, TARGETS_COLLECTION),
-                      ParameterFactory.cs_string(JOB_NAME, "Unique name to give this job.")
+                      cls._probes_param,
+                      cls._targets_param,
+                      cls._strict_param,
+                      cls._job_name_param,
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
-        probes_file_uuid  = params_dict[ParameterFactory.file_uuid("probes", PROBES_COLLECTION)][0]
-        targets_file_uuid = params_dict[ParameterFactory.file_uuid("targets", TARGETS_COLLECTION)][0]
-        job_name          = params_dict[ParameterFactory.cs_string(JOB_NAME, "Unique name to give this job.")][0]
+        probes_file_uuid  = params_dict[cls._probes_param][0]
+        targets_file_uuid = params_dict[cls._targets_param][0]
+        strict            = params_dict[cls._strict_param][0]
+        job_name          = params_dict[cls._job_name_param][0]
         
         json_response = {
                          PROBES: probes_file_uuid,
                          TARGETS: targets_file_uuid,
+                         STRICT: strict,
                          UUID: str(uuid4()),
                          STATUS: JOB_STATUS.submitted,      # @UndefinedVariable
                          JOB_NAME: job_name,
-                         JOB_TYPE_NAME: JOB_TYPE.absorption, # @UndefinedVariable
+                         JOB_TYPE_NAME: JOB_TYPE.absorption,# @UndefinedVariable
                          SUBMIT_DATESTAMP: datetime.today(),
                         }
         http_status_code = 200
@@ -97,24 +113,26 @@ class AbsorptionPostFunction(AbstractPostFunction):
             http_status_code     = 403
         else:
             try:
-                # Gather inputs
-                ref_genome_path = os.path.join(REFS_PATH, "genome.fa")
-                if not os.path.isfile(ref_genome_path):
-                    raise Exception("Invalid reference genome: %s" % ref_genome_path)
-                blat_path = os.path.join(USER_HOME_DIR, "bin", "blat")
-                if not os.path.isfile(blat_path):
-                    raise Exception("Invalid blat location: %s" % blat_path)
-                probes_path  = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, UUID, probes_file_uuid)[FILEPATH]
-                targets_path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, UUID, targets_file_uuid)[FILEPATH]
+                probes_path  = cls._DB_CONNECTOR.find_one(PROBES_COLLECTION, 
+                                                          UUID, 
+                                                          probes_file_uuid)[FILEPATH]
+                targets_path = cls._DB_CONNECTOR.find_one(TARGETS_COLLECTION, 
+                                                          UUID, 
+                                                          targets_file_uuid)[FILEPATH]
                 outfile_path = os.path.join(RESULTS_PATH, json_response[UUID])
                 
                 # Create helper functions
-                abs_callable = AbsorbtionCallable(blat_path, ref_genome_path, targets_path, probes_path, outfile_path, json_response[UUID], cls._DB_CONNECTOR)
-                callback     = make_absorption_callback(json_response[UUID], outfile_path, cls._DB_CONNECTOR)
-                
+                abs_callable = AbsorbtionCallable(targets_path, probes_path, 
+                                                  strict, outfile_path, 
+                                                  json_response[UUID], 
+                                                  cls._DB_CONNECTOR)
+                callback     = make_absorption_callback(json_response[UUID], 
+                                                        outfile_path, 
+                                                        cls._DB_CONNECTOR)
                 # Add to queue and update DB
                 cls._DB_CONNECTOR.insert(ABSORPTION_COLLECTION, [json_response])
-                cls._EXECUTION_MANAGER.add_job(json_response[UUID], abs_callable, callback)
+                cls._EXECUTION_MANAGER.add_job(json_response[UUID], 
+                                               abs_callable, callback)
                 del json_response[ID]
             except:
                 json_response[ERROR] = str(sys.exc_info()[1])
@@ -129,23 +147,21 @@ class AbsorbtionCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, blat_path, ref_genome_path, targets_path, probes_path, 
-                 outfile_path, uuid, db_connector):
-        self.blat_path       = blat_path
-        self.ref_genome_path = ref_genome_path
+    def __init__(self, targets_path, probes_path, strict, outfile_path, uuid, 
+                 db_connector):
         self.targets_path    = targets_path
         self.probes_path     = probes_path
+        self.strict          = strict
         self.outfile_path    = outfile_path
         self.db_connector    = db_connector
         self.query           = {UUID: uuid}
     
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
-                           START_DATESTAMP: datetime.today()}}     
+                           START_DATESTAMP: datetime.today()}}  
         self.db_connector.update(ABSORPTION_COLLECTION, self.query, update)
-        return execute_absorption(self.blat_path, self.ref_genome_path, 
-                                  self.targets_path, self.probes_path, 
-                                  self.outfile_path)
+        return execute_absorption(self.targets_path, self.probes_path, 
+                                  self.outfile_path, self.strict)
         
 def make_absorption_callback(uuid, outfile_path, db_connector):
     """
@@ -164,7 +180,8 @@ def make_absorption_callback(uuid, outfile_path, db_connector):
             update = { "$set": {STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                 RESULT: outfile_path,
                                 FINISH_DATESTAMP: datetime.today(),
-                                URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid)}}
+                                URL: "http://%s/results/%s/%s" % (HOSTNAME, 
+                                                                  PORT, uuid)}}
             # If job has been deleted, then delete result and don't update DB.
             if len(db_connector.find(ABSORPTION_COLLECTION, query, {})) > 0:
                 db_connector.update(ABSORPTION_COLLECTION, query, update)

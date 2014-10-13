@@ -48,7 +48,7 @@ class IntegerParameter(AbstractParameter):
         if self.format not in [SWAGGER_FORMATS.int32, SWAGGER_FORMATS.int64]: # @UndefinedVariable
             raise Exception("Invalid format for IntegerParameter: %s" % self.format)
         
-        if default:
+        if default is not None:
             self._default = self.__convert(default)
         
         if enum:

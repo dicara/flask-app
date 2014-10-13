@@ -24,3 +24,6 @@ GnuBio Flask API.
    * Status of running instances on other hosts now reported correctly.
  * v0.1.9
    * Incorporate probe-design v0.1.1.
+ * v0.2
+   * Incorporate probe-design v0.2 which replaces blat with Scott's new absorption method.
+   * Fixed bug in Integer and Float parameters - must do a None check, because 0 and 0.0 are valid defaults. Similarly, AbstractParameter must do a None check.

@@ -47,7 +47,7 @@ class FloatParameter(AbstractParameter):
                                              required=required, 
                                              allow_multiple=allow_multiple)
         
-        if default:
+        if default is not None:
             self._default = self.__convert_float(default)
         
         if enum:

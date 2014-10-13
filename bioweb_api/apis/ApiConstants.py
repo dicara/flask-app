@@ -141,6 +141,7 @@ RUN_ID           = "run_id"
 SAMPLE_ID        = "sample_id"
 PASS             = "pass"
 FAIL             = "fail"
+STRICT           = "strict"
 
 #=============================================================================
 # Probe Experiment Constants

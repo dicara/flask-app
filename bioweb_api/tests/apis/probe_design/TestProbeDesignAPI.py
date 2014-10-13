@@ -31,7 +31,7 @@ from uuid import uuid4
 from bioweb_api.tests.test_utils import upload_file, post_data, get_data, \
     delete_data
 from bioweb_api.utilities import io_utilities
-from bioweb_api.apis.ApiConstants import UUID
+from bioweb_api.apis.ApiConstants import UUID, STRICT
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH
 
@@ -42,7 +42,9 @@ _TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
 _TARGETS_FILENAME         = "targets.fasta"
 _PROBES_FILENAME          = "probes.fasta"
 _INVALID_FASTA_FILENAME   = "invalid.fasta"
-_EXPECTED_RESULT_FILENAME = "expected_results.txt"
+_JOB_NAME                 = "test_job"
+_STRICT                   = 6
+_EXPECTED_RESULT_FILENAME = "expected_absorption.txt"
 _PROBE_DESIGN_URL         = "/api/v1/ProbeDesign"
 _ABSORPTION               = "Absorption"
 _STATUS                   = "status"
@@ -68,10 +70,10 @@ class TestProbeDesignAPI(unittest.TestCase):
 
     def test_probes(self):
         self.exercise_file_upload_api(_PROBES_URL, _PROBES_FILENAME)
-        
+          
     def test_targets(self):
         self.exercise_file_upload_api(_TARGETS_URL, _TARGETS_FILENAME)
-        
+#         
     def test_absorption(self):
         # Upload targets and probes files
         response     = upload_file(self, _TEST_DIR, _PROBES_URL, 
@@ -80,13 +82,13 @@ class TestProbeDesignAPI(unittest.TestCase):
         response     = upload_file(self, _TEST_DIR, _TARGETS_URL, 
                                    _TARGETS_FILENAME, 200)
         targets_uuid = response[UUID]
-        
+         
         # Post absorption job
-        url = _ABSORPTION_URL + "?probes=%s&targets=%s&job_name=test_job" % \
-             (probes_uuid, targets_uuid)
+        url = _ABSORPTION_URL + "?probes=%s&targets=%s&job_name=%s&%s=%s" % \
+             (probes_uuid, targets_uuid, _JOB_NAME, STRICT, _STRICT)
         response = post_data(self, url, 200)
         abs_job_uuid = response[UUID]
-        
+         
         running     = True
         job_details = None
         while running:
@@ -96,30 +98,30 @@ class TestProbeDesignAPI(unittest.TestCase):
                 if abs_job_uuid == job[UUID]:
                     job_details = job
                     running     = job_details[_STATUS] == 'running'
-                    
+                     
         # Copy result file to cwd for bamboo to ingest as an artifact
         absorption_path = None
         if _RESULT in job_details:
             absorption_path = job_details[_RESULT]
-            if os.path.isfile(absorption_path):
+            if absorption_path and os.path.isfile(absorption_path):
                 shutil.copy(absorption_path, "observed_absorption.txt")
-            
+             
         # Clean up by removing targets and probes files
         delete_data(self, _PROBES_URL + "?uuid=%s" % probes_uuid, 200)
         delete_data(self, _TARGETS_URL + "?uuid=%s" % targets_uuid, 200)
-
+ 
         msg = "Expected absorption job status succeeded, but found: %s" % \
               job_details[_STATUS]
         self.assertEquals(job_details[_STATUS], "succeeded", msg)
-        
+         
         exp_result_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_RESULT_FILENAME)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
               (absorption_path, exp_result_path)
         self.assertTrue(filecmp.cmp(exp_result_path, absorption_path), msg)
-
+ 
         # Delete absorption job
         delete_data(self, _ABSORPTION_URL + "?uuid=%s" % abs_job_uuid, 200)
-        
+         
         # Ensure job no longer exists in the database
         response = get_data(self, _ABSORPTION_URL, 200)
         for job in response[_ABSORPTION]:

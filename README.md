@@ -27,3 +27,5 @@ GnuBio Flask API.
  * v0.2
    * Incorporate probe-design v0.2 which replaces blat with Scott's new absorption method.
    * Fixed bug in Integer and Float parameters - must do a None check, because 0 and 0.0 are valid defaults. Similarly, AbstractParameter must do a None check.
+ * v0.2.1
+   * Incoporate gbalgorithms v0.3 which added statistics.py with functions that used to reside in genotype_analysis.

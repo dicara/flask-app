@@ -29,3 +29,5 @@ GnuBio Flask API.
    * Fixed bug in Integer and Float parameters - must do a None check, because 0 and 0.0 are valid defaults. Similarly, AbstractParameter must do a None check.
  * v0.2.1
    * Incoporate gbalgorithms v0.3 which added statistics.py with functions that used to reside in genotype_analysis.
+ * v0.2.2
+   * Incorporate primary-analysis v0.6 whcih expands the range of offsets used from +/-30 to +/-70 when fitting the dye model.

@@ -30,4 +30,7 @@ GnuBio Flask API.
  * v0.2.1
    * Incoporate gbalgorithms v0.3 which added statistics.py with functions that used to reside in genotype_analysis.
  * v0.2.2
-   * Incorporate primary-analysis v0.6 whcih expands the range of offsets used from +/-30 to +/-70 when fitting the dye model.
+   * Incorporate primary-analysis v0.6 which expands the range of offsets used from +/-30 to +/-70 when fitting the dye model.
+ * v0.3
+   * Fixed bug: remove archive directories with duplicate names (different caps)
+   * Incorporate primary-analysis v0.7 which adds identity to its suite of tools.

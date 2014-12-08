@@ -69,8 +69,14 @@ def update_archives():
     '''
     APP_LOGGER.info("Updating database with available archives...")
     if os.path.isdir(ARCHIVES_PATH):
-        archives = filter(lambda x: os.path.isdir(os.path.join(ARCHIVES_PATH,x)), os.listdir(ARCHIVES_PATH))
-        records  = [{ARCHIVE: archive} for archive in archives]
+        
+        # Remove archives named similarly (same name, different capitalization)
+        archives    = os.listdir(ARCHIVES_PATH)
+        lc_archives = [a.lower() for a in archives]
+        dups        = set(a for a in archives if lc_archives.count(a.lower()) > 1)
+        archives    = [a for a in archives if a not in dups]
+        archives    = filter(lambda x: os.path.isdir(os.path.join(ARCHIVES_PATH,x)), archives)
+        records     = [{ARCHIVE: archive} for archive in archives]
         
         # There is a possible race condition here. Ideally these operations 
         # would be performed in concert atomically

@@ -140,7 +140,7 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     provided archive to tmp space and executes primary analysis process on 
     all PNGs found in the archive.
     
-    @param archive      - Archive directory name where the PNG TDI images live.
+    @param archive      - Archive directory name where the TDI images live.
     @param dyes         - Set of dyes used in this run.
     @param device       - Device used to generate the TDI images for this run.
     @param outfile_path - Path where the final analysis.txt file should live.
@@ -161,11 +161,11 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
             print >>f, "  device: %s" % device
             print >>f, "  dyes: [%s]" % ", ".join(map(lambda x: "\"%s\"" % x, dyes))
             
-        pngs = filter(lambda x: x.endswith(".png"), os.listdir(tmp_path)) 
-        pngs = map(lambda png: os.path.join(tmp_path, png), pngs)
+        images = filter_images(os.listdir(tmp_path)) 
+        images = map(lambda image: os.path.join(tmp_path, image), images)
         
         # Run primary analysis process
-        process(tmp_config_path, pngs, tmp_path)
+        process(tmp_config_path, images, tmp_path)
         
         # Ensure output file exists
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
@@ -177,3 +177,12 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     finally:
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
+        
+def filter_images(files):
+    """
+    Filter a list of files to only return valid image files (i.e. pngs and
+    bins).
+    
+    @param files: list of TDI images
+    """
+    return filter(lambda x: x.endswith(".png") or x.endswith(".bin"), files)

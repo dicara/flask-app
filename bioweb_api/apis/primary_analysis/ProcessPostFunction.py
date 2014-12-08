@@ -36,12 +36,13 @@ from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, 
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG
     
-from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
+    filter_images
 
 #===============================================================================
 # Private Static Variables
 #===============================================================================
-_MIN_NUM_PNGS = 10 # Minimum number of images required to run 
+_MIN_NUM_IMAGES = 10 # Minimum number of images required to run 
 _PROCESS      = "Process"
 
 #===============================================================================
@@ -174,8 +175,8 @@ class ProcessPostFunction(AbstractPostFunction):
         if not os.path.isdir(archive_path):
             raise Exception("Invalid archive: %s" % archive_path)
         for root, _, files in os.walk(archive_path):
-            pngs = filter(lambda x: x.endswith(".png"), files)
-            if len(pngs) > _MIN_NUM_PNGS:
+            images = filter_images(files)
+            if len(images) > _MIN_NUM_IMAGES:
                 archives.append(root.lstrip(ARCHIVES_PATH).lstrip("/"))
         return archives
         

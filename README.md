@@ -34,3 +34,5 @@ GnuBio Flask API.
  * v0.3
    * Fixed bug: remove archive directories with duplicate names (different caps)
    * Incorporate primary-analysis v0.7 which adds identity to its suite of tools.
+ * v0.3.1
+   * Enable Bioweb API to handle binary TDI images 

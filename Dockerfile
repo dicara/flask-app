@@ -1,15 +1,6 @@
 # This is a comment
-FROM ubuntu:12.04
+FROM       gbsoftware/open_source_base:latest
 MAINTAINER Dan DiCara <ddicara@gnubio.com>
-RUN apt-get -y update
-RUN apt-get -y install build-essential python-dev
-RUN apt-get -y install python-numpy 
-RUN apt-get -y install python-scipy
-RUN apt-get -y install python-yaml
-RUN apt-get -y install python-pip
-RUN apt-get -y install python-matplotlib
-RUN apt-get -y install python-pandas
-RUN easy_install -f http://biopython.org/DIST/ biopython
 
 ENV FLASKR_SETTINGS /flaskr_settings.cfg
 

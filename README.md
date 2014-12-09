@@ -36,5 +36,7 @@ GnuBio Flask API.
    * Incorporate primary-analysis v0.7 which adds identity to its suite of tools.
  * v0.3.1
    * Enable Bioweb API to handle binary TDI images.
- * v0.3.2
+ * v0.4
    * Add version lower bounds to setup.py to try and resolve recent version conflicts in build.
+ * v0.5
+   * Incorporate primary-analysis v0.14 to update pandas and new Dockerfiles in build-automation to try and resolve build issues.

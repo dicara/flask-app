@@ -43,3 +43,5 @@ GnuBio Flask API.
  * v0.6
    * Added offsets parameter to primary analysis process API.
    * Added plots POST, GET, and REMOVE APIs.
+ * v0.7
+   * Updating version simply to test build automation - no other code changes.

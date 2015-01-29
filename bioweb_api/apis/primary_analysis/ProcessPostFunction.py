@@ -34,10 +34,12 @@ from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH, \
     ARCHIVES_PATH
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
-    FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG
+    FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, OFFSETS
     
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
     filter_images
+    
+from primary_analysis.dye_model import DEFAULT_OFFSETS
 
 #===============================================================================
 # Private Static Variables
@@ -85,12 +87,17 @@ class ProcessPostFunction(AbstractPostFunction):
         cls.job_name_param = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                         "name to give this "
                                                         "job.")
+        cls.offset         = ParameterFactory.integer(OFFSETS, "Offset used " \
+            "to infer a dye model. The inference will offset the dye profiles " \
+            "in a range of (-<offset>,<offset>] to determine the optimal " \
+            "offset.", default=abs(DEFAULT_OFFSETS[0]), minimum=1)
         
         parameters = [
                       cls.archives_param,
                       cls.dyes_param,
                       cls.devices_param,
                       cls.job_name_param,
+                      cls.offset,
                      ]
         return parameters
     
@@ -100,6 +107,7 @@ class ProcessPostFunction(AbstractPostFunction):
         dyes          = params_dict[cls.dyes_param]
         device        = params_dict[cls.devices_param][0]
         job_name      = params_dict[cls.job_name_param][0]
+        offset        = params_dict[cls.offset][0]
         
         json_response = {_PROCESS: []}
         
@@ -126,6 +134,7 @@ class ProcessPostFunction(AbstractPostFunction):
                         ARCHIVE: archive,
                         DYES: dyes,
                         DEVICE: device,
+                        OFFSETS: offset,
                         UUID: str(uuid4()),
                         STATUS: JOB_STATUS.submitted,       # @UndefinedVariable
                         JOB_NAME: cur_job_name,
@@ -143,8 +152,8 @@ class ProcessPostFunction(AbstractPostFunction):
                     config_path  = outfile_path + ".cfg"
                     
                     # Create helper functions
-                    abs_callable = PaProcessCallable(archive, dyes, device, 
-                                                     outfile_path, 
+                    abs_callable = PaProcessCallable(archive, dyes, device,
+                                                     offset, outfile_path, 
                                                      config_path,
                                                      response[UUID], 
                                                      cls._DB_CONNECTOR)
@@ -187,11 +196,12 @@ class PaProcessCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, archive, dyes, device, outfile_path, config_path, uuid, 
-                 db_connector):
+    def __init__(self, archive, dyes, device, offset, outfile_path, config_path, 
+                 uuid, db_connector):
         self.archive      = archive
         self.dyes         = dyes
         self.device       = device
+        self.offsets      = range(-offset, offset)
         self.outfile_path = outfile_path
         self.config_path  = config_path
         self.db_connector = db_connector
@@ -202,7 +212,7 @@ class PaProcessCallable(object):
                            START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(PA_PROCESS_COLLECTION, self.query, update)
         return execute_process(self.archive, self.dyes, self.device, 
-                               self.outfile_path, self.config_path, 
+                               self.offsets, self.outfile_path, self.config_path, 
                                self.query[UUID])
         
 def make_process_callback(uuid, outfile_path, config_path, db_connector):

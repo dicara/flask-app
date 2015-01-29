@@ -134,7 +134,8 @@ def update_devices():
     APP_LOGGER.info("Database successfully updated with available devices.")
     return True
 
-def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
+def execute_process(archive, dyes, device, offsets, outfile_path, config_path, 
+                    uuid):
     '''
     Execute the primary analysis process command. This function copies the 
     provided archive to tmp space and executes primary analysis process on 
@@ -143,6 +144,9 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
     @param archive      - Archive directory name where the TDI images live.
     @param dyes         - Set of dyes used in this run.
     @param device       - Device used to generate the TDI images for this run.
+    @param offsets      - Range of offsets used to infer a dye model. The 
+                          inference will offset the dye profiles in this range
+                          to determine an optimal offset. 
     @param outfile_path - Path where the final analysis.txt file should live.
     @param config_path  - Path where the final configuration file should live.
     @param uuid         - Unique identifier for this job.
@@ -165,7 +169,7 @@ def execute_process(archive, dyes, device, outfile_path, config_path, uuid):
         images = map(lambda image: os.path.join(tmp_path, image), images)
         
         # Run primary analysis process
-        process(tmp_config_path, images, tmp_path)
+        process(tmp_config_path, images, tmp_path, offsets=offsets)
         
         # Ensure output file exists
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")

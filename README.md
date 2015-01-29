@@ -40,3 +40,6 @@ GnuBio Flask API.
    * Add version lower bounds to setup.py to try and resolve recent version conflicts in build.
  * v0.5
    * Incorporate primary-analysis v0.14 to update pandas and new Dockerfiles in build-automation to try and resolve build issues.
+ * v0.6
+   * Added offsets parameter to primary analysis process API.
+   * Added plots POST, GET, and REMOVE APIs.

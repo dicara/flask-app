@@ -27,6 +27,9 @@ from bioweb_api.apis.primary_analysis.DyesGetFunction import DyesGetFunction
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import ProcessPostFunction
 from bioweb_api.apis.primary_analysis.ProcessGetFunction import ProcessGetFunction
 from bioweb_api.apis.primary_analysis.ProcessDeleteFunction import ProcessDeleteFunction
+from bioweb_api.apis.primary_analysis.PlotsPostFunction import PlotsPostFunction
+from bioweb_api.apis.primary_analysis.PlotsGetFunction import PlotsGetFunction
+from bioweb_api.apis.primary_analysis.PlotsDeleteFunction import PlotsDeleteFunction
 
 #=============================================================================
 # Class
@@ -40,6 +43,9 @@ class PrimaryAnalysisApiV1(AbstractApiV1):
                   ProcessPostFunction(),
                   ProcessGetFunction(),
                   ProcessDeleteFunction(),
+                  PlotsPostFunction(),
+                  PlotsGetFunction(),
+                  PlotsDeleteFunction(),
                  ]
 
     @staticmethod

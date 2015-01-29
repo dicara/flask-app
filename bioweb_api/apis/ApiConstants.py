@@ -116,6 +116,7 @@ ARCHIVE          = "archive"
 ID               = "_id"
 URL              = "url"
 CONFIG_URL       = "config_url"
+PLOT_URL         = "plot_url"
 DATE             = "date"
 DATESTAMP        = "datestamp"
 SUBMIT_DATESTAMP = "submit_datestamp"
@@ -124,6 +125,7 @@ FINISH_DATESTAMP = "finish_datestamp"
 TYPE             = "type"
 ERROR            = "error"
 UUID             = "uuid"
+PA_PROCESS_UUID  = "pa_process_uuid"
 STATUS           = "status"
 JOB_NAME         = "job_name"
 PROBES           = "probes"
@@ -137,11 +139,13 @@ DEVICES          = "devices"
 DEVICE           = "device"
 JOB_TYPE_NAME    = "job_type"
 CONFIG           = "config"
+PLOT             = "plot"
 RUN_ID           = "run_id"
 SAMPLE_ID        = "sample_id"
 PASS             = "pass"
 FAIL             = "fail"
 STRICT           = "strict"
+OFFSETS          = "offsets"           
 
 #=============================================================================
 # Probe Experiment Constants
@@ -212,5 +216,6 @@ JOB_TYPE_TUPLE = namedtuple('JobType',
                             [
                              'absorption',
                              'pa_process',
+                             'pa_plots',
                             ])
 JOB_TYPE = JOB_TYPE_TUPLE(*JOB_TYPE_TUPLE._fields)

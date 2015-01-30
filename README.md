@@ -45,3 +45,5 @@ GnuBio Flask API.
    * Added plots POST, GET, and REMOVE APIs.
  * v0.7
    * Updating version simply to test build automation - no other code changes.
+ * v0.7.1
+   * Incorporate plotting bugfix in primary-analysis v1.2.1.

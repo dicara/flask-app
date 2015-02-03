@@ -47,3 +47,5 @@ GnuBio Flask API.
    * Updating version simply to test build automation - no other code changes.
  * v0.7.1
    * Incorporate plotting bugfix in primary-analysis v1.2.1.
+ * v0.8
+   * Added binary image conversion API.

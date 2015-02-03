@@ -145,7 +145,9 @@ SAMPLE_ID        = "sample_id"
 PASS             = "pass"
 FAIL             = "fail"
 STRICT           = "strict"
-OFFSETS          = "offsets"           
+OFFSETS          = "offsets"          
+
+VALID_IMAGE_EXTENSIONS = ["bin", "png"] 
 
 #=============================================================================
 # Probe Experiment Constants
@@ -217,5 +219,6 @@ JOB_TYPE_TUPLE = namedtuple('JobType',
                              'absorption',
                              'pa_process',
                              'pa_plots',
+                             'pa_convert_images',
                             ])
 JOB_TYPE = JOB_TYPE_TUPLE(*JOB_TYPE_TUPLE._fields)

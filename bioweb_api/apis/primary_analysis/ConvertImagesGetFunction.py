@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:   Jun 1, 2014
+@date:   Feb 2, 2015
 '''
 
 #=============================================================================
@@ -22,29 +22,29 @@ limitations under the License.
 #=============================================================================
 from collections import OrderedDict
 
+from bioweb_api.apis.primary_analysis.ConvertImagesPostFunction import CONVERT_IMAGES
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api import PA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import UUID, STATUS, ID, JOB_NAME, JOB_TYPE_NAME, \
-    SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, \
-    RESULT, URL, CONFIG_URL, ARCHIVE, DYES, DEVICE, CONFIG
-from bioweb_api.apis.primary_analysis.ProcessPostFunction import PROCESS
-
+from bioweb_api import PA_CONVERT_IMAGES_COLLECTION
+from bioweb_api.apis.ApiConstants import UUID, STATUS, ID, JOB_TYPE_NAME, \
+    SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, ERROR, RESULT, URL, \
+    ARCHIVE, JOB_NAME
+    
 #=============================================================================
 # Class
 #=============================================================================
-class ProcessGetFunction(AbstractGetFunction):
-    
+class ConvertImagesGetFunction(AbstractGetFunction):
+
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return PROCESS
+        return CONVERT_IMAGES
    
     @staticmethod
     def summary():
-        return "Retrieve list of primary analysis process jobs."
+        return "Retrieve list of binary to png image conversion jobs."
     
     @staticmethod
     def notes():
@@ -65,22 +65,18 @@ class ProcessGetFunction(AbstractGetFunction):
         columns[JOB_TYPE_NAME]    = 1
         columns[UUID]             = 1
         columns[ARCHIVE]          = 1
-        columns[DEVICE]           = 1
-        columns[DYES]             = 1
         columns[STATUS]           = 1
         columns[SUBMIT_DATESTAMP] = 1
         columns[START_DATESTAMP]  = 1
         columns[FINISH_DATESTAMP] = 1
         columns[ERROR]            = 1
-        columns[URL]              = 1
-        columns[CONFIG_URL]       = 1
         columns[RESULT]           = 1
-        columns[CONFIG]           = 1
+        columns[URL]              = 1
         
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, {}, columns)
+        data = cls._DB_CONNECTOR.find(PA_CONVERT_IMAGES_COLLECTION, {}, columns)
          
         return (data, column_names, None)
          
@@ -88,5 +84,5 @@ class ProcessGetFunction(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProcessGetFunction()
-    print function
+    function = ConvertImagesGetFunction()
+    print function        

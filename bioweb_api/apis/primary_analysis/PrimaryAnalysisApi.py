@@ -30,6 +30,9 @@ from bioweb_api.apis.primary_analysis.ProcessDeleteFunction import ProcessDelete
 from bioweb_api.apis.primary_analysis.PlotsPostFunction import PlotsPostFunction
 from bioweb_api.apis.primary_analysis.PlotsGetFunction import PlotsGetFunction
 from bioweb_api.apis.primary_analysis.PlotsDeleteFunction import PlotsDeleteFunction
+from bioweb_api.apis.primary_analysis.ConvertImagesPostFunction import ConvertImagesPostFunction
+from bioweb_api.apis.primary_analysis.ConvertImagesGetFunction import ConvertImagesGetFunction
+from bioweb_api.apis.primary_analysis.ConvertImagesDeleteFunction import ConvertImagesDeleteFunction
 
 #=============================================================================
 # Class
@@ -46,6 +49,9 @@ class PrimaryAnalysisApiV1(AbstractApiV1):
                   PlotsPostFunction(),
                   PlotsGetFunction(),
                   PlotsDeleteFunction(),
+                  ConvertImagesPostFunction(),
+                  ConvertImagesGetFunction(),
+                  ConvertImagesDeleteFunction(),
                  ]
 
     @staticmethod

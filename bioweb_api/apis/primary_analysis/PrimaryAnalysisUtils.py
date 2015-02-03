@@ -24,15 +24,17 @@ import os
 import sys
 import shutil
 
-from primary_analysis.dye_datastore import Datastore
-from primary_analysis.cmds.process import process
-
-from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, DEVICES_COLLECTION, \
-    ARCHIVES_COLLECTION
+from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
+    DEVICES_COLLECTION, ARCHIVES_COLLECTION
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE
+from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, \
+    VALID_IMAGE_EXTENSIONS
+
+from primary_analysis.dye_datastore import Datastore
+from primary_analysis.cmds.process import process
+from primary_analysis.pa_images import convert_images
 
 #=============================================================================
 # Private Static Variables
@@ -75,7 +77,8 @@ def update_archives():
         lc_archives = [a.lower() for a in archives]
         dups        = set(a for a in archives if lc_archives.count(a.lower()) > 1)
         archives    = [a for a in archives if a not in dups]
-        archives    = filter(lambda x: os.path.isdir(os.path.join(ARCHIVES_PATH,x)), archives)
+        archives    = [x for x in archives 
+                       if os.path.isdir(os.path.join(ARCHIVES_PATH,x))]
         records     = [{ARCHIVE: archive} for archive in archives]
         
         # There is a possible race condition here. Ideally these operations 
@@ -104,8 +107,8 @@ def update_dyes():
         _DB_CONNECTOR.remove(DYES_COLLECTION, {})
         _DB_CONNECTOR.insert(DYES_COLLECTION, records)
     except:
-        APP_LOGGER.info("Failed to update database with available dyes: %s" 
-                        % str(sys.exc_info()))
+        APP_LOGGER.info("Failed to update database with available dyes: %s", 
+                        str(sys.exc_info()))
         return False
     
     APP_LOGGER.info("Database successfully updated with available dyes.")
@@ -127,13 +130,60 @@ def update_devices():
         _DB_CONNECTOR.remove(DEVICES_COLLECTION, {})
         _DB_CONNECTOR.insert(DEVICES_COLLECTION, records)
     except:
-        APP_LOGGER.info("Failed to update database with available devices: %s" 
-                        % str(sys.exc_info()))
+        APP_LOGGER.info("Failed to update database with available devices: %s", 
+                        str(sys.exc_info()))
         return False
     
     APP_LOGGER.info("Database successfully updated with available devices.")
     return True
 
+def execute_convert_images(archive, outfile_path, uuid):
+    '''
+    Execute the primary analysis convert_imgs command. This function copies the 
+    provided archive to tmp space and executes primary analysis convert_imgs on 
+    all binaries found in the archive.
+    
+    @param archive      - Archive directory name where the TDI images live.
+    @param outfile_path - File path to final destination of image tar.gz file.
+    @param uuid         - Unique identifier for this job.
+    '''
+    archive_path     = os.path.join(ARCHIVES_PATH, archive)
+    tmp_path         = os.path.join(TMP_PATH, uuid)
+    destination      = os.path.join(TMP_PATH, uuid, archive)
+    destination      = os.path.abspath(destination)
+    try:
+        # shutil.copytree does not play nicely when copying from samba drive to
+        # Mac, so use a system command.
+        io_utilities.safe_make_dirs(TMP_PATH)
+        os.system("cp -fr %s %s" % (archive_path, tmp_path))
+        
+        images = io_utilities.filter_files(os.listdir(tmp_path), 
+                                           extensions=["bin"]) 
+        images =[os.path.join(tmp_path, image) for image in images]
+        
+        # Run primary analysis process
+        convert_images(images, "png", destination)
+        
+        # Ensure images were converted, and if so create archive
+        if os.path.exists(destination) and \
+           len([x for x in os.listdir(destination) if x.endswith(".png")]) > 0:
+            shutil.make_archive(destination, format='gztar', 
+                                root_dir=os.path.dirname(destination),
+                                base_dir=os.path.basename(destination))
+        else:
+            raise Exception("Convert images job failed: no images converted.")
+        
+        # Ensure archive exists
+        out_tar_gz = destination + ".tar.gz"
+        if os.path.exists(out_tar_gz):
+            shutil.copy(out_tar_gz, outfile_path)
+        else:
+            raise Exception("Convert images job failed: no archive created.")
+    finally:
+        pass
+        # Regardless of success or failure, remove the copied archive directory
+        shutil.rmtree(tmp_path, ignore_errors=True)
+        
 def execute_process(archive, dyes, device, offsets, outfile_path, config_path, 
                     uuid):
     '''
@@ -163,10 +213,11 @@ def execute_process(archive, dyes, device, offsets, outfile_path, config_path,
         with open(tmp_config_path, "w") as f:
             print >>f, "dye_map:"
             print >>f, "  device: %s" % device
-            print >>f, "  dyes: [%s]" % ", ".join(map(lambda x: "\"%s\"" % x, dyes))
+            print >>f, "  dyes: [%s]" % ", ".join([ "\"%s\"" % x for x in dyes])
             
-        images = filter_images(os.listdir(tmp_path)) 
-        images = map(lambda image: os.path.join(tmp_path, image), images)
+        images = io_utilities.filter_files(os.listdir(tmp_path), 
+                                           VALID_IMAGE_EXTENSIONS) 
+        images =[os.path.join(tmp_path, image) for image in images]
         
         # Run primary analysis process
         process(tmp_config_path, images, tmp_path, offsets=offsets)
@@ -181,12 +232,3 @@ def execute_process(archive, dyes, device, offsets, outfile_path, config_path,
     finally:
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
-        
-def filter_images(files):
-    """
-    Filter a list of files to only return valid image files (i.e. pngs and
-    bins).
-    
-    @param files: list of TDI images
-    """
-    return filter(lambda x: x.endswith(".png") or x.endswith(".bin"), files)

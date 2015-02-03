@@ -14,45 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:   Jun 1, 2014
+@date:   Feb 2, 2015
 '''
 
 #=============================================================================
 # Imports
 #=============================================================================
-
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from bioweb_api.apis.ApiConstants import RESULT
-from bioweb_api import PA_PROCESS_COLLECTION
-from bioweb_api.apis.primary_analysis.ProcessPostFunction import PROCESS
+from bioweb_api import PA_CONVERT_IMAGES_COLLECTION
+from bioweb_api.apis.primary_analysis.ConvertImagesPostFunction import CONVERT_IMAGES
 
 #=============================================================================
 # Class
 #=============================================================================
-class ProcessDeleteFunction(AbstractDeleteJobFunction):
-    
+class ConvertImagesDeleteFunction(AbstractDeleteJobFunction):
+
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return PROCESS
+        return CONVERT_IMAGES
    
     @staticmethod
     def summary():
-        return "Delete primary analysis process jobs."
+        return "Delete binary image conversion jobs."
     
     @classmethod
     def get_collection(cls):
-        return PA_PROCESS_COLLECTION
+        return PA_CONVERT_IMAGES_COLLECTION
     
-    @classmethod
-    def process_request(cls, params_dict, del_file_keys=[RESULT, 'config']):
-        return super(ProcessDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
-
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ProcessDeleteFunction()
-    print function
+    function = ConvertImagesDeleteFunction()
+    print function        

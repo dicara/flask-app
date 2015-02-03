@@ -30,6 +30,9 @@ import math
 from datetime import datetime
 from flask import make_response, jsonify
 
+from bioweb_api import ARCHIVES_PATH
+from bioweb_api.apis.ApiConstants import VALID_IMAGE_EXTENSIONS
+    
 #===============================================================================
 # Public Global Variables
 #===============================================================================
@@ -220,3 +223,33 @@ def clean_item(item):
         raise Exception("Unhandled type: %s" % type(item))
     
     return item
+
+def get_archive_dirs(archive, min_num_images=1, extensions=VALID_IMAGE_EXTENSIONS):
+    """
+    Recursively search an archive for all directories containing images and 
+    return a list of all paths relative to the top-level archive directory that
+    contain images.
+    
+    @param archive: Name of archive directory to be searched.
+    @param min_num_images: Minimum number of images required in a directory for
+                           it to be included in the returned archive directories.
+    """
+    archives = list()
+    archive_path = os.path.join(ARCHIVES_PATH, archive)
+    if not os.path.isdir(archive_path):
+        raise Exception("Invalid archive: %s" % archive_path)
+    for root, _, files in os.walk(archive_path):
+        images = filter_files(files, extensions)
+        if len(images) >= min_num_images:
+            archives.append(root.lstrip(ARCHIVES_PATH).lstrip("/"))
+    return archives
+
+def filter_files(files, extensions):
+    """
+    Return a list of files that only includes those files that have one of the
+    provided file extensions.
+    
+    @param files: list of file names
+    @param extensions: list of extensions (e.g. txt, png, etc.)
+    """
+    return [f for f in files if f.endswith(tuple(extensions))]

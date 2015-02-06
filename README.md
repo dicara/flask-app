@@ -49,3 +49,5 @@ GnuBio Flask API.
    * Incorporate plotting bugfix in primary-analysis v1.2.1.
  * v0.8
    * Added binary image conversion API.
+ * v0.9
+   * Added identity APIs.

@@ -101,10 +101,12 @@ class TargetsPostFunction(AbstractPostFunction):
                     json_response[FORMAT] = "Unknown"
                     
                 cls._DB_CONNECTOR.insert(TARGETS_COLLECTION, [json_response])
-                del json_response[ID]
             except:
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
+            finally:
+                if ID in json_response:
+                    del json_response[ID]
         
         return make_clean_response(json_response, http_status_code)
 

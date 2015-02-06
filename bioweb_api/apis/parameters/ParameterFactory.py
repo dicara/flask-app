@@ -30,9 +30,10 @@ from bioweb_api.apis.parameters.LowerCaseStringParameter import LowerCaseStringP
 from bioweb_api.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from bioweb_api.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 from bioweb_api.apis.parameters.FileParameter import FileParameter
+from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
@@ -161,22 +162,28 @@ class ParameterFactory(object):
                                             allow_multiple=allow_multiple)
         
     @staticmethod
-    def archive(required=True, param_type=PARAMETER_TYPES.query):  # @UndefinedVariable
+    def archive(required=True):
         return CaseSensitiveStringParameter(ARCHIVE, "Archive directory name.",
                                required=required, 
                                allow_multiple=False,
                                enum=get_archives())
 
     @staticmethod
-    def dyes(required=True, allow_multiple=True,
-             param_type=PARAMETER_TYPES.query):             # @UndefinedVariable
+    def dyes(required=True, allow_multiple=True):
         return CaseSensitiveStringParameter(DYES, "Comma separated list of " \
                                             "dye names.", required=required, 
                                             allow_multiple=allow_multiple,
                                             enum=get_dyes())
 
     @staticmethod
-    def device(required=True, param_type=PARAMETER_TYPES.query): # @UndefinedVariable
+    def dye(name, description, required=False):
+        return CaseSensitiveStringParameter(name, description, 
+                                            required=required, 
+                                            allow_multiple=False,
+                                            enum=get_dyes())
+
+    @staticmethod
+    def device(required=True):
         return CaseSensitiveStringParameter(DEVICE, "Device name.",
                                             required=required, 
                                             allow_multiple=False,
@@ -224,6 +231,14 @@ class ParameterFactory(object):
                               enum=None, minimum=None, maximum=None, 
                               equality=None)
         
+    @classmethod
+    def dye_levels(cls):
+        keys_parameter   = cls.dyes()
+        values_parameter = cls.integer("name", "description", minimum=1)
+        description      = "Comma separated list of <dye>:<level> pairs."
+        return KeyValueParameter(DYE_LEVELS, description, keys_parameter,
+                                 values_parameter)
+    
     @classmethod
     def job_uuid(cls, collection):
         job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)

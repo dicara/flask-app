@@ -26,6 +26,7 @@ from bioweb_api.apis.snp_search.SnpSearchApi import SnpSearchApiV1
 from bioweb_api.apis.melting_temperature.MeltingTemperatureApi import MeltingTemperatureApiV1
 from bioweb_api.apis.probe_design.ProbeDesignApi import ProbeDesignApiV1
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisApi import PrimaryAnalysisApiV1
+from bioweb_api.apis.secondary_analysis.SecondaryAnalysisApi import SecondaryAnalysisAPIV1
 from bioweb_api.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
 #=============================================================================
@@ -42,6 +43,7 @@ _APIS = [
          MeltingTemperatureApiV1(),
          ProbeDesignApiV1(),
          PrimaryAnalysisApiV1(),
+         SecondaryAnalysisAPIV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

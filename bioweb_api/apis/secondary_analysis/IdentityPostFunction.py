@@ -1,0 +1,340 @@
+'''
+Copyright 2014 Bio-Rad Laboratories, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+@author: Dan DiCara
+@date:   Feb 3, 2015
+'''
+
+#=============================================================================
+# Imports
+#=============================================================================
+import os
+import shutil
+import sys
+import yaml
+
+from uuid import uuid4
+from datetime import datetime
+
+from bioweb_api.utilities.io_utilities import make_clean_response, silently_remove_file, safe_make_dirs
+from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
+from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
+from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, \
+    HOSTNAME, PORT, RESULTS_PATH, TMP_PATH
+from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
+    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
+    ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
+    START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS
+    
+from primary_analysis.cmds.identity import Identity
+from primary_analysis.command import InvalidFileError
+from primary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
+from primary_analysis.identity.identity_factory import IdentityFactory
+
+#=============================================================================
+# Public Static Variables
+#=============================================================================
+IDENTITY = "Identity"
+
+#=============================================================================
+# Private Static Variables
+#=============================================================================
+_NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
+    "the required training set. Set to zero to use all available drops for " \
+    "generating the model."
+_TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
+    "set: size = num_probes*training_factor."
+    
+#=============================================================================
+# Class
+#=============================================================================
+class IdentityPostFunction(AbstractPostFunction):
+
+    #===========================================================================
+    # Overridden Methods
+    #===========================================================================    
+    @staticmethod
+    def name():
+        return IDENTITY
+   
+    @staticmethod
+    def summary():
+        return "Run the equivalent of pa identity."
+    
+    @staticmethod
+    def notes():
+        return ""
+
+    def response_messages(self):
+        msgs = super(IdentityPostFunction, self).response_messages()
+        msgs.extend([
+                     { "code": 403, 
+                       "message": "Job name already exists. Delete the " \
+                                  "existing job or pick a new name."},
+                     { "code": 404, 
+                       "message": "Submission unsuccessful. No primary " \
+                       "analysis jobs found matching input criteria."},
+                    ])
+        return msgs
+    
+    @classmethod
+    def parameters(cls):
+        cls.job_uuid_param  = ParameterFactory.job_uuid(PA_PROCESS_COLLECTION)
+        cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
+                                                         "name to give this "
+                                                         "job.")
+        cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE, "Fiducial dye.")
+        cls.assay_dye_param = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
+        cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES, 
+                                                       _NUM_PROBES_DESCRIPTION,
+                                                       default=0, minimum=0)
+        cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR, 
+                                                       _TRAINING_FACTOR_DESCRIPTION,
+                                                       default=10, minimum=1)
+        cls.dye_levels_param = ParameterFactory.dye_levels()
+        
+        parameters = [
+                      cls.job_uuid_param,
+                      cls.job_name_param,
+                      cls.fid_dye_param,
+                      cls.assay_dye_param,
+                      cls.n_probes_param,
+                      cls.training_param,
+                      cls.dye_levels_param,
+                     ]
+        return parameters
+    
+    @classmethod
+    def process_request(cls, params_dict):
+        job_uuids       = params_dict[cls.job_uuid_param]
+        job_name        = params_dict[cls.job_name_param][0]
+        
+        fiducial_dye=None
+        if cls.fid_dye_param in params_dict:
+            fiducial_dye    = params_dict[cls.fid_dye_param][0]
+        assay_dye = None
+        if cls.assay_dye_param in params_dict:    
+            assay_dye       = params_dict[cls.assay_dye_param][0]
+        num_probes      = params_dict[cls.n_probes_param][0]
+        training_factor = params_dict[cls.training_param][0]
+        dye_levels      = params_dict[cls.dye_levels_param]
+        
+        json_response = {IDENTITY: []}
+        
+        # Ensure analysis job exists
+        try:
+            criteria        = {UUID: {"$in": job_uuids}}
+            projection      = {ID: 0, RESULT: 1, UUID: 1, CONFIG: 1}
+            pa_process_jobs = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, 
+                                                     criteria, projection)
+        except:
+            json_response[ERROR] = str(sys.exc_info()[1])
+            return make_clean_response(json_response, 500)
+        
+        # Ensure at least one valid analysis job exists
+        if len(pa_process_jobs) < 1:
+            return make_clean_response(json_response, 404)
+         
+        # Process each archive
+        status_codes  = []
+        for i, pa_process_job in enumerate(pa_process_jobs):
+            if len(pa_process_jobs) == 1:
+                cur_job_name = job_name
+            else:
+                cur_job_name = "%s-%d" % (job_name, i)
+
+            response = {
+                        FIDUCIAL_DYE: fiducial_dye,
+                        ASSAY_DYE: assay_dye,
+                        NUM_PROBES: num_probes,
+                        TRAINING_FACTOR: training_factor,
+                        DYE_LEVELS: [list(x) for x in dye_levels],
+                        UUID: str(uuid4()),
+                        PA_PROCESS_UUID: pa_process_job[UUID],
+                        STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
+                        JOB_NAME: cur_job_name,
+                        JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
+                        SUBMIT_DATESTAMP: datetime.today(),
+                       }
+            status_code = 200
+            
+            if cur_job_name in cls._DB_CONNECTOR.distinct(SA_IDENTITY_COLLECTION, 
+                                                          JOB_NAME):
+                status_code = 403
+            else:
+                try:
+                    outfile_path = os.path.join(RESULTS_PATH, response[UUID])
+                    plot_path    = os.path.join(RESULTS_PATH, 
+                                                response[UUID] + ".png")
+
+                    with open(pa_process_job[CONFIG]) as fd:
+                        config = yaml.load(fd)
+                        
+                    dyes = [dye for dye in config['dye_map']['dyes'] 
+                            if dye != fiducial_dye and dye != assay_dye]
+                    
+                    level_dyes = set([x[0] for x in dye_levels])
+                    
+                    if not level_dyes.issubset(set(dyes)):
+                        raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)", 
+                                        level_dyes, dyes)
+                    
+                    if not os.path.isfile(pa_process_job[RESULT]):
+                        raise InvalidFileError(pa_process_job[RESULT])
+                    primary_analysis_data = PrimaryAnalysisData.from_file(pa_process_job[RESULT])
+                    
+                    # Create helper functions
+                    abs_callable = SaIdentityCallable(primary_analysis_data,
+                                                     num_probes, 
+                                                     training_factor,
+                                                     plot_path,
+                                                     outfile_path, 
+                                                     assay_dye,
+                                                     fiducial_dye,
+                                                     dye_levels,
+                                                     response[UUID], 
+                                                     cls._DB_CONNECTOR)
+                    callback = make_process_callback(response[UUID], 
+                                                     outfile_path,
+                                                     plot_path,
+                                                     cls._DB_CONNECTOR)
+     
+                    # Add to queue and update DB
+                    cls._DB_CONNECTOR.insert(SA_IDENTITY_COLLECTION, [response])
+                    cls._EXECUTION_MANAGER.add_job(response[UUID], 
+                                                   abs_callable, callback)
+
+                except:
+                    response[ERROR] = str(sys.exc_info()[1])
+                    status_code = 500
+                finally:
+                    if ID in response:
+                        del response[ID]
+                    
+            json_response[IDENTITY].append(response)
+            status_codes.append(status_code)
+        
+        # If all jobs submitted successfully, then 200 should be returned.
+        # Otherwise, the maximum status code seems good enough.
+        return make_clean_response(json_response, max(status_codes))
+
+#===============================================================================
+# Callable/Callback Functionality
+#===============================================================================
+class SaIdentityCallable(object):
+    """
+    Callable that executes the absorption command.
+    """
+    def __init__(self, primary_analysis_data, num_probes, training_factor, 
+                 plot_path, outfile_path, assay_dye, fiducial_dye, dye_levels, 
+                 uuid, db_connector):
+        self.primary_analysis_data = primary_analysis_data
+        self.num_probes            = num_probes
+        self.training_factor       = training_factor
+        self.plot_path             = plot_path
+        self.outfile_path          = outfile_path
+        self.assay_dye             = assay_dye
+        self.fiducial_dye          = fiducial_dye
+        self.dye_levels            = dye_levels
+        self.db_connector          = db_connector
+        self.query                 = {UUID: uuid}
+        self.identity              = Identity()
+        self.tmp_path              = os.path.join(TMP_PATH, uuid)
+        self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
+        self.tmp_plot_path         = os.path.join(self.tmp_path, "plot.png")
+     
+    def __call__(self):
+        update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
+                           START_DATESTAMP: datetime.today()}}     
+        self.db_connector.update(SA_IDENTITY_COLLECTION, self.query, update)
+        
+        identity_factory = IdentityFactory.constellation_identity_factory(self.dye_levels)
+        
+        try:
+            safe_make_dirs(self.tmp_path)
+            self.identity.execute_identity(self.primary_analysis_data, 
+                                           self.num_probes, self.training_factor, 
+                                           identity_factory, 
+                                           plot_path=self.tmp_plot_path, 
+                                           out_file=self.tmp_outfile_path, 
+                                           assay_dye=self.assay_dye, 
+                                           fiducial_dye=self.fiducial_dye, 
+                                           dye_levels=self.dye_levels)
+            if not os.path.isfile(self.tmp_outfile_path):
+                raise Exception("Secondary analysis identity job failed: identity output file not generated.")
+            else:
+                shutil.copy(self.tmp_outfile_path, self.outfile_path)
+            if os.path.isfile(self.tmp_plot_path):
+                shutil.copy(self.tmp_plot_path, self.plot_path)
+        finally:
+            # Regardless of success or failure, remove the copied archive directory
+            shutil.rmtree(self.tmp_path, ignore_errors=True)
+        
+         
+def make_process_callback(uuid, outfile_path, plot_path, db_connector):
+    """
+    Return a closure that is fired when the job finishes. This 
+    callback updates the DB with completion status, result file location, and
+    an error message if applicable.
+     
+    @param uuid:         Unique job id in database
+    @param outfile_path: Path where the final identity results will live.
+    @param plot_path:    Path where the final PNG plot should live.
+    @param db_connector: Object that handles communication with the DB
+    """
+    query = {UUID: uuid}
+    def process_callback(future):
+        try:
+            _ = future.result()
+            update = { "$set": { 
+                                 STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
+                                 RESULT: outfile_path,
+                                 URL: "http://%s/results/%s/%s" % 
+                                           (HOSTNAME, PORT, 
+                                            os.path.basename(outfile_path)),
+                                 PLOT: plot_path,
+                                 PLOT_URL: "http://%s/results/%s/%s" % 
+                                           (HOSTNAME, PORT, 
+                                            os.path.basename(plot_path)),
+                                 FINISH_DATESTAMP: datetime.today(),
+                               }
+                    }
+            # If job has been deleted, then delete result and don't update DB.
+            if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
+                db_connector.update(SA_IDENTITY_COLLECTION, query, update)
+            else:
+                silently_remove_file(outfile_path)
+                silently_remove_file(plot_path)
+        except:
+            error_msg = str(sys.exc_info()[1])
+            update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
+                                   RESULT: None,
+                                   FINISH_DATESTAMP: datetime.today(),
+                                   ERROR: error_msg}}
+            # If job has been deleted, then delete result and don't update DB.
+            if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
+                db_connector.update(SA_IDENTITY_COLLECTION, query, update)
+            else:
+                silently_remove_file(outfile_path)
+                silently_remove_file(plot_path)
+         
+    return process_callback
+            
+#===============================================================================
+# Run Main
+#===============================================================================
+if __name__ == "__main__":
+    function = IdentityPostFunction()
+    print function      

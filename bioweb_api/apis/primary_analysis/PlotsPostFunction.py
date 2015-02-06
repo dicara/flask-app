@@ -40,11 +40,7 @@ from bioweb_api import PA_PROCESS_COLLECTION, PA_PLOTS_COLLECTION, HOSTNAME, \
 from primary_analysis.plotting.analysis_plot_generator import AnalysisPlotGenerator
 
 #=============================================================================
-# Public Global Variables
-#=============================================================================
-
-#=============================================================================
-# Private Global Variables
+# Private Static Variables
 #=============================================================================
 _PLOTS = "Plots"
 
@@ -123,8 +119,6 @@ class PlotsPostFunction(AbstractPostFunction):
                 outfile_path = os.path.join(RESULTS_PATH, 
                                             pa_process_job[UUID] + ".png")
                 
-                print "IDS: %s" % cls._DB_CONNECTOR.distinct(PA_PLOTS_COLLECTION, 
-                                                                      PA_PROCESS_UUID)
                 if pa_process_job[UUID] in cls._DB_CONNECTOR.distinct(PA_PLOTS_COLLECTION, 
                                                                       PA_PROCESS_UUID):
                     status_code = 403
@@ -146,10 +140,13 @@ class PlotsPostFunction(AbstractPostFunction):
                     cls._DB_CONNECTOR.insert(PA_PLOTS_COLLECTION, [response])
                     cls._EXECUTION_MANAGER.add_job(response[UUID], 
                                                    abs_callable, callback)
-                    del response[ID]
             except:
                 response[ERROR]  = str(sys.exc_info()[1])
                 status_code = 500
+            finally:
+                if ID in response:
+                    del response[ID]
+            
             json_response[_PLOTS].append(response)
             status_codes.append(status_code)
          

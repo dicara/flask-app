@@ -150,6 +150,15 @@ OFFSETS          = "offsets"
 VALID_IMAGE_EXTENSIONS = ["bin", "png"] 
 
 #=============================================================================
+# Secondary Analysis Constants
+#=============================================================================
+ASSAY_DYE       = "assay_dye"
+FIDUCIAL_DYE    = "fiducial_dye"
+NUM_PROBES      = "num_probes"
+TRAINING_FACTOR = "training_factor"
+DYE_LEVELS      = "dye_levels"
+
+#=============================================================================
 # Probe Experiment Constants
 #=============================================================================
 PROBE_ID         = "probe_id"
@@ -220,5 +229,6 @@ JOB_TYPE_TUPLE = namedtuple('JobType',
                              'pa_process',
                              'pa_plots',
                              'pa_convert_images',
+                             'sa_identity',
                             ])
 JOB_TYPE = JOB_TYPE_TUPLE(*JOB_TYPE_TUPLE._fields)

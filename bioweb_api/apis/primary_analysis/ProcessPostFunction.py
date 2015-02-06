@@ -169,10 +169,13 @@ class ProcessPostFunction(AbstractPostFunction):
                     cls._DB_CONNECTOR.insert(PA_PROCESS_COLLECTION, [response])
                     cls._EXECUTION_MANAGER.add_job(response[UUID], 
                                                    abs_callable, callback)
-                    del response[ID]
                 except:
                     response[ERROR]  = str(sys.exc_info()[1])
                     status_code = 500
+                finally:
+                    if ID in response:
+                        del response[ID]
+                        
             json_response[PROCESS].append(response)
             status_codes.append(status_code)
         

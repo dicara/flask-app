@@ -38,10 +38,10 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS
     
-from primary_analysis.cmds.identity import Identity
 from primary_analysis.command import InvalidFileError
-from primary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
-from primary_analysis.identity.identity_factory import IdentityFactory
+from secondary_analysis.identity.identity import Identity
+from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
+from secondary_analysis.identity.identity_factory import IdentityFactory
 
 #=============================================================================
 # Public Static Variables

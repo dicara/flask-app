@@ -52,9 +52,9 @@ from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_dyes
 # Class private variables
 #===============================================================================
 __all__     = []
-__version__ = 0.1
-__date__    = '2014-05-28'
-__updated__ = '2014-05-28'
+__version__ = 1.0
+__date__    = '2015-02-18'
+__updated__ = '2015-02-18'
 
 #===============================================================================
 # Public global variables

@@ -110,20 +110,25 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                    required=True)
         cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES, 
                                                        _NUM_PROBES_DESCRIPTION,
-                                                       default=0, minimum=0)
+                                                       default=1, minimum=1,
+                                                       required=True)
         cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR, 
                                                        _TRAINING_FACTOR_DESCRIPTION,
-                                                       default=10, minimum=1)
+                                                       default=10, minimum=1,
+                                                       required=True)
         cls.threshold_param = ParameterFactory.float(THRESHOLD,
                                                      _THRESHOLD_DESCRIPTION,
-                                                     default=2500.0)
+                                                     default=2500.0,
+                                                     required=True)
         cls.outliers_param  = ParameterFactory.boolean(OUTLIERS,
                                                        _OUTLIER_DESCRIPTION,
-                                                       default_value=False)
+                                                       default_value=False,
+                                                       required=True)
         cls.cov_type_param  = ParameterFactory.lc_string(COV_TYPE, 
                                                          _COV_TYPE_DESCRIPTION,
                                                          enum=COVARIANCE_TYPES,
-                                                         default=COVARIANCE_TYPES[-1])
+                                                         default=COVARIANCE_TYPES[-1],
+                                                         required=True)
         
         parameters = [
                       cls.job_uuid_param,

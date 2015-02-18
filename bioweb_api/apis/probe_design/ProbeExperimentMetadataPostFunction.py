@@ -32,7 +32,7 @@ from bioweb_api.utilities.io_utilities import get_dialect, silently_remove_file,
     get_case_insensitive_dictreader
 from bioweb_api import TMP_PATH, PROBE_METADATA_COLLECTION
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, PROBE_METADATA_HEADERS, \
-    PROBE_ID
+    PROBE_ID, APPLICATION
 
 #=============================================================================
 # Class
@@ -66,14 +66,18 @@ class ProbeExperimentMetadataPostFunction(AbstractPostFunction):
     @classmethod
     def parameters(cls):
         cls._file_param = ParameterFactory.file("Probe metadata file.")
+        cls._app_param  = ParameterFactory.lc_string(APPLICATION, 
+                            "Case-insensitive application (e.g. Oncopanel).")
         parameters = [
                       cls._file_param,
+                      cls._app_param,
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
         metadata_file    = params_dict[cls._file_param][0]
+        application      = params_dict[cls._app_param][0]
         json_response    = { FILENAME: metadata_file.filename }
         http_status_code = 200
         file_uuid        = str(uuid4())
@@ -86,7 +90,7 @@ class ProbeExperimentMetadataPostFunction(AbstractPostFunction):
             if dialect:
                 probe_ids = cls._DB_CONNECTOR.distinct(PROBE_METADATA_COLLECTION, 
                                                        PROBE_ID)
-                ids_are_unique = cls.update_db(dialect, path, probe_ids)
+                ids_are_unique = cls.update_db(dialect, path, probe_ids, application)
                 if not ids_are_unique:
                     http_status_code = 403
             else:
@@ -105,7 +109,7 @@ class ProbeExperimentMetadataPostFunction(AbstractPostFunction):
         return make_clean_response(json_response, http_status_code)
     
     @classmethod
-    def update_db(cls, dialect, path, probe_ids):
+    def update_db(cls, dialect, path, probe_ids, application):
         '''
         Read the metadata file and update the DB with its contents. If a 
         probe_id is encountered in the file that already exists in the DB, then
@@ -124,6 +128,7 @@ class ProbeExperimentMetadataPostFunction(AbstractPostFunction):
                 if row[PROBE_ID] in probe_ids:
                     return False
                 records.append({h: row[h] for h in PROBE_METADATA_HEADERS})
+                records[-1].update({APPLICATION: application})
                 
         cls._DB_CONNECTOR.insert(PROBE_METADATA_COLLECTION, records)
         

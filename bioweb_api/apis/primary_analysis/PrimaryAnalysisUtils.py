@@ -25,12 +25,12 @@ import sys
 import shutil
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
-    DEVICES_COLLECTION, ARCHIVES_COLLECTION
+    DEVICES_COLLECTION, ARCHIVES_COLLECTION, PROBE_METADATA_COLLECTION
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, \
-    VALID_IMAGE_EXTENSIONS
+    VALID_IMAGE_EXTENSIONS, APPLICATION
 
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
@@ -62,6 +62,12 @@ def get_devices():
     Retrieve a list of available devices.
     '''
     return _DB_CONNECTOR.distinct_sorted(DEVICES_COLLECTION, DEVICE)
+
+def get_applications():
+    '''
+    Retrieve a list of available probe design experiment applications.
+    '''
+    return _DB_CONNECTOR.distinct_sorted(PROBE_METADATA_COLLECTION, APPLICATION)
 
 def update_archives():
     '''

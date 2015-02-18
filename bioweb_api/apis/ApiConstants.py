@@ -170,30 +170,27 @@ COV_TYPE        = "cov_type"
 #=============================================================================
 PROBE_ID         = "probe_id"
 FAM              = "fam"
-FAM_SD           = "fam_sd"
 JOE              = "joe"
-JOE_SD           = "joe_sd"
+SIGNAL           = "signal"
 OBSERVED_RESULT  = "observed_result"
 EXPECTED_RESULT  = "expected_result"
 
 PROBE_EXPERIMENT_HEADERS                  = OrderedDict()
 PROBE_EXPERIMENT_HEADERS[PROBE_ID]        = lambda x: x
 PROBE_EXPERIMENT_HEADERS[FAM]             = lambda x: float(x)
-PROBE_EXPERIMENT_HEADERS[FAM_SD]          = lambda x: float(x)
 PROBE_EXPERIMENT_HEADERS[JOE]             = lambda x: float(x)
-PROBE_EXPERIMENT_HEADERS[JOE_SD]          = lambda x: float(x)
+PROBE_EXPERIMENT_HEADERS[SIGNAL]          = lambda x: float(x)
 PROBE_EXPERIMENT_HEADERS[OBSERVED_RESULT] = lambda x: x
 PROBE_EXPERIMENT_HEADERS[EXPECTED_RESULT] = lambda x: x
 
 # Metadata
-APPLICATION       = "application"
+APPLICATION       = "Application"
 SEQUENCE          = "sequence"
 COSMIC_ID         = "cosmic_id"
 MUTATION_POSITION = "mutation_position"
 
 PROBE_METADATA_HEADERS = [
                           PROBE_ID,
-                          APPLICATION,
                           SEQUENCE,
                           COSMIC_ID,
                           MUTATION_POSITION,

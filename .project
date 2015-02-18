@@ -7,6 +7,7 @@
 		<project>NCBI_Utilities</project>
 		<project>Primary_Analysis</project>
 		<project>probe-design</project>
+		<project>Secondary_Analysis</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

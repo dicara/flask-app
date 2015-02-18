@@ -176,11 +176,12 @@ class ParameterFactory(object):
                                             enum=get_dyes())
 
     @staticmethod
-    def dye(name, description, required=False):
+    def dye(name, description, required=False, default=None):
         return CaseSensitiveStringParameter(name, description, 
                                             required=required, 
                                             allow_multiple=False,
-                                            enum=get_dyes())
+                                            enum=get_dyes(),
+                                            default=default)
 
     @staticmethod
     def device(required=True):
@@ -211,7 +212,7 @@ class ParameterFactory(object):
                                                                       UUID))    
     @staticmethod
     def lc_string(name, description, alias=None, required=True, 
-                  allow_multiple=False, enum=None):
+                  allow_multiple=False, enum=None, default=None):
         return LowerCaseStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple, enum=enum)

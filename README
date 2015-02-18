@@ -52,6 +52,6 @@ GnuBio Flask API.
  * v0.9
    * Added identity APIs.
  * v1.0
-   * Updated Identityt API to use new secondary-analysis module where the identity functionality has been moved.
+   * Updated Identity API to use new secondary-analysis module where the identity functionality has been moved.
    * Alphabetized constants.
    * Added Assay Caller APIs.

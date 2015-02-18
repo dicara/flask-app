@@ -11,4 +11,5 @@ numpy>=1.9.1
 idt-analyzer>=0.3
 ncbi-utilities>=0.2
 probe-design>=0.3
-primary-analysis>=1.2.1
+primary-analysis>=2.0
+secondary-analysis>=0.1

@@ -24,6 +24,9 @@ from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IdentityPostFunction
 from bioweb_api.apis.secondary_analysis.IdentityGetFunction import IdentityGetFunction
 from bioweb_api.apis.secondary_analysis.IdentityDeleteFunction import IdentityDeleteFunction
+from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import AssayCallerPostFunction
+from bioweb_api.apis.secondary_analysis.AssayCallerGetFunction import AssayCallerGetFunction
+from bioweb_api.apis.secondary_analysis.AssayCallerDeleteFunction import AssayCallerDeleteFunction
 
 #=============================================================================
 # Class
@@ -34,6 +37,9 @@ class SecondaryAnalysisAPIV1(AbstractApiV1):
                   IdentityPostFunction(),
                   IdentityGetFunction(),
                   IdentityDeleteFunction(),
+                  AssayCallerPostFunction(),
+                  AssayCallerGetFunction(),
+                  AssayCallerDeleteFunction(),
                  ]
     
     @staticmethod

@@ -51,3 +51,7 @@ GnuBio Flask API.
    * Added binary image conversion API.
  * v0.9
    * Added identity APIs.
+ * v1.0
+   * Updated Identity API to use new secondary-analysis module where the identity functionality has been moved.
+   * Alphabetized constants.
+   * Added Assay Caller APIs.

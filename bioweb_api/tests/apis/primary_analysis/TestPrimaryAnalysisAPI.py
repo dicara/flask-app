@@ -34,7 +34,7 @@ from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH, TMP_PATH
 
 #===============================================================================
-# Global Private Variables
+# Private Static Variables
 #===============================================================================
 _TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
 _EXPECTED_ANALYSIS_RESULT = "expected_analysis.txt"

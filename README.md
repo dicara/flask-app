@@ -55,3 +55,7 @@ GnuBio Flask API.
    * Updated Identity API to use new secondary-analysis module where the identity functionality has been moved.
    * Alphabetized constants.
    * Added Assay Caller APIs.
+ * v1.1
+   * Application is no longer provided as a column in a file, but rather as a separate argument to the probe metadata api. 
+   * Added api to retrieve current applications. 
+   * Replaced fam/joe sd with signal.

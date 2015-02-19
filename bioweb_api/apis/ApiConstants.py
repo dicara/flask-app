@@ -184,7 +184,7 @@ PROBE_EXPERIMENT_HEADERS[OBSERVED_RESULT] = lambda x: x
 PROBE_EXPERIMENT_HEADERS[EXPECTED_RESULT] = lambda x: x
 
 # Metadata
-APPLICATION       = "Application"
+APPLICATION       = "application"
 SEQUENCE          = "sequence"
 COSMIC_ID         = "cosmic_id"
 MUTATION_POSITION = "mutation_position"

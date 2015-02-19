@@ -25,7 +25,8 @@ from collections import OrderedDict
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import PROBE_METADATA_COLLECTION
-from bioweb_api.apis.ApiConstants import ID, PROBE_METADATA_HEADERS, PROBE_ID
+from bioweb_api.apis.ApiConstants import ID, PROBE_METADATA_HEADERS, PROBE_ID,\
+    APPLICATION
 
 #=============================================================================
 # Class
@@ -59,8 +60,9 @@ class ProbeExperimentMetadataGetFunction(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        columns            = OrderedDict()
-        columns[ID]        = 0
+        columns              = OrderedDict()
+        columns[ID]          = 0
+        columns[APPLICATION] = 1
         for header in PROBE_METADATA_HEADERS:
             columns[header] = 1
 

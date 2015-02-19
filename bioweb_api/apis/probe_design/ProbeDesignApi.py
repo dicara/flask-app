@@ -23,8 +23,8 @@ limitations under the License.
 from bioweb_api.apis.AbstractApi import AbstractApiV1
 # from bioweb_api.apis.probe_design.ValidationPostFunction import ValidationPostFunction
 # from bioweb_api.apis.probe_design.ValidationGetFunction import ValidationGetFunction
-from bioweb_api.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
-from bioweb_api.apis.probe_design.ExperimentGetFunction import ExperimentGetFunction
+# from bioweb_api.apis.probe_design.ExperimentPostFunction import ExperimentPostFunction
+# from bioweb_api.apis.probe_design.ExperimentGetFunction import ExperimentGetFunction
 from bioweb_api.apis.probe_design.ProbeExperimentMetadataPostFunction import ProbeExperimentMetadataPostFunction
 from bioweb_api.apis.probe_design.ProbeExperimentMetadataGetFunction import ProbeExperimentMetadataGetFunction
 from bioweb_api.apis.probe_design.ProbeExperimentMetadataDeleteFunction import ProbeExperimentMetadataDeleteFunction
@@ -40,6 +40,7 @@ from bioweb_api.apis.probe_design.TargetsDeleteFunction import TargetsDeleteFunc
 from bioweb_api.apis.probe_design.ProbesPostFunction import ProbesPostFunction
 from bioweb_api.apis.probe_design.ProbesGetFunction import ProbesGetFunction
 from bioweb_api.apis.probe_design.ProbesDeleteFunction import ProbesDeleteFunction
+from bioweb_api.apis.probe_design.ApplicationGetFunction import ApplicationGetFunction
 
 #=============================================================================
 # Class
@@ -64,6 +65,7 @@ class ProbeDesignApiV1(AbstractApiV1):
                   ProbesPostFunction(),
                   ProbesGetFunction(),
                   ProbesDeleteFunction(),
+                  ApplicationGetFunction(),
                  ]
 
     @staticmethod

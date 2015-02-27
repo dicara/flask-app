@@ -123,11 +123,11 @@ if __name__ == "__main__":
     em = ExecutionManager.Instance()
         
     uuid = str(uuid4())
-    em.add_job(uuid, None, my_add(1,2,3))
-    print em.job_result(uuid)
+    em.add_job(uuid, my_add(1,2,3), None)
+    print em.result(uuid)
     i = 0
-    while  em.job_running(uuid):
+    while  em.running(uuid):
         print i 
         i += 1
         time.sleep(1)
-    print em.job_result(uuid)
+    print em.result(uuid)

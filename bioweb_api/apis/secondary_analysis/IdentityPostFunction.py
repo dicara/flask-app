@@ -272,7 +272,8 @@ class SaIdentityCallable(object):
                                            out_file=self.tmp_outfile_path, 
                                            assay_dye=self.assay_dye, 
                                            fiducial_dye=self.fiducial_dye, 
-                                           dye_levels=self.dye_levels)
+                                           dye_levels=self.dye_levels,
+                                           show_figure=False)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

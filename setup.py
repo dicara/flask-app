@@ -43,6 +43,7 @@ setup(
       packages         = find_packages(),
       install_requires = [
                           'nose>=1.3.4',
+                          'coverage>=3.7.1',
                           'pymongo>=2.7',
                           'pyyaml>=3.10',
                           'simplejson>=3.3.1',

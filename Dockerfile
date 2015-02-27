@@ -8,4 +8,4 @@ ADD     . bioweb-api
 WORKDIR bioweb-api
 RUN     pip install -r requirements.txt
 
-CMD echo "DATABASE_URL='$MONGODB_DB_PORT_27017_TCP_ADDR'" >>/flaskr_settings.cfg && python setup.py nosetests
+CMD echo "DATABASE_URL='$MONGODB_DB_PORT_27017_TCP_ADDR'" >>/flaskr_settings.cfg && python setup.py nosetests --with-coverage --cover-package=primary_analysis --cover-html --cover-erase

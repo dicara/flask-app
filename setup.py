@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = "1.1",
+      version          = "1.2",
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com', 
       entry_points     = {'console_scripts': [
@@ -43,6 +43,7 @@ setup(
       packages         = find_packages(),
       install_requires = [
                           'nose>=1.3.4',
+                          'coverage>=3.7.1',
                           'pymongo>=2.7',
                           'pyyaml>=3.10',
                           'simplejson>=3.3.1',

@@ -59,3 +59,6 @@ GnuBio Flask API.
    * Application is no longer provided as a column in a file, but rather as a separate argument to the probe metadata api. 
    * Added api to retrieve current applications. 
    * Replaced fam/joe sd with signal.
+ * v1.2
+   * Added tests for identity and assay caller APIs
+   * Added code coverage to unittests.

@@ -1,7 +1,4 @@
 # .coveragerc to control coverage.py
-[run]
-branch = True
-
 [report]
 # Regexes for lines to exclude from consideration
 exclude_lines =
@@ -10,6 +7,9 @@ exclude_lines =
 
     # Don't complain about missing debug-only code:
     def __repr__
+    def summary
+    def notes
+    def response_messages
     if self\.debug
 
     # Don't complain if tests don't hit defensive assertion code:
@@ -21,6 +21,3 @@ exclude_lines =
     if __name__ == .__main__.:
 
 ignore_errors = True
-
-[html]
-directory = coverage_html_report

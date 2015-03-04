@@ -71,3 +71,9 @@ def write_yaml(yaml_path, data_dict, allow_exists=True):
         raise Exception("Provided yaml file output already exists: %s" % yaml_path)
     with open(yaml_path, 'w') as f:
         f.write( yaml.dump(data_dict, default_flow_style=True) )
+        
+def add_url_argument(url, key, value, first_argument=False):
+    sep = "&"
+    if first_argument:
+        sep = "?"
+    return url + "%s%s=%s" % (sep, key, value)

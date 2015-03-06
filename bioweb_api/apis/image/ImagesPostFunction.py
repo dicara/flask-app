@@ -141,7 +141,13 @@ class ImagesPostFunction(AbstractPostFunction):
                         imgs = list()
                         for ext in VALID_IMAGE_EXTENSIONS:
                             imgs += fnmatch.filter(archive.getnames(), 
-                                                       '*.%s' % ext)
+                                                   '*.%s' % ext)
+                        
+                        # tgz may contain pngs that start with '.' that are 
+                        # companions to the actual pngs and should not be 
+                        # counted
+                        imgs = [img for img in imgs if not img.startswith('.')]
+                        
                         if len(imgs) < 1:
                             http_status_code = 415
                             json_response[ERROR] = "No images found in " \

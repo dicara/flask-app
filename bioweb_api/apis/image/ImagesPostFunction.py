@@ -138,15 +138,8 @@ class ImagesPostFunction(AbstractPostFunction):
                     else:
                         # Ensure stack contains bin or png images
                         archive = tarfile.open(tmp_archive_path, mode='r')
-                        imgs = list()
-                        for ext in VALID_IMAGE_EXTENSIONS:
-                            imgs += fnmatch.filter(archive.getnames(), 
-                                                   '*.%s' % ext)
-                        
-                        # tgz may contain pngs that start with '.' that are 
-                        # companions to the actual pngs and should not be 
-                        # counted
-                        imgs = [img for img in imgs if not img.startswith('.')]
+                        imgs = [os.path.basename(n) for n in archive.getnames()]
+                        imgs = [n for n in imgs if n.endswith(tuple(VALID_IMAGE_EXTENSIONS)) and not n.startswith('.')]
                         
                         if len(imgs) < 1:
                             http_status_code = 415

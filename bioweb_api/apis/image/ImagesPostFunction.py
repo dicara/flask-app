@@ -21,7 +21,6 @@ limitations under the License.
 # Imports
 #=============================================================================
 
-import fnmatch
 import os
 import shutil
 import sys
@@ -107,8 +106,8 @@ class ImagesPostFunction(AbstractPostFunction):
         short_desc       = params_dict[cls._short_desc_param][0]
         http_status_code = 200
         uuid             = str(uuid4())
-        tmp_archive_path = os.path.join(TMP_PATH, uuid)
-        archive_path     = os.path.join(RESULTS_PATH, uuid + ".tgz")
+        tmp_archive_path = os.path.join(TMP_PATH, uuid + ".tar.gz")
+        archive_path     = os.path.join(RESULTS_PATH, uuid + ".tar.gz")
         json_response    = { 
                             FILENAME: image_stack_tgz.filename,
                             UUID: uuid,
@@ -147,7 +146,7 @@ class ImagesPostFunction(AbstractPostFunction):
                                 "provided archive."
                         else:
                             url = "http://%s/results/%s/%s" % (HOSTNAME, PORT, 
-                                uuid)
+                                os.path.basename(archive_path))
                             shutil.copy(tmp_archive_path, archive_path)
                             json_response[RESULT]       = archive_path
                             json_response[URL]          = url

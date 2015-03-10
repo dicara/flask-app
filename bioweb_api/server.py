@@ -41,7 +41,7 @@ from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application, RequestHandler
 from . import app, PORT, HOME_DIR, TORNADO_LOG_FILE_PREFIX, \
     TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, RESULTS_PATH, REFS_PATH, \
-    PLATES_UPLOAD_PATH, TMP_PATH
+    PLATES_UPLOAD_PATH, TMP_PATH, MAX_BUFFER_SIZE
 from bioweb_api.utilities import io_utilities
 from bioweb_api.utilities.logging_utilities import GENERAL_LOGGER
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import update_archives
@@ -238,7 +238,9 @@ def start(current_info):
     application = Application([ (r"/tornado", MainHandler),
                                 (r".*", FallbackHandler, dict(fallback=tr)),
                               ])
-    application.listen(PORT)
+    
+    # Max file upload size == MAX_BUFFER_SIZE
+    application.listen(PORT, max_buffer_size=MAX_BUFFER_SIZE)
     
     # Gracefully handle server shutdown.
     signal.signal(signal.SIGTERM, sig_handler)

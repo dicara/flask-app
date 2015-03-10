@@ -14,7 +14,8 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 # Parse configuration
 #=============================================================================
 DEV                          = app.config['DEV']                 
-HOSTNAME                     = app.config['HOSTNAME']                 
+HOSTNAME                     = app.config['HOSTNAME'] 
+MAX_BUFFER_SIZE              = app.config['MAX_BUFFER_SIZE']             
 PORT                         = app.config['PORT']
 DATABASE_URL                 = app.config['DATABASE_URL']
 DATABASE_NAME                = app.config['DATABASE_NAME']

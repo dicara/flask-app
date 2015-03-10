@@ -65,3 +65,5 @@ GnuBio Flask API.
  * v1.3
    * Added image stack API.
    * Increased max file upload size to 2GB.
+ * v1.4
+   * Bugfix: url now contains archive name with the .tar.gz extension.

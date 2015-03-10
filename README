@@ -62,3 +62,6 @@ GnuBio Flask API.
  * v1.2
    * Added tests for identity and assay caller APIs
    * Added code coverage to unittests.
+ * v1.3
+   * Added image stack API.
+   * Increased max file upload size to 2GB.

@@ -26,11 +26,12 @@ from os.path import expanduser
 #===============================================================================
 # Configuration Settings
 #===============================================================================
-DEV           = True
-HOSTNAME      = "localhost"
-# HOSTNAME      = "bioweb"
-USER_HOME_DIR = expanduser("~")
-ROOT_DIR      = "/mnt/bigdisk/"
+DEV             = True
+HOSTNAME        = "localhost"
+# HOSTNAME        = "bioweb"
+USER_HOME_DIR   = expanduser("~")
+ROOT_DIR        = "/mnt/bigdisk/"
+MAX_BUFFER_SIZE = 2*1024*1024*1024 # Max file upload size: 2GB
 
 if DEV:
     PORT = 8020
@@ -73,3 +74,4 @@ DEVICES_COLLECTION           = "devices"
 ARCHIVES_COLLECTION          = "archives"
 PROBE_EXPERIMENTS_COLLECTION = "probe_experiments"
 PROBE_METADATA_COLLECTION    = "probe_metadata"
+IMAGES_COLLECTION            = "images_collection"

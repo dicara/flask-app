@@ -14,7 +14,8 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 # Parse configuration
 #=============================================================================
 DEV                          = app.config['DEV']                 
-HOSTNAME                     = app.config['HOSTNAME']                 
+HOSTNAME                     = app.config['HOSTNAME'] 
+MAX_BUFFER_SIZE              = app.config['MAX_BUFFER_SIZE']             
 PORT                         = app.config['PORT']
 DATABASE_URL                 = app.config['DATABASE_URL']
 DATABASE_NAME                = app.config['DATABASE_NAME']
@@ -44,5 +45,6 @@ DEVICES_COLLECTION           = app.config['DEVICES_COLLECTION']
 ARCHIVES_COLLECTION          = app.config['ARCHIVES_COLLECTION']
 PROBE_EXPERIMENTS_COLLECTION = app.config['PROBE_EXPERIMENTS_COLLECTION']
 PROBE_METADATA_COLLECTION    = app.config['PROBE_METADATA_COLLECTION']
+IMAGES_COLLECTION            = app.config['IMAGES_COLLECTION']
 
 from . import controller

@@ -29,7 +29,7 @@ import unittest
 from datetime import datetime
 
 from bioweb_api.tests.test_utils import post_data, get_data, \
-    delete_data
+    delete_data, add_url_argument
 from bioweb_api.utilities import io_utilities
 from bioweb_api.apis.ApiConstants import UUID, FIDUCIAL_DYE, ASSAY_DYE,\
     NUM_PROBES, TRAINING_FACTOR, THRESHOLD, OUTLIERS, DYE_LEVELS, PLOT, \
@@ -179,15 +179,15 @@ class Test(unittest.TestCase):
         """
         # Construct url
         url = _ASSAY_CALLER_URL
-        url = self.add_url_argument(url, UUID, self._ac_record[UUID], True) 
-        url = self.add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME) 
-        url = self.add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE) 
-        url = self.add_url_argument(url, ASSAY_DYE, _ASSAY_DYE) 
-        url = self.add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES) 
-        url = self.add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR) 
-        url = self.add_url_argument(url, THRESHOLD, _THRESHOLD) 
-        url = self.add_url_argument(url, OUTLIERS, _OUTLIERS) 
-        url = self.add_url_argument(url, COV_TYPE, _COV_TYPE) 
+        url = add_url_argument(url, UUID, self._ac_record[UUID], True) 
+        url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME) 
+        url = add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE) 
+        url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE) 
+        url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES) 
+        url = add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR) 
+        url = add_url_argument(url, THRESHOLD, _THRESHOLD) 
+        url = add_url_argument(url, OUTLIERS, _OUTLIERS) 
+        url = add_url_argument(url, COV_TYPE, _COV_TYPE) 
             
         # Submit identity job
         response          = post_data(self, url, 200)
@@ -233,8 +233,8 @@ class Test(unittest.TestCase):
         self.assertEquals(job_details[STATUS], "succeeded", msg)
             
         # Delete sa assay caller job
-        delete_url = self.add_url_argument(_ASSAY_CALLER_URL, UUID, 
-                                           assay_caller_uuid, True)
+        delete_url = add_url_argument(_ASSAY_CALLER_URL, UUID, 
+                                      assay_caller_uuid, True)
         delete_data(self, delete_url, 200)
              
         # Ensure job no longer exists in the database
@@ -249,11 +249,11 @@ class Test(unittest.TestCase):
         """
         # Construct url
         url = _IDENTITY_URL
-        url = self.add_url_argument(url, UUID, self._id_record[UUID], True) 
-        url = self.add_url_argument(url, JOB_NAME, _IDENTITY_JOB_NAME) 
-        url = self.add_url_argument(url, NUM_PROBES, _ID_NUM_PROBES) 
-        url = self.add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR)
-        url = self.add_url_argument(url, DYE_LEVELS, _DYE_LEVELS)
+        url = add_url_argument(url, UUID, self._id_record[UUID], True) 
+        url = add_url_argument(url, JOB_NAME, _IDENTITY_JOB_NAME) 
+        url = add_url_argument(url, NUM_PROBES, _ID_NUM_PROBES) 
+        url = add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR)
+        url = add_url_argument(url, DYE_LEVELS, _DYE_LEVELS)
           
         # Submit identity job
         response      = post_data(self, url, 200)
@@ -297,8 +297,7 @@ class Test(unittest.TestCase):
         self.assertTrue(filecmp.cmp(self._exp_id_result, identity_txt_path), msg)
     
         # Delete sa assay caller job
-        delete_url = self.add_url_argument(_IDENTITY_URL, UUID, 
-                                           identity_uuid, True)
+        delete_url = add_url_argument(_IDENTITY_URL, UUID, identity_uuid, True)
         delete_data(self, delete_url, 200)
               
         # Ensure job no longer exists in the database
@@ -306,10 +305,3 @@ class Test(unittest.TestCase):
         for job in response[IDENTITY]:
             msg = "PA process job %s still exists in database." % identity_uuid
             self.assertNotEqual(identity_uuid, job[UUID], msg)
-
-    @staticmethod
-    def add_url_argument(url, key, value, first_argument=False):
-        sep = "&"
-        if first_argument:
-            sep = "?"
-        return url + "%s%s=%s" % (sep, key, value)

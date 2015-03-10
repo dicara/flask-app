@@ -33,10 +33,12 @@ from bioweb_api.apis.parameters.FileParameter import FileParameter
 from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
+
+from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
 #=============================================================================
 # Class
@@ -251,3 +253,9 @@ class ParameterFactory(object):
         ''' Create a parameter instance for selecting date(s). '''
         return DateParameter(DATE, "Run date of the form YYYY_MM_DD.", 
                              required=required, enum=enum)
+        
+    @classmethod
+    def experiment_definition(cls):
+        exp_defs = ExperimentDefinitions()
+        return cls.cs_string(EXP_DEF, "Experiment definition.", required=True, 
+                             enum=exp_defs.experiment_names)

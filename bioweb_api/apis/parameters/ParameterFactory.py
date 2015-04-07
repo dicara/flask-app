@@ -149,6 +149,16 @@ class ParameterFactory(object):
                                 equality=EQUALITY.less_than_or_equal_to)  # @UndefinedVariable
 
     @staticmethod
+    def float(name, description, alias=None, required=False, 
+              allow_multiple=False, default=None, enum=None, minimum=None,
+              maximum=None, equality=None):
+        """ Create a parameter instance for specifying a float. """
+        return FloatParameter(name, description, alias=alias, required=required,
+                              allow_multiple=allow_multiple, default=default, 
+                              enum=enum, minimum=minimum, maximum=maximum, 
+                              equality=equality)
+        
+    @staticmethod
     def file(description):
         """ Create a parameter instance for uploading a file."""
         return FileParameter(FILE, description)
@@ -229,15 +239,6 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
-    @staticmethod
-    def float(name, description, alias=None, required=False, 
-              allow_multiple=False, default=None, enum=None, minimum=None,
-              maximum=None, equality=None):
-        return FloatParameter(name, description, alias=alias, required=required,
-                              allow_multiple=allow_multiple, default=None, 
-                              enum=None, minimum=None, maximum=None, 
-                              equality=None)
-        
     @classmethod
     def dye_levels(cls):
         keys_parameter   = cls.dyes()

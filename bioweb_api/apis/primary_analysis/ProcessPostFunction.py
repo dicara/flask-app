@@ -90,7 +90,7 @@ class ProcessPostFunction(AbstractPostFunction):
         cls.major_param    = ParameterFactory.integer(MAJOR, "Major dye " \
                                                       "profile version", 
                                                       minimum=0)
-        cls.major_param    = ParameterFactory.integer(MINOR, "Minor dye " \
+        cls.minor_param    = ParameterFactory.integer(MINOR, "Minor dye " \
                                                       "profile version", 
                                                       minimum=0)
         cls.job_name_param = ParameterFactory.lc_string(JOB_NAME, "Unique "\

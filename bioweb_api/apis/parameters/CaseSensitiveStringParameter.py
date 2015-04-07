@@ -69,10 +69,19 @@ class CaseSensitiveStringParameter(AbstractStringParameter):
         If a fixed set of case sensitive strings was provided, then abide by it.
         '''
         if self._mapping:
-            if s.lower() not in self._mapping:
-                raise Exception("Unrecognized input argument: %s" % s)
-            return self._mapping[s.lower()]
+            if isinstance(s, list):
+                new_s = list()
+                for item in s:
+                    new_s.append(self._map_case(item))
+                return new_s
+            else:
+                return self._map_case(s)
         return s
+    
+    def _map_case(self, s):
+        if s.lower() not in self._mapping:
+                raise Exception("Unrecognized input argument: %s" % s)
+        return self._mapping[s.lower()]
     
 #===============================================================================
 # Run Main

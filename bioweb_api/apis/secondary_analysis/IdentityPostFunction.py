@@ -106,7 +106,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       "Fiducial dye.")
         cls.assay_dye_param    = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
         cls.n_probes_param     = ParameterFactory.integer(NUM_PROBES, 
-                                    _NUM_PROBES_DESCRIPTION,
+                                                        _NUM_PROBES_DESCRIPTION,
                                                         default=0, minimum=0)
         cls.training_param     = ParameterFactory.integer(TRAINING_FACTOR, 
                                                    _TRAINING_FACTOR_DESCRIPTION,

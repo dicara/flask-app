@@ -171,12 +171,14 @@ class ParameterFactory(object):
                                enum=get_archives())
 
     @staticmethod
-    def dyes(name=DYES, description=None, required=True, allow_multiple=True):
+    def dyes(name=DYES, description=None, required=True, allow_multiple=True,
+             default=None):
         if not description:
             description = "Comma separated list of dye names."
         return CaseSensitiveStringParameter(name, description, 
                                             required=required, 
                                             allow_multiple=allow_multiple,
+                                            default=default,
                                             enum=get_dyes())
 
     @staticmethod

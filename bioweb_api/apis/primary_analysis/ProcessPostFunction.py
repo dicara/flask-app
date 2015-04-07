@@ -33,7 +33,8 @@ from bioweb_api.utilities.io_utilities import silently_remove_file
 from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
-    FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, OFFSETS
+    FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
+    OFFSETS, MAJOR, MINOR, USE_IID
     
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process
     
@@ -85,7 +86,14 @@ class ProcessPostFunction(AbstractPostFunction):
     def parameters(cls):
         cls.archives_param = ParameterFactory.archive()
         cls.dyes_param     = ParameterFactory.dyes()
-        cls.devices_param  = ParameterFactory.device()
+        cls.device_param   = ParameterFactory.device()
+        cls.major_param    = ParameterFactory.integer(MAJOR, "Major dye " \
+                                                      "profile version", 
+                                                      minimum=0)
+        cls.major_param    = ParameterFactory.integer(MINOR, "Minor dye " \
+                                                      "profile version", 
+                                                      minimum=0)
+        cls.minor_param    = ParameterFactory.integer(MINOR, )
         cls.job_name_param = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                         "name to give this "
                                                         "job.")
@@ -93,13 +101,19 @@ class ProcessPostFunction(AbstractPostFunction):
             "to infer a dye model. The inference will offset the dye profiles " \
             "in a range of (-<offset>,<offset>] to determine the optimal " \
             "offset.", default=abs(DEFAULT_OFFSETS[0]), minimum=1)
+        cls.use_iid_param  = ParameterFactory.boolean(USE_IID, "Use IID Peak " \
+                                                      "Detection.", 
+                                                      default_value=False)
         
         parameters = [
                       cls.archives_param,
                       cls.dyes_param,
-                      cls.devices_param,
+                      cls.device_param,
+                      cls.major_param,
+                      cls.minor_param,
                       cls.job_name_param,
                       cls.offset,
+                      cls.use_iid_param,
                      ]
         return parameters
     
@@ -107,9 +121,17 @@ class ProcessPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         archive_name  = params_dict[cls.archives_param][0]
         dyes          = params_dict[cls.dyes_param]
-        device        = params_dict[cls.devices_param][0]
+        device        = params_dict[cls.device_param][0]
         job_name      = params_dict[cls.job_name_param][0]
         offset        = params_dict[cls.offset][0]
+        use_iid       = params_dict[cls.use_iid_param][0]
+        
+        major = None
+        if cls.major_param in params_dict:
+            major = params_dict[cls.major_param][0]
+        minor = None
+        if cls.minor_param in params_dict:
+            minor = params_dict[cls.minor_param][0]
         
         json_response = {PROCESS: []}
         
@@ -156,7 +178,9 @@ class ProcessPostFunction(AbstractPostFunction):
                     
                     # Create helper functions
                     abs_callable = PaProcessCallable(archive, dyes, device,
-                                                     offset, outfile_path, 
+                                                     major, minor,
+                                                     offset, use_iid, 
+                                                     outfile_path, 
                                                      config_path,
                                                      response[UUID], 
                                                      cls._DB_CONNECTOR)
@@ -190,12 +214,15 @@ class PaProcessCallable(object):
     """
     Callable that executes the process command.
     """
-    def __init__(self, archive, dyes, device, offset, outfile_path, config_path, 
-                 uuid, db_connector):
+    def __init__(self, archive, dyes, device, major, minor, offset, use_iid,
+                 outfile_path, config_path, uuid, db_connector):
         self.archive      = archive
         self.dyes         = dyes
         self.device       = device
+        self.major        = major
+        self.minor        = minor
         self.offsets      = range(-offset, offset)
+        self.use_iid      = use_iid
         self.outfile_path = outfile_path
         self.config_path  = config_path
         self.db_connector = db_connector
@@ -205,8 +232,9 @@ class PaProcessCallable(object):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
                            START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(PA_PROCESS_COLLECTION, self.query, update)
-        return execute_process(self.archive, self.dyes, self.device, 
-                               self.offsets, self.outfile_path, self.config_path, 
+        return execute_process(self.archive, self.dyes, self.device, self.major,
+                               self.minor, self.offsets, self.use_iid, 
+                               self.outfile_path, self.config_path, 
                                self.query[UUID])
         
 def make_process_callback(uuid, outfile_path, config_path, db_connector):

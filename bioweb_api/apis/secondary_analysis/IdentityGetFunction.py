@@ -28,7 +28,8 @@ from bioweb_api import SA_IDENTITY_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
-    START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS
+    START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
+    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 
 #=============================================================================
@@ -60,27 +61,30 @@ class IdentityGetFunction(AbstractGetFunction):
     
     @classmethod
     def process_request(cls, params_dict):
-        columns                   = OrderedDict()
-        columns[ID]               = 0
-        columns[JOB_NAME]         = 1
-        columns[JOB_TYPE_NAME]    = 1
-        columns[UUID]             = 1
-        columns[PA_PROCESS_UUID]  = 1
-        columns[FIDUCIAL_DYE]     = 1
-        columns[ASSAY_DYE]        = 1
-        columns[NUM_PROBES]       = 1
-        columns[TRAINING_FACTOR]  = 1
-        columns[DYE_LEVELS]       = 1
-        columns[STATUS]           = 1
-        columns[SUBMIT_DATESTAMP] = 1
-        columns[START_DATESTAMP]  = 1
-        columns[FINISH_DATESTAMP] = 1
-        columns[ERROR]            = 1
-        columns[RESULT]           = 1
-        columns[URL]              = 1
-        columns[PLOT]             = 1
-        columns[PLOT_URL]         = 1
-        columns[CONFIG]           = 1
+        columns                     = OrderedDict()
+        columns[ID]                 = 0
+        columns[JOB_NAME]           = 1
+        columns[JOB_TYPE_NAME]      = 1
+        columns[UUID]               = 1
+        columns[PA_PROCESS_UUID]    = 1
+        columns[FIDUCIAL_DYE]       = 1
+        columns[ASSAY_DYE]          = 1
+        columns[NUM_PROBES]         = 1
+        columns[TRAINING_FACTOR]    = 1
+        columns[DYE_LEVELS]         = 1
+        columns[IGNORED_DYES]       = 1
+        columns[PF_TRAINING_FACTOR] = 1
+        columns[UI_THRESHOLD]       = 1
+        columns[STATUS]             = 1
+        columns[SUBMIT_DATESTAMP]   = 1
+        columns[START_DATESTAMP]    = 1
+        columns[FINISH_DATESTAMP]   = 1
+        columns[ERROR]              = 1
+        columns[RESULT]             = 1
+        columns[URL]                = 1
+        columns[PLOT]               = 1
+        columns[PLOT_URL]           = 1
+        columns[CONFIG]             = 1
         
         column_names = columns.keys()  
         column_names.remove(ID)         

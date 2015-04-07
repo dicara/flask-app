@@ -166,14 +166,16 @@ VALID_IMAGE_EXTENSIONS = ["bin", "png"]
 #=============================================================================
 # Secondary Analysis Constants
 #=============================================================================
-ASSAY_DYE       = "assay_dye"
-DYE_LEVELS      = "dye_levels"
-FIDUCIAL_DYE    = "fiducial_dye"
-NUM_PROBES      = "num_probes"
-TRAINING_FACTOR = "training_factor"
-THRESHOLD       = "threshold"
-OUTLIERS        = "outliers"
-COV_TYPE        = "cov_type"
+ASSAY_DYE          = "assay_dye"
+COV_TYPE           = "cov_type"
+DYE_LEVELS         = "dye_levels"
+FIDUCIAL_DYE       = "fiducial_dye"
+NUM_PROBES         = "num_probes"
+THRESHOLD          = "threshold"
+UI_THRESHOLD       = "ui_threshold"
+TRAINING_FACTOR    = "training_factor"
+OUTLIERS           = "outliers"
+PF_TRAINING_FACTOR = "pf_training_factor"
 
 #=============================================================================
 # Probe Experiment Constants

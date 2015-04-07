@@ -116,11 +116,13 @@ class IdentityPostFunction(AbstractPostFunction):
                                                        required=False)
         cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
                                                 _PF_TRAINING_FACTOR_DESCRIPTION,
-                                                default=10, minimum=0)
+                                                default=10, minimum=0, 
+                                                required=True)
         cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
                                                       _UI_THRESHOLD_DESCRIPTION,
                                                       default=500.0, 
-                                                      minimum=0.0)
+                                                      minimum=0.0, 
+                                                      required=True)
         
         parameters = [
                       cls.job_uuid_param,

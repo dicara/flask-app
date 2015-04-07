@@ -113,7 +113,6 @@ class IdentityPostFunction(AbstractPostFunction):
                                                    default=10, minimum=1)
         cls.dye_levels_param   = ParameterFactory.dye_levels()
         cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
-                                                       default=[], 
                                                        required=False)
         cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
                                                 _PF_TRAINING_FACTOR_DESCRIPTION,
@@ -151,7 +150,11 @@ class IdentityPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         dye_levels      = params_dict[cls.dye_levels_param]
-        ignored_dyes    = params_dict[cls.ignored_dyes_param]
+        
+        ignored_dyes=list()
+        if cls.ignored_dyes_param in params_dict:
+            ignored_dyes = params_dict[cls.ignored_dyes_param]
+            
         prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
         

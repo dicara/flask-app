@@ -240,13 +240,13 @@ class ParameterFactory(object):
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
     @classmethod
-    def dye_levels(cls):
+    def dye_levels(cls, required=True):
         keys_parameter   = cls.dyes()
         values_parameter = cls.integer("name", "description", minimum=1)
         description      = "Comma separated list of dye:level pairs " \
                            "(e.g. pe:5,cy5.5:4)."
         return KeyValueParameter(DYE_LEVELS, description, keys_parameter,
-                                 values_parameter)
+                                 values_parameter, required=required)
     
     @classmethod
     def job_uuid(cls, collection):

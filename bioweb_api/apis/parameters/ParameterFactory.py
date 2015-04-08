@@ -149,6 +149,16 @@ class ParameterFactory(object):
                                 equality=EQUALITY.less_than_or_equal_to)  # @UndefinedVariable
 
     @staticmethod
+    def float(name, description, alias=None, required=False, 
+              allow_multiple=False, default=None, enum=None, minimum=None,
+              maximum=None, equality=None):
+        """ Create a parameter instance for specifying a float. """
+        return FloatParameter(name, description, alias=alias, required=required,
+                              allow_multiple=allow_multiple, default=default, 
+                              enum=enum, minimum=minimum, maximum=maximum, 
+                              equality=equality)
+        
+    @staticmethod
     def file(description):
         """ Create a parameter instance for uploading a file."""
         return FileParameter(FILE, description)
@@ -171,10 +181,14 @@ class ParameterFactory(object):
                                enum=get_archives())
 
     @staticmethod
-    def dyes(required=True, allow_multiple=True):
-        return CaseSensitiveStringParameter(DYES, "Comma separated list of " \
-                                            "dye names.", required=required, 
+    def dyes(name=DYES, description=None, required=True, allow_multiple=True,
+             default=None):
+        if not description:
+            description = "Comma separated list of dye names."
+        return CaseSensitiveStringParameter(name, description, 
+                                            required=required, 
                                             allow_multiple=allow_multiple,
+                                            default=default,
                                             enum=get_dyes())
 
     @staticmethod
@@ -225,22 +239,14 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
-    @staticmethod
-    def float(name, description, alias=None, required=False, 
-              allow_multiple=False, default=None, enum=None, minimum=None,
-              maximum=None, equality=None):
-        return FloatParameter(name, description, alias=alias, required=required,
-                              allow_multiple=allow_multiple, default=None, 
-                              enum=None, minimum=None, maximum=None, 
-                              equality=None)
-        
     @classmethod
-    def dye_levels(cls):
+    def dye_levels(cls, required=True):
         keys_parameter   = cls.dyes()
         values_parameter = cls.integer("name", "description", minimum=1)
-        description      = "Comma separated list of <dye>:<level> pairs."
+        description      = "Comma separated list of dye:level pairs " \
+                           "(e.g. pe:5,cy5.5:4)."
         return KeyValueParameter(DYE_LEVELS, description, keys_parameter,
-                                 values_parameter)
+                                 values_parameter, required=required)
     
     @classmethod
     def job_uuid(cls, collection):

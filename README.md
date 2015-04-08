@@ -67,3 +67,13 @@ GnuBio Flask API.
    * Increased max file upload size to 2GB.
  * v1.4
    * Bugfix: url now contains archive name with the .tar.gz extension.
+ * v1.5
+   * Incorporate primary-analysis v2.5 (previous was v2.0) 
+     * Remove IID peak detection by default but add argument for turning back on
+     * Add the default dye profiles configuration
+     * Remove the *.peak and *.sum columns from the primary analysis output file
+   * Incorporate secondary-analysis v0.7 (previous was v0.1)
+     * Miscellaneous improvements to identity
+     * Added fiducial pre-filtering
+     * Added capability to ignore dyes
+   * Add capability to define the dye profile major/minor versions

@@ -36,7 +36,8 @@ from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, \
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
-    START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS
+    START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
+    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD
     
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
@@ -57,6 +58,11 @@ _NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "generating the model."
 _TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
     "set: size = num_probes*training_factor."
+_PF_TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
+    "set used for fiducial pre-filtering: size = num_probes*pf_training_factor."
+_UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
+    "below which a drop decomposition will be excluded from fiducial " \
+    "pre-filter training."
     
 #=============================================================================
 # Class
@@ -96,15 +102,25 @@ class IdentityPostFunction(AbstractPostFunction):
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                          "name to give this "
                                                          "job.")
-        cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE, "Fiducial dye.")
-        cls.assay_dye_param = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
-        cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES, 
-                                                       _NUM_PROBES_DESCRIPTION,
-                                                       default=0, minimum=0)
-        cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR, 
-                                                       _TRAINING_FACTOR_DESCRIPTION,
-                                                       default=10, minimum=1)
-        cls.dye_levels_param = ParameterFactory.dye_levels()
+        cls.fid_dye_param      = ParameterFactory.dye(FIDUCIAL_DYE, 
+                                                      "Fiducial dye.")
+        cls.assay_dye_param    = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
+        cls.n_probes_param     = ParameterFactory.integer(NUM_PROBES, 
+                                                        _NUM_PROBES_DESCRIPTION,
+                                                        default=0, minimum=0)
+        cls.training_param     = ParameterFactory.integer(TRAINING_FACTOR, 
+                                                   _TRAINING_FACTOR_DESCRIPTION,
+                                                   default=10, minimum=1)
+        cls.dye_levels_param   = ParameterFactory.dye_levels()
+        cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
+                                                       required=False)
+        cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
+                                                _PF_TRAINING_FACTOR_DESCRIPTION,
+                                                default=10, minimum=0)
+        cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
+                                                      _UI_THRESHOLD_DESCRIPTION,
+                                                      default=500.0, 
+                                                      minimum=0.0)
         
         parameters = [
                       cls.job_uuid_param,
@@ -114,6 +130,9 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.n_probes_param,
                       cls.training_param,
                       cls.dye_levels_param,
+                      cls.ignored_dyes_param,
+                      cls.prefilter_tf_param,
+                      cls.ui_threshold_param,
                      ]
         return parameters
     
@@ -131,6 +150,13 @@ class IdentityPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         dye_levels      = params_dict[cls.dye_levels_param]
+        
+        ignored_dyes=list()
+        if cls.ignored_dyes_param in params_dict:
+            ignored_dyes = params_dict[cls.ignored_dyes_param]
+            
+        prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
+        ui_threshold    = params_dict[cls.ui_threshold_param][0]
         
         json_response = {IDENTITY: []}
         
@@ -162,6 +188,9 @@ class IdentityPostFunction(AbstractPostFunction):
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
                         DYE_LEVELS: [list(x) for x in dye_levels],
+                        IGNORED_DYES: ignored_dyes,
+                        PF_TRAINING_FACTOR: prefilter_tf,
+                        UI_THRESHOLD: ui_threshold,
                         UUID: str(uuid4()),
                         PA_PROCESS_UUID: pa_process_job[UUID],
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
@@ -205,6 +234,9 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       assay_dye,
                                                       fiducial_dye,
                                                       dye_levels,
+                                                      ignored_dyes,
+                                                      prefilter_tf,
+                                                      ui_threshold,
                                                       response[UUID], 
                                                       cls._DB_CONNECTOR)
                     callback = make_process_callback(response[UUID], 
@@ -240,7 +272,7 @@ class SaIdentityCallable(object):
     """
     def __init__(self, primary_analysis_data, num_probes, training_factor, 
                  plot_path, outfile_path, assay_dye, fiducial_dye, dye_levels, 
-                 uuid, db_connector):
+                 ignored_dyes, prefilter_tf, ui_threshold, uuid, db_connector):
         self.primary_analysis_data = primary_analysis_data
         self.num_probes            = num_probes
         self.training_factor       = training_factor
@@ -249,6 +281,9 @@ class SaIdentityCallable(object):
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.dye_levels            = dye_levels
+        self.ignored_dyes          = ignored_dyes
+        self.prefilter_tf          = prefilter_tf
+        self.ui_threshold          = ui_threshold
         self.db_connector          = db_connector
         self.query                 = {UUID: uuid}
         self.identity              = Identity()
@@ -273,7 +308,11 @@ class SaIdentityCallable(object):
                                            assay_dye=self.assay_dye, 
                                            fiducial_dye=self.fiducial_dye, 
                                            dye_levels=self.dye_levels,
-                                           show_figure=False)
+                                           show_figure=False, 
+                                           ignored_dyes=self.ignored_dyes,
+                                           prefilter_tf=self.prefilter_tf,
+                                           uninjected_threshold=self.ui_threshold,
+                                           )
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

@@ -190,8 +190,8 @@ def execute_convert_images(archive, outfile_path, uuid):
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
         
-def execute_process(archive, dyes, device, offsets, outfile_path, config_path, 
-                    uuid):
+def execute_process(archive, dyes, device, major, minor, offsets, use_iid, 
+                    outfile_path, config_path, uuid):
     '''
     Execute the primary analysis process command. This function copies the 
     provided archive to tmp space and executes primary analysis process on 
@@ -200,9 +200,12 @@ def execute_process(archive, dyes, device, offsets, outfile_path, config_path,
     @param archive      - Archive directory name where the TDI images live.
     @param dyes         - Set of dyes used in this run.
     @param device       - Device used to generate the TDI images for this run.
+    @param major        - Major dye profile version.
+    @param minor        - Minor dye profile version.
     @param offsets      - Range of offsets used to infer a dye model. The 
                           inference will offset the dye profiles in this range
                           to determine an optimal offset. 
+    @param use_iid      - Use IID Peak Detection.
     @param outfile_path - Path where the final analysis.txt file should live.
     @param config_path  - Path where the final configuration file should live.
     @param uuid         - Unique identifier for this job.
@@ -219,6 +222,10 @@ def execute_process(archive, dyes, device, offsets, outfile_path, config_path,
         with open(tmp_config_path, "w") as f:
             print >>f, "dye_map:"
             print >>f, "  device: %s" % device
+            if major is not None:
+                print >>f, "  major: %s" % major
+            if minor is not None:
+                print >>f, "  minor: %s" % minor
             print >>f, "  dyes: [%s]" % ", ".join([ "\"%s\"" % x for x in dyes])
             
         images = io_utilities.filter_files(os.listdir(tmp_path), 
@@ -226,7 +233,8 @@ def execute_process(archive, dyes, device, offsets, outfile_path, config_path,
         images =[os.path.join(tmp_path, image) for image in images]
         
         # Run primary analysis process
-        process(tmp_config_path, images, tmp_path, offsets=offsets)
+        process(tmp_config_path, images, tmp_path, offsets=offsets, 
+                use_iid=use_iid)
         
         # Ensure output file exists
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")

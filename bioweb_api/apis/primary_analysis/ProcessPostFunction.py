@@ -159,6 +159,7 @@ class ProcessPostFunction(AbstractPostFunction):
                         DYES: dyes,
                         DEVICE: device,
                         OFFSETS: offset,
+                        USE_IID: use_iid,
                         UUID: str(uuid4()),
                         STATUS: JOB_STATUS.submitted,       # @UndefinedVariable
                         JOB_NAME: cur_job_name,

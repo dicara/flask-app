@@ -77,3 +77,6 @@ GnuBio Flask API.
      * Added fiducial pre-filtering
      * Added capability to ignore dyes
    * Add capability to define the dye profile major/minor versions
+ * v1.5.1
+   * The use_iid boolean should be recorded in the db for each primary analysis job.
+   * The default identity training factor should be 1000 based on Nate's experience.

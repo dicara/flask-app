@@ -110,7 +110,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                         default=0, minimum=0)
         cls.training_param     = ParameterFactory.integer(TRAINING_FACTOR, 
                                                    _TRAINING_FACTOR_DESCRIPTION,
-                                                   default=10, minimum=1)
+                                                   default=1000, minimum=1)
         cls.dye_levels_param   = ParameterFactory.dye_levels()
         cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
                                                        required=False)

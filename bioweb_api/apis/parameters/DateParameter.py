@@ -52,17 +52,18 @@ class DateParameter(AbstractParameter):
                                             required=required, 
                                             allow_multiple=allow_multiple)
         
-        self._default = default
         self._format  = SWAGGER_FORMATS.date                # @UndefinedVariable
-        self._enum    = enum
         
-        if self.default and not _DATE_PATTERN.match(self.default):
-            raise Exception("Default date (%s) doesn't match accepted pattern: YYYY_MM_DD." % self.default)
+        if default:
+            if not _DATE_PATTERN.match(default):
+                raise Exception("Default date (%s) doesn't match accepted pattern: YYYY_MM_DD." % default)
+            self._default = self._convert_args([default])[0]
 
-        if self.enum:
-            for date in self.enum:
+        if enum:
+            for date in enum:
                 if not _DATE_PATTERN.match(date):
                     raise Exception("Enum date (%s) doesn't match accepted pattern: YYYY_MM_DD." % date)
+            self._enum = self._convert_args(enum)
             self._ensure_default_in_enum()
         
     #===========================================================================
@@ -74,11 +75,6 @@ class DateParameter(AbstractParameter):
     
     def _convert_args(self, raw_args):
         dates = map(self.__convert_date, raw_args)
-        if self.enum:
-            valid_dates = set(map(self.__convert_date, self.enum))
-            if not set(dates).issubset(valid_dates):
-                invalid_dates = set(dates).difference(valid_dates)
-                raise Exception("Provided arguments %s not a subset of valid arguments: %s" % (invalid_dates, valid_dates))
         return dates
     
     #===========================================================================

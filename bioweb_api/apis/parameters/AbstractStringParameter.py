@@ -51,18 +51,15 @@ class AbstractStringParameter(AbstractParameter):
                                                        allow_multiple=allow_multiple,
                                                        param_type=param_type)
         
-        self._default = default
-        self._enum    = enum
+        if default:
+            if not isinstance(default, str) and not isinstance(default, unicode):
+                raise Exception("Expected default to be of type str but found: %s" % type(default))
+            self._default = self._convert_args([default])[0]
         
-        if self.default:
-            if not isinstance(self.default, str) and not isinstance(self.default, unicode):
-                raise Exception("Expected default to be of type str but found: %s" % type(self.default))
-            self._default = self.update_case(self._default)
-        
-        if self.enum:
-            if False in map(lambda x: isinstance(x, str) or isinstance(x,unicode), self.enum):
-                raise Exception("All enum values must be strings but found: %s" % self.enum)
-            self._enum = map(self.update_case, self.enum)
+        if enum:
+            if False in map(lambda x: isinstance(x, str) or isinstance(x,unicode), enum):
+                raise Exception("All enum values must be strings but found: %s" % enum)
+            self._enum = self._convert_args(enum)
             self._ensure_default_in_enum()
     
     #===========================================================================
@@ -86,9 +83,4 @@ class AbstractStringParameter(AbstractParameter):
     
     def _convert_args(self, raw_args):
         fixed_case_args = map(self.update_case, raw_args)
-        if self.enum:
-            valid_strings = set(self.enum)
-            if not set(fixed_case_args).issubset(valid_strings):
-                invalid_args = set(fixed_case_args).difference(valid_strings)
-                raise Exception("Provided arguments %s not a subset of valid arguments: %s" % (invalid_args, valid_strings))
         return fixed_case_args

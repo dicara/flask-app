@@ -176,7 +176,14 @@ class AbstractParameter(object):
             elif self.required:
                 raise Exception("Required argument %s not provided." % self.name)
             
-        return self._convert_args(raw_args)
+        converted_args = self._convert_args(raw_args)
+        if self.enum:
+            valid_args = set(self.enum)
+            if not set(converted_args).issubset(valid_args):
+                invalid_args = set(converted_args).difference(valid_args)
+                raise Exception("Provided arguments %s not a subset of valid arguments: %s" % (invalid_args, valid_args))
+            
+        return converted_args
     
     def _ensure_default_in_enum(self):
         if self.default and self.enum and self.default not in self.enum:

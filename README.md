@@ -80,3 +80,5 @@ GnuBio Flask API.
  * v1.5.1
    * The use_iid boolean should be recorded in the db for each primary analysis job.
    * The default identity training factor should be 1000 based on Nate's experience.
+ * v1.6
+   * The use of parameter enums were only implemented for string and date parameters. This code now lives in the abstract and should be implemented for all parameters.

@@ -41,8 +41,8 @@ class SortParameter(AbstractParameter):
     def __init__(self, name, description, default, parameters, use_alias=True,
                  required=False):
         super(SortParameter, self).__init__(name, name, description, 
-                                              required=required, 
-                                              allow_multiple=False)
+                                            required=required, 
+                                            allow_multiple=False)
         
         if not isinstance(default, AbstractParameter):
             raise Exception("Default must be an AbstractParameter but found: %s" % type(default))

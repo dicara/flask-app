@@ -50,15 +50,15 @@ class FloatParameter(AbstractParameter):
         if default is not None:
             self._default = self.__convert_float(default)
         
-        if enum:
-            self._enum = map(self.__convert_float, enum)
-            self._ensure_default_in_enum()
-            
         if minimum:
             self._minimum = self.__convert_float(minimum)
 
         if maximum:
             self._maximum = self.__convert_float(maximum)
+            
+        if enum:
+            self._enum = self._convert_args(enum)
+            self._ensure_default_in_enum()
             
         if equality and equality not in EQUALITY._fields:
             raise Exception("Equality (%s) must be one of %s." % (equality, EQUALITY._fields))

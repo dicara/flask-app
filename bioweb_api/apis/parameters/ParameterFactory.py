@@ -34,10 +34,11 @@ from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
-    STACK_TYPE, MONITOR1, MONITOR2
+    STACK_TYPE, MONITOR1, MONITOR2, NAME
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
+from bioweb_api import IMAGES_COLLECTION
 
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
@@ -278,9 +279,13 @@ class ParameterFactory(object):
                                             default=default,
                                             enum={MONITOR1, MONITOR2})
 
-    @staticmethod
-    def available_stacks(name, description, enum, required=True, allow_multiple=False):
+    @classmethod
+    def available_stacks(cls, name, description, stack_type, required=True, allow_multiple=False):
+        existing_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
+                                              {STACK_TYPE: stack_type},
+                                              [NAME])
+        uniq_names = set([rec[NAME] for rec in existing_stacks])
         return CaseSensitiveStringParameter(name, description,
                                             required=required,
                                             allow_multiple=allow_multiple,
-                                            enum=enum)
+                                            enum=uniq_names)

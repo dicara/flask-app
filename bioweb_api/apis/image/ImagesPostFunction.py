@@ -24,18 +24,16 @@ limitations under the License.
 import os
 import shutil
 import sys
-import tarfile
 
 from datetime import datetime
 from uuid import uuid4
 
-from bioweb_api.apis.image.ImageApiHelperFunctions import check_tar_structure, \
-    get_number_imgs
+from bioweb_api.apis.image.ImageApiHelperFunctions import check_tar_structure
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
-    VALID_IMAGE_EXTENSIONS, EXP_DEF_NAME, EXP_DEF_UUID, NUM_IMAGES,\
-    DATESTAMP, UUID, NAME, DESCRIPTION, URL, ID, STACK_TYPE, HAM
+    EXP_DEF_NAME, EXP_DEF_UUID, NUM_IMAGES, DATESTAMP, UUID, NAME, \
+    DESCRIPTION, URL, ID, STACK_TYPE, HAM
 from bioweb_api import TMP_PATH, IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
     PORT
 from bioweb_api.utilities.io_utilities import make_clean_response, \
@@ -120,7 +118,7 @@ class ImagesPostFunction(AbstractPostFunction):
             # check tar file
             image_stack_tgz.save(tmp_archive_path)
             image_stack_tgz.close()
-            tar_error = check_tar_structure(tmp_archive_path, HAM)
+            tar_error, nimgs = check_tar_structure(tmp_archive_path, HAM)
 
             # check for existing image stacks
             existing_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
@@ -152,7 +150,7 @@ class ImagesPostFunction(AbstractPostFunction):
                 json_response[DESCRIPTION]  = short_desc
                 json_response[EXP_DEF_NAME] = exp_def_name
                 json_response[EXP_DEF_UUID] = exp_def_uuid
-                json_response[NUM_IMAGES]   = get_number_imgs(tmp_archive_path)
+                json_response[NUM_IMAGES]   = nimgs
                 json_response[STACK_TYPE]  = HAM
                 cls._DB_CONNECTOR.insert(IMAGES_COLLECTION,
                                          [json_response])

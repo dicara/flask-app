@@ -19,13 +19,14 @@ limitations under the License.
 #===============================================================================
 # Imports
 #===============================================================================
-import os
-import stat
-import errno
-import csv
 import collections
-import numbers
+import csv
+import errno
 import math
+import numbers
+import os
+import shutil
+import stat
 
 from datetime import datetime
 from flask import make_response, jsonify
@@ -60,6 +61,15 @@ def silently_remove_file(filename):
     '''
     try:
         os.remove(filename)
+    except OSError:
+        pass
+
+def silently_remove_tree(tree_path):
+    '''
+    Attempt to remove path and all subfiles/folders, ignoring any exceptions.
+    '''
+    try:
+        shutil.rmtree(tree_path)
     except OSError:
         pass
     

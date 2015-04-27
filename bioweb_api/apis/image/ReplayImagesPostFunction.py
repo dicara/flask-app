@@ -30,39 +30,21 @@ import tempfile
 from datetime import datetime
 from uuid import uuid4
 
+from bioweb_api.apis.image.ImageApiHelperFunctions import add_imgs
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
-    VALID_IMAGE_EXTENSIONS,DATESTAMP, UUID, NAME, URL, ID, HAM_NAME, \
+    DESCRIPTION, DATESTAMP, UUID, NAME, URL, ID, HAM_NAME, \
     MON1_NAME, MON2_NAME, STACK_TYPE, MONITOR1, MONITOR2, HAM, REPLAY
 from bioweb_api import TMP_PATH, IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
     PORT
 from bioweb_api.utilities.io_utilities import make_clean_response, \
-    silently_remove_file
+    silently_remove_tree
 
 #=============================================================================
 # Public Static Variables
 #=============================================================================
 REPLAY_IMAGES = 'ReplayImages'
-
-#=============================================================================
-# Helper Functions
-#=============================================================================
-def add_imgs(replay_tar_file, existing_tar, tmp_path, stack_type):
-    """
-    Adds images from existing image files into a the replay tar file.
-
-    @param replay_tar_file: Tarfile object that is writable.
-    @param existing_tar:    String specifying path to tar file containing image stacks
-    @param tmp_path:        String specifying temporary directory to tar/untar
-    @param stack_type:      String specifying name of image type (will be name of root dir)
-    """
-    tf = tarfile.open(existing_tar)
-    tf.extractall(tmp_path)
-
-    replay_tar_file.add(os.path.join(tmp_path, stack_type), stack_type)
-    shutil.rmtree(os.path.join(tmp_path, stack_type))
-
 
 #=============================================================================
 # Class
@@ -98,45 +80,33 @@ class ReplayImagesPostFunction(AbstractPostFunction):
     
     @classmethod
     def parameters(cls):
-
-        existing_ham_stacks  = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                              {STACK_TYPE: HAM},
-                                              [NAME])
-
-        existing_mon1_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                              {STACK_TYPE: MONITOR1},
-                                              [NAME])
-
-        existing_mon2_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                              {STACK_TYPE: MONITOR2},
-                                              [NAME])
-        uniq_ham  = set([rec[NAME] for rec in existing_ham_stacks])
-        uniq_mon1 = set([rec[NAME] for rec in existing_mon1_stacks])
-        uniq_mon2 = set([rec[NAME] for rec in existing_mon2_stacks])
-
-        cls._name_param = ParameterFactory.cs_string(NAME,
+        cls._name_param       = ParameterFactory.cs_string(NAME,
             'Unique name to give this image stack.')
-        cls._ham_imgs   = ParameterFactory.available_stacks(HAM_NAME,
-            'Existing ham image stack.', uniq_ham)
-        cls._mon1_imgs  = ParameterFactory.available_stacks(MON1_NAME,
-            'Existing monitor camera 1 image stack.', uniq_mon1)
-        cls._mon2_imgs  = ParameterFactory.available_stacks(MON2_NAME,
-            'Existing monitor camera 2 image stack.', uniq_mon2)
+        cls._ham_imgs_param   = ParameterFactory.available_stacks(HAM_NAME,
+            'Existing ham image stack.', HAM)
+        cls._mon1_imgs_param  = ParameterFactory.available_stacks(MON1_NAME,
+            'Existing monitor camera 1 image stack.', MONITOR1)
+        cls._mon2_imgs_param  = ParameterFactory.available_stacks(MON2_NAME,
+            'Existing monitor camera 2 image stack.', MONITOR2)
+        cls._short_desc_param = ParameterFactory.cs_string(DESCRIPTION,
+            'Short description of image stack.')
 
         parameters = [
                       cls._name_param,
-                      cls._ham_imgs,
-                      cls._mon1_imgs,
-                      cls._mon2_imgs,
+                      cls._ham_imgs_param,
+                      cls._mon1_imgs_param,
+                      cls._mon2_imgs_param,
+                      cls._short_desc_param,
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
         replay_stack_name = params_dict[cls._name_param][0]
-        ham_stack_name    = params_dict[cls._ham_imgs][0]
-        mon1_stack_name   = params_dict[cls._mon1_imgs][0]
-        mon2_stack_name   = params_dict[cls._mon2_imgs][0]
+        ham_stack_name    = params_dict[cls._ham_imgs_param][0]
+        mon1_stack_name   = params_dict[cls._mon1_imgs_param][0]
+        mon2_stack_name   = params_dict[cls._mon2_imgs_param][0]
+        short_desc        = params_dict[cls._short_desc_param][0]
         http_status_code  = 200
         uuid              = str(uuid4())
         json_response     = {DATESTAMP: datetime.today()}
@@ -185,7 +155,9 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     # make readme
                     readme_file_name = 'README'
                     readme_path = os.path.join(tmp_path, readme_file_name)
-                    readme_str = '\n'.join([ham_stack_name, mon1_stack_name, mon2_stack_name])
+                    readme_str = '\n'.join([replay_stack_name, ham_stack_name,
+                                            mon1_stack_name, mon2_stack_name,
+                                            short_desc])
                     with open(readme_path, 'w') as fh:
                         fh.write(readme_str)
 
@@ -207,21 +179,22 @@ class ReplayImagesPostFunction(AbstractPostFunction):
 
                     # insert into database
                     url = 'http://%s/results/%s/%s' % (HOSTNAME, PORT, os.path.basename(archive_path))
-                    json_response[FILENAME]   = new_tf_name
-                    json_response[RESULT]     = archive_path
-                    json_response[URL]        = url
-                    json_response[UUID]       = uuid
-                    json_response[HAM_NAME]   = ham_stack_name
-                    json_response[MON1_NAME]  = mon1_stack_name
-                    json_response[MON2_NAME]  = mon2_stack_name
-                    json_response[NAME]       = replay_stack_name
-                    json_response[STACK_TYPE] = REPLAY
+                    json_response[FILENAME]    = new_tf_name
+                    json_response[RESULT]      = archive_path
+                    json_response[URL]         = url
+                    json_response[UUID]        = uuid
+                    json_response[HAM_NAME]    = ham_stack_name
+                    json_response[MON1_NAME]   = mon1_stack_name
+                    json_response[MON2_NAME]   = mon2_stack_name
+                    json_response[NAME]        = replay_stack_name
+                    json_response[STACK_TYPE]  = REPLAY
+                    json_response[DESCRIPTION] = short_desc
                     cls._DB_CONNECTOR.insert(IMAGES_COLLECTION, [json_response])
                 except:
                     http_status_code     = 500
                     json_response[ERROR] = str(sys.exc_info()[1])
                 finally:
-                    shutil.rmtree(tmp_path)
+                    silently_remove_tree(tmp_path)
 
         except:
             http_status_code     = 500

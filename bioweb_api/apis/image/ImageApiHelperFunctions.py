@@ -1,7 +1,9 @@
 import os
+import shutil
 import tarfile
 
 from bioweb_api.apis.ApiConstants import VALID_IMAGE_EXTENSIONS
+from bioweb_api.utilities.io_utilities import silently_remove_tree
 
 
 def check_tar_structure(tar_path, valid_dir_name):
@@ -11,54 +13,64 @@ def check_tar_structure(tar_path, valid_dir_name):
 
     @param tar_path:        String of tar file path
     @param valid_dir_name:  String specifying valid root directory name
-    @return:                Bool
+    @return:                Tuple containing error message if any and
+                            image count if no errors were encountered.
     """
     # verify that file is tar file
     if not tarfile.is_tarfile(tar_path):
-        return 'Not a tar file.'
+        return 'Not a tar file.', None
 
     # open file and get members
     tf = tarfile.open(tar_path)
     members = tf.getmembers()
     tf.close()
 
-    # separate members into root and non root
-    root_members     = [m for m in members if os.path.split(m.name)[0] == '']
-    valid_root_dir   = [m for m in root_members if m.isdir() and m.name == valid_dir_name]
+    # verify that there are no other files in tar root except a single directory
+    valid_root_members = [m for m in members if os.path.split(m.name)[0] == '' and m.isdir()]
+    if len(valid_root_members) != 1:
+        return 'Tar root must have a single directory.', None
+
+    # verify tar root directory has a valid name
+    valid_root_dir = [m for m in valid_root_members if m.name == valid_dir_name]
+    if not valid_root_dir:
+        return 'Tar root folder must be named "%s".' % valid_dir_name, None
+
+    # check if directory is empty
     non_root_members = [m for m in members if os.path.split(m.name)[0] != '']
-    filter_func      = lambda m: os.path.basename(m.name).endswith(tuple(VALID_IMAGE_EXTENSIONS)) and \
-                            not os.path.basename(m.name).startswith('.')
-    tar_images       = filter(filter_func, non_root_members)
+    if not non_root_members:
+        return 'Image directory is empty.', None
 
-    # verify that there are no other files in tar root except valid directory
-    if len(root_members) != 1 or not valid_root_dir:
-        return 'Tar root must have a single folder named "%s".' % valid_dir_name
-
-    # verify that root dir has images
-    elif not tar_images:
-        return 'Tar file has no images.'
-
-    # verify non root members are image files
+    # verify image directory contents
+    img_count = 0
     for member in non_root_members:
-        ext = os.path.splitext(member.name)[1][1:]
-        if not member.isfile() or ext not in VALID_IMAGE_EXTENSIONS:
-            return 'Tar contains invalid files.'
+        base_name = os.path.basename(member.name)
+        # check extension
+        if not base_name.endswith(tuple(VALID_IMAGE_EXTENSIONS)):
+            return 'Tar contains non-image files.', None
+        # check file type
+        elif not member.isfile():
+            return 'Tar image folder has members that are not file.', None
+        # osx tar files contain non-visible files containing metadata, allow them
+        elif base_name.startswith('.'):
+            pass
+        else:
+            img_count += 1
 
-def get_number_imgs(tar_path):
+    return '', img_count
+
+
+def add_imgs(replay_tar_file, existing_tar, tmp_path, stack_type):
     """
-    Return the image count within a tar file with a valid structure.
-    Tar should be verified by check_tar_structure function first.
+    Adds images from existing image files into a the replay tar file.
 
-    @param tar_path:        String of tar file path
-    @return:                Integer specitying image count
+    @param replay_tar_file: Tarfile object that is writable.
+    @param existing_tar:    String specifying path to tar file containing image stacks
+    @param tmp_path:        String specifying temporary directory to tar/untar
+    @param stack_type:      String specifying name of image type (will be name of root dir)
     """
-    # open file and get members
-    tf = tarfile.open(tar_path)
-    members = tf.getmembers()
-    tf.close()
+    tf = tarfile.open(existing_tar)
+    tf.extractall(tmp_path)
 
-    # images are non-hidden files that end with valid extension
-    files_names = [os.path.basename(m.name) for m in members if m.isfile()]
-    filter_func = lambda file_name: file_name.endswith(tuple(VALID_IMAGE_EXTENSIONS)) and \
-                                not file_name.startswith('.')
-    return len(filter(filter_func, files_names))
+    replay_tar_file.add(os.path.join(tmp_path, stack_type), stack_type)
+    silently_remove_tree(os.path.join(tmp_path, stack_type))
+

@@ -157,7 +157,7 @@ class TestImagesAppi(unittest.TestCase):
         self.assertTrue(record_found, msg)
 
         # Delete image stack
-        url = add_url_argument(_MON_IMAGES_URL, UUID, image_stack_uuid, True)
+        url = add_url_argument(_IMAGES_URL, UUID, image_stack_uuid, True)
         delete_data(self, url, 200)
 
         # Ensure image stack no longer exists in the database
@@ -195,12 +195,13 @@ class TestImagesAppi(unittest.TestCase):
         mon2_response = upload_file(self, _TEST_DIR, mon2_url, _MON2_IMAGES, 200)
         mon2_uuid = mon2_response[UUID]
 
-        # create and replay image stack from existing stacks
+        # create a replay image stack from existing stacks
         replay_url = _REPLAY_IMAGES_URL
         replay_url = add_url_argument(replay_url, NAME, 'replay_images_name', True)
         replay_url = add_url_argument(replay_url, HAM_NAME, 'golden_run')
         replay_url = add_url_argument(replay_url, MON1_NAME, 'monitor1_images_name')
         replay_url = add_url_argument(replay_url, MON2_NAME, 'monitor2_images_name')
+        replay_url = add_url_argument(replay_url, DESCRIPTION, 'replay images description')
         replay_response = post_data(self, replay_url, 200)
         replay_uuid = replay_response[UUID]
 
@@ -210,6 +211,7 @@ class TestImagesAppi(unittest.TestCase):
         replay_url = add_url_argument(replay_url, HAM_NAME, 'golden_run')
         replay_url = add_url_argument(replay_url, MON1_NAME, 'monitor1_images_name')
         replay_url = add_url_argument(replay_url, MON2_NAME, 'monitor2_images_name')
+        replay_url = add_url_argument(replay_url, DESCRIPTION, 'replay images description')
         post_data(self, replay_url, 403)
 
         # try to add replay image stack comprised of the same ham/mon image stacks
@@ -218,16 +220,17 @@ class TestImagesAppi(unittest.TestCase):
         replay_url = add_url_argument(replay_url, HAM_NAME, 'golden_run')
         replay_url = add_url_argument(replay_url, MON1_NAME, 'monitor1_images_name')
         replay_url = add_url_argument(replay_url, MON2_NAME, 'monitor2_images_name')
+        replay_url = add_url_argument(replay_url, DESCRIPTION, 'replay images description')
         post_data(self, replay_url, 403)
 
         # Delete image stacks
         url = add_url_argument(_IMAGES_URL, UUID, ham_uuid, True)
         delete_data(self, url, 200)
-        url = add_url_argument(_MON_IMAGES_URL, UUID, mon1_uuid, True)
+        url = add_url_argument(_IMAGES_URL, UUID, mon1_uuid, True)
         delete_data(self, url, 200)
-        url = add_url_argument(_MON_IMAGES_URL, UUID, mon2_uuid, True)
+        url = add_url_argument(_IMAGES_URL, UUID, mon2_uuid, True)
         delete_data(self, url, 200)
-        url = add_url_argument(_REPLAY_IMAGES_URL, UUID, replay_uuid, True)
+        url = add_url_argument(_IMAGES_URL, UUID, replay_uuid, True)
         delete_data(self, url, 200)
 
 

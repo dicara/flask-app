@@ -24,6 +24,12 @@ from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.image.ImagesPostFunction import ImagesPostFunction
 from bioweb_api.apis.image.ImagesGetFunction import ImagesGetFunction
 from bioweb_api.apis.image.ImagesDeleteFunction import ImagesDeleteFunction
+from bioweb_api.apis.image.MonitorImagesPostFunction import MonitorImagesPostFunction
+from bioweb_api.apis.image.MonitorImagesGetFunction import MonitorImagesGetFunction
+from bioweb_api.apis.image.MonitorImagesDeleteFunction import MonitorImagesDeleteFunction
+from bioweb_api.apis.image.ReplayImagesPostFunction import ReplayImagesPostFunction
+from bioweb_api.apis.image.ReplayImagesGetFunction import ReplayImagesGetFunction
+from bioweb_api.apis.image.ReplayImagesDeleteFunction import ReplayImagesDeleteFunction
 
 #=============================================================================
 # Public Static Variables
@@ -42,6 +48,12 @@ class ImageAPIV1(AbstractApiV1):
                   ImagesPostFunction(),
                   ImagesGetFunction(),
                   ImagesDeleteFunction(),
+                  MonitorImagesPostFunction(),
+                  MonitorImagesGetFunction(),
+                  MonitorImagesDeleteFunction(),
+                  ReplayImagesPostFunction(),
+                  ReplayImagesGetFunction(),
+                  ReplayImagesDeleteFunction()
                  ]
     
     @staticmethod

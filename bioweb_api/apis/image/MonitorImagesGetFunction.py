@@ -26,26 +26,25 @@ from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import IMAGES_COLLECTION
 from bioweb_api.apis.ApiConstants import FILENAME, ID, \
-    RESULT, EXP_DEF_NAME, EXP_DEF_UUID, NUM_IMAGES, \
-    DATESTAMP, UUID, NAME, DESCRIPTION, URL, STACK_TYPE, \
-    HAM
-from bioweb_api.apis.image.ImagesPostFunction import IMAGES
+    RESULT, STACK_TYPE, MONITOR1, MONITOR2, NUM_IMAGES,\
+    DATESTAMP, UUID, NAME, DESCRIPTION, URL
+from bioweb_api.apis.image.MonitorImagesPostFunction import MONITOR_IMAGES
 
 #=============================================================================
 # Class
 #=============================================================================
-class ImagesGetFunction(AbstractGetFunction):
+class MonitorImagesGetFunction(AbstractGetFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return IMAGES
+        return MONITOR_IMAGES
    
     @staticmethod
     def summary():
-        return "Retrieve list of image stacks."
+        return "Retrieve list of monitor camera image stacks."
     
     @staticmethod
     def notes():
@@ -69,21 +68,20 @@ class ImagesGetFunction(AbstractGetFunction):
         columns[URL]          = 1
         columns[NAME]         = 1
         columns[DESCRIPTION]  = 1
-        columns[EXP_DEF_NAME] = 1
-        columns[EXP_DEF_UUID] = 1
         columns[NUM_IMAGES]   = 1
         columns[STACK_TYPE]   = 1
-        
+
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(IMAGES_COLLECTION, {STACK_TYPE: HAM}, columns)
-
-        return (data, column_names, None)
+        data1 = cls._DB_CONNECTOR.find(IMAGES_COLLECTION, {STACK_TYPE: MONITOR1}, columns)
+        data2 = cls._DB_CONNECTOR.find(IMAGES_COLLECTION, {STACK_TYPE: MONITOR2}, columns)
+         
+        return (data1+data2, column_names, None)
          
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ImagesGetFunction()
+    function = MonitorImagesGetFunction()
     print function

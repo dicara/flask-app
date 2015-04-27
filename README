@@ -82,3 +82,6 @@ GnuBio Flask API.
    * The default identity training factor should be 1000 based on Nate's experience.
  * v1.6
    * The use of parameter enums were only implemented for string and date parameters. This code now lives in the abstract and should be implemented for all parameters.
+ * v1.7
+   * Added ability to upload monitor camera image stacks.
+   * Added ability to compose replay image stacks from ham and monitor image stacks.

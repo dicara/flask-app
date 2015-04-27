@@ -40,7 +40,7 @@ class DbConnector(object):
     class.
     '''
     _INSTANCE = None
-    
+
     #===========================================================================
     # Constructor
     #===========================================================================
@@ -48,20 +48,20 @@ class DbConnector(object):
         # Enforce that it's a singleton
         if self._INSTANCE:
             raise Exception("%s is a singleton and should be accessed through the Instance method." % self.__class__.__name__)
-    
+
     @classmethod
     def Instance(cls):
         if not cls._INSTANCE:
             cls._INSTANCE = DbConnector()
         return cls._INSTANCE
-    
+
     #===========================================================================
     # Simple get methods
     #===========================================================================
     @staticmethod
     def insert(collection, records):
         return _DB[collection].insert(records)
-    
+
     @staticmethod
     def find(collection, criteria, projection=None):
         '''
@@ -78,7 +78,7 @@ class DbConnector(object):
         @return List of records - empty list if no records are found.
         '''
         return list(_DB[collection].find(criteria, projection))
-    
+
     @staticmethod
     def find_one(collection, field_name, field_value):
         '''
@@ -92,7 +92,7 @@ class DbConnector(object):
         @return First record found meeting search criteria.
         '''
         return _DB[collection].find_one({field_name: field_value})
-    
+
     @classmethod
     def find_from_params(cls, collection, params_dict, fields):
         '''
@@ -109,14 +109,15 @@ class DbConnector(object):
         '''
         criteria = { param.name: {"$in": v} for param,v in params_dict.items() }
         return cls.find(collection, criteria, fields)
-    
+
     @staticmethod
     def distinct(collection, column_name):
         '''
         Call distinct on the provide column_name in the provided collection.
         '''
         return list(_DB[collection].distinct(column_name))
-    
+
+
     @classmethod
     def distinct_sorted(cls, collection, column_name, is_string=True):
         '''
@@ -125,21 +126,21 @@ class DbConnector(object):
         results. Otherwise, simply sort the results.
         '''
         if is_string:
-            return sorted(filter(lambda x: x is not None, 
-                                 cls.distinct(collection, column_name)), 
-                                 key=lambda s: s.lower())
+            return sorted(filter(lambda x: x is not None,
+                                 cls.distinct(collection, column_name)),
+                          key=lambda s: s.lower())
         else:
-            return sorted(filter(lambda x: x is not None, 
+            return sorted(filter(lambda x: x is not None,
                                  cls.distinct(collection, column_name)))
-            
+
     @staticmethod
     def remove(collection, criteria):
         return _DB[collection].remove(criteria)
-    
+
     @staticmethod
     def update(collection, query, update):
         _DB[collection].update(query, update)
-        
+
 #===========================================================================
 # Ensure the initial instance is created.
 #===========================================================================    

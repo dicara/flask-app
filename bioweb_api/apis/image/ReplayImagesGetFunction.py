@@ -26,26 +26,25 @@ from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import IMAGES_COLLECTION
 from bioweb_api.apis.ApiConstants import FILENAME, ID, \
-    RESULT, EXP_DEF_NAME, EXP_DEF_UUID, NUM_IMAGES, \
-    DATESTAMP, UUID, NAME, DESCRIPTION, URL, STACK_TYPE, \
-    HAM
-from bioweb_api.apis.image.ImagesPostFunction import IMAGES
+    RESULT, STACK_TYPE, REPLAY, NUM_IMAGES,\
+    DATESTAMP, UUID, NAME, DESCRIPTION, URL, HAM_NAME, MON1_NAME, MON2_NAME
+from bioweb_api.apis.image.ReplayImagesPostFunction import REPLAY_IMAGES
 
 #=============================================================================
 # Class
 #=============================================================================
-class ImagesGetFunction(AbstractGetFunction):
+class ReplayImagesGetFunction(AbstractGetFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return IMAGES
+        return REPLAY_IMAGES
    
     @staticmethod
     def summary():
-        return "Retrieve list of image stacks."
+        return "Retrieve replay image stacks."
     
     @staticmethod
     def notes():
@@ -69,21 +68,22 @@ class ImagesGetFunction(AbstractGetFunction):
         columns[URL]          = 1
         columns[NAME]         = 1
         columns[DESCRIPTION]  = 1
-        columns[EXP_DEF_NAME] = 1
-        columns[EXP_DEF_UUID] = 1
         columns[NUM_IMAGES]   = 1
         columns[STACK_TYPE]   = 1
-        
+        columns[HAM_NAME]     = 1
+        columns[MON1_NAME]    = 1
+        columns[MON2_NAME]    = 1
+
         column_names = columns.keys()  
         column_names.remove(ID)         
         
-        data = cls._DB_CONNECTOR.find(IMAGES_COLLECTION, {STACK_TYPE: HAM}, columns)
-
+        data = cls._DB_CONNECTOR.find(IMAGES_COLLECTION, {STACK_TYPE: REPLAY}, columns)
+         
         return (data, column_names, None)
          
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = ImagesGetFunction()
+    function = ReplayImagesGetFunction()
     print function

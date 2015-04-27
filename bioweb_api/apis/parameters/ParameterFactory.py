@@ -33,10 +33,12 @@ from bioweb_api.apis.parameters.FileParameter import FileParameter
 from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
-    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF
+    CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
+    STACK_TYPE, MONITOR1, MONITOR2, NAME
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
+from bioweb_api import IMAGES_COLLECTION
 
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
@@ -265,3 +267,25 @@ class ParameterFactory(object):
         exp_defs = ExperimentDefinitions()
         return cls.cs_string(EXP_DEF, "Experiment definition.", required=True, 
                              enum=exp_defs.experiment_names)
+
+    @staticmethod
+    def mon_camera_type(name=STACK_TYPE, description=None, required=True, allow_multiple=True,
+             default=None):
+        if not description:
+            description = "Comma separated list of available monitor cameras."
+        return CaseSensitiveStringParameter(name, description,
+                                            required=required,
+                                            allow_multiple=allow_multiple,
+                                            default=default,
+                                            enum={MONITOR1, MONITOR2})
+
+    @classmethod
+    def available_stacks(cls, name, description, stack_type, required=True, allow_multiple=False):
+        existing_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
+                                              {STACK_TYPE: stack_type},
+                                              [NAME])
+        uniq_names = set([rec[NAME] for rec in existing_stacks])
+        return CaseSensitiveStringParameter(name, description,
+                                            required=required,
+                                            allow_multiple=allow_multiple,
+                                            enum=uniq_names)

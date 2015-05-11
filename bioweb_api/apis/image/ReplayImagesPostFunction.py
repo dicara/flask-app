@@ -118,15 +118,15 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                                                   [NAME, RESULT])
 
             existing_ham_stacks    = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                                  {STACK_TYPE: HAM},
+                                                  {NAME: ham_stack_name, STACK_TYPE: HAM},
                                                   [RESULT])
 
             existing_mon1_stacks   = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                                  {STACK_TYPE: MONITOR1},
+                                                  {NAME: mon1_stack_name, STACK_TYPE: MONITOR1},
                                                   [RESULT])
 
             existing_mon2_stacks   = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,
-                                                  {STACK_TYPE: MONITOR2},
+                                                  {NAME: mon2_stack_name, STACK_TYPE: MONITOR2},
                                                   [RESULT])
 
             similar_replay_stacks  = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,

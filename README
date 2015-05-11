@@ -85,3 +85,5 @@ GnuBio Flask API.
  * v1.7
    * Added ability to upload monitor camera image stacks.
    * Added ability to compose replay image stacks from ham and monitor image stacks.
+ * v1.8
+   * Fixed bug that caused replay images stacks to be improperly created.

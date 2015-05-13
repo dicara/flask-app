@@ -1,9 +1,7 @@
 import os
-import shutil
 import tarfile
 
 from bioweb_api.apis.ApiConstants import VALID_IMAGE_EXTENSIONS
-from bioweb_api.utilities.io_utilities import silently_remove_tree
 
 
 def check_tar_structure(tar_path, valid_dir_name):
@@ -59,18 +57,15 @@ def check_tar_structure(tar_path, valid_dir_name):
     return '', img_count
 
 
-def add_imgs(replay_tar_file, existing_tar, tmp_path, stack_type):
+def extract_imgs(existing_tar, replay_dir_path):
     """
     Adds images from existing image files into a the replay tar file.
 
-    @param replay_tar_file: Tarfile object that is writable.
     @param existing_tar:    String specifying path to tar file containing image stacks
     @param tmp_path:        String specifying temporary directory to tar/untar
-    @param stack_type:      String specifying name of image type (will be name of root dir)
     """
+    # extract incoming
     tf = tarfile.open(existing_tar)
-    tf.extractall(tmp_path)
-
-    replay_tar_file.add(os.path.join(tmp_path, stack_type), stack_type)
-    silently_remove_tree(os.path.join(tmp_path, stack_type))
+    tf.extractall(replay_dir_path)
+    tf.close()
 

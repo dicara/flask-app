@@ -50,6 +50,8 @@ _PNG_IMAGES     = "png_images.tgz"
 _BIN_IMAGES     = "bin_images.tgz"
 _NO_IMAGES      = "empty.tgz"
 _NOT_AN_ARCHIVE = "not_an_archive.txt"
+_INVALID_HAM_NAME = "invalid_ham_name.tgz"
+_INVALID_MON_NAME = "invalid_mon_name.tgz"
 
 #=============================================================================
 # Class
@@ -79,6 +81,20 @@ class TestImagesAppi(unittest.TestCase):
         url = add_url_argument(url, NAME, 'not_an_archive') 
         url = add_url_argument(url, DESCRIPTION, 'Not an archive.')
         upload_file(self, _TEST_DIR, url, _NOT_AN_ARCHIVE, 415)
+
+    def test_invalid_ham_dir_name(self):
+        url = _IMAGES_URL
+        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, NAME, 'invalid ham dir name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid ham dir name')
+        upload_file(self, _TEST_DIR, url, _INVALID_HAM_NAME, 415)
+
+    def test_invalid_mon_dir_name(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor dir name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor dir name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_NAME, 415)
         
     def test_bin_images(self):
         # Upload image stack

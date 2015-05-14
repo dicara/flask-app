@@ -28,7 +28,7 @@ import sys
 from datetime import datetime
 from uuid import uuid4
 
-from bioweb_api.apis.image.ImageApiHelperFunctions import check_tar_structure
+from bioweb_api.apis.image.ImageApiHelperFunctions import check_ham_tar_structure
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
@@ -118,7 +118,7 @@ class ImagesPostFunction(AbstractPostFunction):
             # check tar file
             image_stack_tgz.save(tmp_archive_path)
             image_stack_tgz.close()
-            tar_error, nimgs = check_tar_structure(tmp_archive_path, HAM)
+            tar_error, nimgs = check_ham_tar_structure(tmp_archive_path, HAM)
 
             # check for existing image stacks
             existing_stacks = cls._DB_CONNECTOR.find(IMAGES_COLLECTION,

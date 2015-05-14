@@ -30,7 +30,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, \
-    VALID_IMAGE_EXTENSIONS, APPLICATION
+    VALID_HAM_IMAGE_EXTENSIONS, APPLICATION
 
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
@@ -229,7 +229,7 @@ def execute_process(archive, dyes, device, major, minor, offsets, use_iid,
             print >>f, "  dyes: [%s]" % ", ".join([ "\"%s\"" % x for x in dyes])
             
         images = io_utilities.filter_files(os.listdir(tmp_path), 
-                                           VALID_IMAGE_EXTENSIONS) 
+                                           VALID_HAM_IMAGE_EXTENSIONS)
         images =[os.path.join(tmp_path, image) for image in images]
         
         # Run primary analysis process

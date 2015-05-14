@@ -137,9 +137,9 @@ MAJOR            = "major"
 MINOR            = "minor"
 MISSING_VALUE    = ""
 MON1_NAME        = "mon1_name"
-MONITOR1         = "monitor_1"
+MONITOR1         = "monitor_cam_1"
 MON2_NAME        = "mon2_name"
-MONITOR2         = "monitor_2"
+MONITOR2         = "monitor_cam_2"
 NAME             = "name"
 NUM              = "num"
 NUM_IMAGES       = "num_images"
@@ -170,7 +170,8 @@ URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
 
-VALID_IMAGE_EXTENSIONS = ["bin", "png"]
+VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
+VALID_MON_IMAGE_EXTENSIONS = ["jpg"]
 
 #=============================================================================
 # Secondary Analysis Constants

@@ -44,12 +44,21 @@ _IMAGES_URL     = os.path.join("/api/v1/Image", IMAGES)
 _MON_IMAGES_URL = os.path.join("/api/v1/Image", MONITOR_IMAGES)
 _REPLAY_IMAGES_URL = os.path.join("/api/v1/Image", REPLAY_IMAGES)
 _HAM_IMAGES     = "ham_images.tgz"
-_MON1_IMAGES    = "mon1_images.tgz"
-_MON2_IMAGES    = "mon2_images.tgz"
+_MON1_IMAGES    = "valid_mon1.tgz"
+_MON2_IMAGES    = "valid_mon2.tgz"
 _PNG_IMAGES     = "png_images.tgz"
 _BIN_IMAGES     = "bin_images.tgz"
 _NO_IMAGES      = "empty.tgz"
 _NOT_AN_ARCHIVE = "not_an_archive.txt"
+_INVALID_HAM_NAME = "invalid_ham_name.tgz"
+_INVALID_MON_ADD_FILES = "invalid_mon1_additional_files.tgz"
+_INVALID_MON_MISS_FILES = "invalid_mon1_missing_files.tgz"
+_INVALID_MON_NO_IMAGES = "invalid_mon1_no_images.tgz"
+_INVALID_MON_CROP_OFF  = "invalid_mon1_wrong_crop_off.tgz"
+_INVALID_MON_CROP_ON = "invalid_mon1_wrong_crop_on.tgz"
+_INVALID_MON_ROOT_NAME = "invalid_mon1_wrong_root_name.tgz"
+_INVALID_MON_UNCROPPED = "invalid_mon1_wrong_uncropped.tgz"
+_INVALID_MON_BADCOMPRESS = "invalid_mon1_bad_compression.tgz"
 
 #=============================================================================
 # Class
@@ -79,7 +88,70 @@ class TestImagesAppi(unittest.TestCase):
         url = add_url_argument(url, NAME, 'not_an_archive') 
         url = add_url_argument(url, DESCRIPTION, 'Not an archive.')
         upload_file(self, _TEST_DIR, url, _NOT_AN_ARCHIVE, 415)
-        
+
+    def test_invalid_ham_dir_name(self):
+        url = _IMAGES_URL
+        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, NAME, 'invalid ham dir name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid ham dir name')
+        upload_file(self, _TEST_DIR, url, _INVALID_HAM_NAME, 415)
+
+    def test_invalid_mon_dir_name(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor root dir name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor root dir name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_ROOT_NAME, 415)
+
+    def test_invalid_mon_additional_files(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor additional files name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor additional files name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_ADD_FILES, 415)
+
+    def test_invalid_mon_missing_files(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor missing files name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor missing files name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_MISS_FILES, 415)
+
+    def test_invalid_mon_no_images(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor no images name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor no images name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_NO_IMAGES, 415)
+
+    def test_invalid_mon_crop_off(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor crop off name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor crop off name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_CROP_OFF, 415)
+
+    def test_invalid_mon_crop_on(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor uncropped name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor uncropped name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_UNCROPPED, 415)
+
+    def test_invalid_mon_uncropped(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor crop on name')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor crop on name')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_CROP_ON, 415)
+
+    def test_invalid_mon_bad_compression(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor bad compression')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor bad compression')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_BADCOMPRESS, 415)
+
     def test_bin_images(self):
         # Upload image stack
         url = _IMAGES_URL
@@ -131,7 +203,7 @@ class TestImagesAppi(unittest.TestCase):
             msg = "Image stack %s still exists in the database." % record[UUID]
             self.assertNotEqual(image_stack_uuid, record[UUID], msg)
 
-    def test_monitor_images(self):
+    def test_monitor1_images(self):
         """
         Test the POST, GET and DELETE images APIs.
         """
@@ -166,7 +238,42 @@ class TestImagesAppi(unittest.TestCase):
             msg = "Monitor image stack %s still exists in the database." % record[UUID]
             self.assertNotEqual(image_stack_uuid, record[UUID], msg)
 
-    def test_replay_get(self):
+    def test_monitor2_images(self):
+        """
+        Test the POST, GET and DELETE images APIs.
+        """
+        # Upload image stack
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR2, True)
+        url = add_url_argument(url, NAME, 'monitor1_images_name')
+        url = add_url_argument(url, DESCRIPTION, 'monitor1 images description')
+
+        response = upload_file(self, _TEST_DIR, url, _MON2_IMAGES, 200)
+        image_stack_uuid = response[UUID]
+
+        # Ensure duplicate image stacks cannot be uploaded
+        upload_file(self, _TEST_DIR, url, _MON2_IMAGES, 403)
+
+        # Ensure image stack exists in the database and can be retrieved
+        response = get_data(self, _MON_IMAGES_URL, 200)
+        record_found = False
+        for record in response[MONITOR_IMAGES]:
+            if record[UUID] == image_stack_uuid:
+                record_found = True
+        msg = "Monitor image stack %s doesn't exist in the database." % image_stack_uuid
+        self.assertTrue(record_found, msg)
+
+        # Delete image stack
+        url = add_url_argument(_IMAGES_URL, UUID, image_stack_uuid, True)
+        delete_data(self, url, 200)
+
+        # Ensure image stack no longer exists in the database
+        response = get_data(self, _MON_IMAGES_URL, 200)
+        for record in response[MONITOR_IMAGES]:
+            msg = "Monitor image stack %s still exists in the database." % record[UUID]
+            self.assertNotEqual(image_stack_uuid, record[UUID], msg)
+
+    def test_replay(self):
         """
         Test the POST, GET and DELETE images APIs.
         """

@@ -30,7 +30,7 @@ import tempfile
 from datetime import datetime
 from uuid import uuid4
 
-from bioweb_api.apis.image.ImageApiHelperFunctions import add_imgs
+from bioweb_api.apis.image.ImageApiHelperFunctions import extract_imgs
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
@@ -152,9 +152,13 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     # temporary path for taring, untaring, etc...
                     tmp_path = tempfile.mkdtemp()
 
+                    # create a replay directory
+                    replay_dir_path = os.path.join(tmp_path, 'replay')
+                    os.mkdir(replay_dir_path)
+
                     # make readme
                     readme_file_name = 'README'
-                    readme_path = os.path.join(tmp_path, readme_file_name)
+                    readme_path = os.path.join(replay_dir_path, readme_file_name)
                     readme_str = '\n'.join([replay_stack_name, ham_stack_name,
                                             mon1_stack_name, mon2_stack_name,
                                             short_desc])
@@ -167,10 +171,11 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     new_tf = tarfile.open(new_tf_path, 'w:gz')
 
                     # add readme and images
+                    extract_imgs(existing_ham_stacks[0][RESULT], replay_dir_path)
+                    extract_imgs(existing_mon1_stacks[0][RESULT], replay_dir_path)
+                    extract_imgs(existing_mon2_stacks[0][RESULT], replay_dir_path)
+                    new_tf.add(replay_dir_path, 'replay')
                     new_tf.add(readme_path, readme_file_name)
-                    add_imgs(new_tf, existing_ham_stacks[0][RESULT], tmp_path, HAM)
-                    add_imgs(new_tf, existing_mon1_stacks[0][RESULT], tmp_path, MONITOR1)
-                    add_imgs(new_tf, existing_mon2_stacks[0][RESULT], tmp_path, MONITOR2)
                     new_tf.close()
 
                     # move new tar file to results directory

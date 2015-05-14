@@ -1,7 +1,11 @@
 import os
 import tarfile
+import tempfile
 
-from bioweb_api.apis.ApiConstants import VALID_IMAGE_EXTENSIONS
+from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS
+from bioweb_api.apis.ApiConstants import VALID_MON_IMAGE_EXTENSIONS
+from bioweb_api.utilities.io_utilities import silently_remove_tree
+
 
 def check_ham_tar_structure(tar_path, valid_dir_name):
     """
@@ -42,7 +46,7 @@ def check_ham_tar_structure(tar_path, valid_dir_name):
     for member in non_root_members:
         base_name = os.path.basename(member.name)
         # check extension
-        if not base_name.endswith(tuple(VALID_IMAGE_EXTENSIONS)):
+        if not base_name.endswith(tuple(VALID_HAM_IMAGE_EXTENSIONS)):
             return 'Tar contains non-image files.', None
         # check file type
         elif not member.isfile():
@@ -71,8 +75,20 @@ def check_mon_tar_structure(tar_path, valid_dir_name):
     if not tarfile.is_tarfile(tar_path):
         return 'Not a tar file.', None
 
-    # open file and get members
+    # open file
     tf = tarfile.open(tar_path)
+
+    # try to extract the file
+    tmp_path = tempfile.mkdtemp()
+    try:
+        tf.extractall(tmp_path)
+    except:
+        silently_remove_tree(tmp_path)
+        tf.close()
+        return 'Tar file could not be extracted.', None
+
+    silently_remove_tree(tmp_path)
+    # get members
     members = tf.getmembers()
     tf.close()
 
@@ -89,19 +105,19 @@ def check_mon_tar_structure(tar_path, valid_dir_name):
     # check if directory contains three folders named cropped_electrode_off,
     # cropped_electrode_on, and uncropped.
     mon_dir_members = [m for m in members if os.path.split(m.name)[0] == valid_dir_name]
-    mon_dir_files   = [m for m in mon_dir_members if not m.isdir]
-    mon_dir_dirs    = [m for m in mon_dir_members if m.isdir]
-    crop_ele_off    = [m for m in mon_dir_dirs if os.path.basename(m.name) == 'cropped_electrode_off']
-    crop_ele_on     = [m for m in mon_dir_dirs if os.path.basename(m.name) == 'cropped_electrode_on']
-    uncropped       = [m for m in mon_dir_dirs if os.path.basename(m.name) == 'uncropped']
+    mon_dir_invalid = [m for m in mon_dir_members if not m.isdir() and not m.issym()]
+    mon_dir_valid   = [m for m in mon_dir_members if m.isdir() or m.issym()]
+    crop_ele_off    = [m for m in mon_dir_valid if os.path.basename(m.name) == 'cropped_electrode_off']
+    crop_ele_on     = [m for m in mon_dir_valid if os.path.basename(m.name) == 'cropped_electrode_on']
+    uncropped       = [m for m in mon_dir_valid if os.path.basename(m.name) == 'uncropped']
 
-    if mon_dir_files or \
-       len(mon_dir_dirs) != 3 or \
-       not crop_ele_on or \
-       not uncropped or \
-       not crop_ele_off:
+    if mon_dir_invalid or \
+                    len(mon_dir_valid) != 3 or \
+            not crop_ele_on or \
+            not uncropped or \
+            not crop_ele_off:
         return '%s folder must contain directories named cropped_electrode_off,' \
-        ' cropped_electrode_on, and uncropped' % valid_dir_name, None
+               ' cropped_electrode_on, and uncropped' % valid_dir_name, None
 
     # get image count
     img_count = 0
@@ -109,8 +125,8 @@ def check_mon_tar_structure(tar_path, valid_dir_name):
         base_name = os.path.basename(member.name)
         # osx makes non-visible files, ignore them
         if not base_name.startswith('.') and \
-           member.isfile and \
-           base_name.endswith(tuple(VALID_IMAGE_EXTENSIONS)):
+                member.isfile() and \
+                base_name.endswith(tuple(VALID_MON_IMAGE_EXTENSIONS)):
             img_count += 1
 
     # make sure there are images
@@ -131,3 +147,7 @@ def extract_imgs(existing_tar, replay_dir_path):
     tf = tarfile.open(existing_tar)
     tf.extractall(replay_dir_path)
     tf.close()
+
+
+if __name__ == '__main__':
+    print check_mon_tar_structure('/home/nbrown/git/bioweb-api/bioweb_api/tests/apis/image/valid_mon2.tgz', 'monitor_cam_2')

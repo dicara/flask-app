@@ -170,7 +170,8 @@ URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
 
-VALID_IMAGE_EXTENSIONS = ["bin", "png"]
+VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
+VALID_MON_IMAGE_EXTENSIONS = ["jpg"]
 
 #=============================================================================
 # Secondary Analysis Constants

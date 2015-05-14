@@ -58,6 +58,7 @@ _INVALID_MON_CROP_OFF  = "invalid_mon1_wrong_crop_off.tgz"
 _INVALID_MON_CROP_ON = "invalid_mon1_wrong_crop_on.tgz"
 _INVALID_MON_ROOT_NAME = "invalid_mon1_wrong_root_name.tgz"
 _INVALID_MON_UNCROPPED = "invalid_mon1_wrong_uncropped.tgz"
+_INVALID_MON_BADCOMPRESS = "invalid_mon1_bad_compression.tgz"
 
 #=============================================================================
 # Class
@@ -143,7 +144,14 @@ class TestImagesAppi(unittest.TestCase):
         url = add_url_argument(url, NAME, 'invalid monitor crop on name')
         url = add_url_argument(url, DESCRIPTION, 'invalid monitor crop on name')
         upload_file(self, _TEST_DIR, url, _INVALID_MON_CROP_ON, 415)
-        
+
+    def test_invalid_mon_bad_compression(self):
+        url = _MON_IMAGES_URL
+        url = add_url_argument(url, STACK_TYPE, MONITOR1, True)
+        url = add_url_argument(url, NAME, 'invalid monitor bad compression')
+        url = add_url_argument(url, DESCRIPTION, 'invalid monitor bad compression')
+        upload_file(self, _TEST_DIR, url, _INVALID_MON_BADCOMPRESS, 415)
+
     def test_bin_images(self):
         # Upload image stack
         url = _IMAGES_URL

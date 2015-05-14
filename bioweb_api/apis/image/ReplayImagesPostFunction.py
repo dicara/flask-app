@@ -174,7 +174,6 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     extract_imgs(existing_ham_stacks[0][RESULT], replay_dir_path)
                     extract_imgs(existing_mon1_stacks[0][RESULT], replay_dir_path)
                     extract_imgs(existing_mon2_stacks[0][RESULT], replay_dir_path)
-
                     new_tf.add(replay_dir_path, 'replay')
                     new_tf.add(readme_path, readme_file_name)
                     new_tf.close()

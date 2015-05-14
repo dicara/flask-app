@@ -32,7 +32,7 @@ from datetime import datetime
 from flask import make_response, jsonify
 
 from bioweb_api import ARCHIVES_PATH
-from bioweb_api.apis.ApiConstants import VALID_IMAGE_EXTENSIONS
+from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS
     
 #===============================================================================
 # Public Global Variables
@@ -234,7 +234,7 @@ def clean_item(item):
     
     return item
 
-def get_archive_dirs(archive, min_num_images=1, extensions=VALID_IMAGE_EXTENSIONS):
+def get_archive_dirs(archive, min_num_images=1, extensions=VALID_HAM_IMAGE_EXTENSIONS):
     """
     Recursively search an archive for all directories containing images and 
     return a list of all paths relative to the top-level archive directory that

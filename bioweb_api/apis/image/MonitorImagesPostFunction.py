@@ -37,7 +37,8 @@ from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
 from bioweb_api import TMP_PATH, IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
     PORT
 from bioweb_api.utilities.io_utilities import make_clean_response, \
-    silently_remove_tree
+    silently_remove_file
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Static Variables
@@ -126,6 +127,7 @@ class MonitorImagesPostFunction(AbstractPostFunction):
                 json_response[ERROR] = 'Image stack with given name already ' \
                             'exists.'
             elif tar_error:
+                APP_LOGGER.error(tar_error)
                 http_status_code = 415
                 json_response[ERROR] = tar_error
             else:
@@ -149,7 +151,7 @@ class MonitorImagesPostFunction(AbstractPostFunction):
         finally:
             if ID in json_response:
                 del json_response[ID]
-            silently_remove_tree(tmp_archive_path)
+            silently_remove_file(tmp_archive_path)
         
         return make_clean_response(json_response, http_status_code)
     

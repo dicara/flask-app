@@ -89,3 +89,5 @@ GnuBio Flask API.
    * Fixed bug that caused replay images stacks to be improperly created.
  * v1.9
    * Replay image stacks have proper structure.  Monitor camera folders within tar files were renamed.
+ * v1.10
+   * Tar checking errors are logged.  Bug fix for tar file cleanup.

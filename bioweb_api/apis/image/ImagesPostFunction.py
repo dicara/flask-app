@@ -38,6 +38,7 @@ from bioweb_api import TMP_PATH, IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
     PORT
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
@@ -138,6 +139,7 @@ class ImagesPostFunction(AbstractPostFunction):
                 json_response[ERROR] = "Couldn't locate UUID for " \
                     "experiment definition."
             elif tar_error:
+                APP_LOGGER.error(tar_error)
                 http_status_code = 415
                 json_response[ERROR] = tar_error
             else:

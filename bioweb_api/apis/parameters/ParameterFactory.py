@@ -31,10 +31,11 @@ from bioweb_api.apis.parameters.UpperCaseStringParameter import UpperCaseStringP
 from bioweb_api.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 from bioweb_api.apis.parameters.FileParameter import FileParameter
 from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
+from bioweb_api.apis.parameters.MultipleValueParameter import MultipleValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
-    STACK_TYPE, MONITOR1, MONITOR2, NAME
+    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
@@ -241,6 +242,7 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(name, description,
                                alias=alias, required=required, 
                                allow_multiple=allow_multiple)
+
     @classmethod
     def dye_levels(cls, required=True):
         keys_parameter   = cls.dyes()
@@ -249,6 +251,18 @@ class ParameterFactory(object):
                            "(e.g. pe:5,cy5.5:4)."
         return KeyValueParameter(DYE_LEVELS, description, keys_parameter,
                                  values_parameter, required=required)
+
+    @classmethod
+    def dye_metrics(cls, required=True):
+        dyes_param            = cls.dyes()
+        nlvls_param           = cls.integer("name", "description", minimum=2)
+        low_intensity_param   = cls.integer("name", "description", minimum=0, maximum=65535)
+        high_intensity_param  = cls.integer("name", "description", minimum=0, maximum=65535)
+        description      = "Comma separated list of dye:nlvls:low intensity:high intensity pairs " \
+                           "(e.g. pe:3:10.0:1000.0,cy5.5:4:0.0:30000.0)."
+        return MultipleValueParameter(DYE_METRICS, description,
+                                      [dyes_param, nlvls_param, low_intensity_param, high_intensity_param],
+                                      required=required)
     
     @classmethod
     def job_uuid(cls, collection):

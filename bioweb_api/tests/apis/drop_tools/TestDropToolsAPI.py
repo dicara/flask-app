@@ -29,9 +29,6 @@ from bioweb_api.tests.test_utils import get_data, delete_data, \
     add_url_argument, upload_file, post_data
 from bioweb_api.apis.ApiConstants import DROP_AVE_DIAMETER, DROP_STD_DIAMETER, DYE_METRICS
 
-#=============================================================================
-# Public Static Variables
-#=============================================================================
 
 #=============================================================================
 # Private Static Variables

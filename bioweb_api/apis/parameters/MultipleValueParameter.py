@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Dan DiCara
-@date:   Feb 4, 2015
+@author: Nathan Brown
+@date:   May 22, 2015
 '''
 
 #=============================================================================
@@ -89,13 +89,15 @@ class MultipleValueParameter(AbstractParameter):
 #===============================================================================
 # Run Main
 #===============================================================================
-# if __name__ == "__main__":
-#     keys_parameter      = ParameterFactory.dyes()
-#     values_parameter    = ParameterFactory.integer("foo", "bar", minimum=1)
-#     key_value_parameter = MultipleValueParameter("MultipleValueParameter",
-#                                             "MultipleValueParameter description.",
-#                                             keys_parameter,
-#                                             values_parameter,
-#                                             )
-#     print key_value_parameter
-#     print key_value_parameter._convert_args(["594:0", "633:2", "cy5.5:3"])
+if __name__ == "__main__":
+    from ParameterFactory import ParameterFactory
+    dye_parameter       = ParameterFactory.dyes()
+    int1_parameter      = ParameterFactory.integer("foo", "bar", minimum=1)
+    int2_parameter      = ParameterFactory.integer("foo", "bar", minimum=1)
+    float_parameter     = ParameterFactory.float("foo", "bar", minimum=1.0,)
+    key_value_parameter = MultipleValueParameter("MultipleValueParameter",
+                                                 "MultipleValueParameter description.",
+                                                 [dye_parameter, int1_parameter,
+                                                 int2_parameter, float_parameter])
+    print key_value_parameter
+    print key_value_parameter._convert_args(["594:1:2:4.5", "633:100:4:56.6"])

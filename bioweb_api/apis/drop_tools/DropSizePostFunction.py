@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Dan DiCara
-@date:   Mar 3, 2015
+@author: Nathan Brown
+@date:   May 22, 2015
 '''
 
 #=============================================================================
@@ -119,8 +119,6 @@ class DropSizePostFunction(AbstractPostFunction):
         except:
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
-        finally:
-            pass
 
         return make_clean_response(json_response, http_status_code)
     

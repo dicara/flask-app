@@ -4,6 +4,16 @@ import numpy
 from scipy.spatial import distance
 from sklearn import mixture
 
+'''
+CV_RATIO is the coefficient of variation (CV) scalar to adjust drop size
+CV to intensity CV.  BKGROUND_STD is the background standard deviation
+to account for decomp and spectral noise.  Both these values were
+calculated from experimental data.
+'''
+CV_RATIO = 1.184
+BKGROUND_STD = 300.0
+
+
 class Cluster(object):
     """
     A collection of drops
@@ -46,14 +56,13 @@ def make_centroids(lvls, ranges):
     return numpy.array(list(itertools.product(*intensities)))
 
 
-def make_clusters(centroids, stddev=300.0, drop_ave=28.0, drop_std=0.5):
+def make_clusters(centroids, drop_ave, drop_std):
     """
     Make clusters from centroids.  Add noise based on drop size and
     standard deviation of drop size.
 
     @param centroids:   A 2D numpy array of the centroids.
-    @param stddev:      Float specifying decomp/spectral noise.
-    @param ndrops:      Integer specifying the number of drops per cluster.
+    @param drop_ave:    Float specifying the average drop size.
     @param drop_std:    Float specifying standard deviation of drop size.
     @return:            A list where each element is a Cluster object.
     """
@@ -61,10 +70,9 @@ def make_clusters(centroids, stddev=300.0, drop_ave=28.0, drop_std=0.5):
     # convert drop coefficient of variation (cv) to intensity cv
     ndims = centroids.shape[1]
     # simulate 500 drops per dimension, cap at 2000 drops
-    ndrops = ndims * 500 if ndims * 500 <= 2000 else 20000
-    cv_ratio = 1.184
+    ndrops = ndims * 500 if ndims * 500 <= 2000 else 2000
     drop_cv = drop_std/drop_ave
-    int_cv = drop_cv * cv_ratio
+    int_cv = drop_cv * CV_RATIO
 
     # create clusters from centroids
     clusters = list()
@@ -84,8 +92,8 @@ def make_clusters(centroids, stddev=300.0, drop_ave=28.0, drop_std=0.5):
         # apply the deviations to the centroid to create the cluster
         cluster_data += deviations
 
-        # add random noise to simulate decomp/spectral noise
-        cluster_data += numpy.random.normal(0.0, stddev, size=cluster_data.shape)
+        # add noise to simulate decomp/spectral noise
+        cluster_data += numpy.random.normal(0.0, BKGROUND_STD, size=cluster_data.shape)
         cluster_id = 'c%s' % str(idx).zfill(fill_len)
         clusters.append(Cluster(cluster_data, cluster_id))
 
@@ -147,7 +155,7 @@ def check_collision(clusters, num_nn_check=4, min_prob_thresh=0.66):
 if __name__ == '__main__':
     # a simple example using two dyes at 4 levels each
     centroids = make_centroids([4, 4], [(0, 30000), (0, 30000)])
-    clusters = make_clusters(centroids, ndrops=2000, drop_ave=28.0, drop_std=1.5)
+    clusters = make_clusters(centroids, drop_ave=28.0, drop_std=1.5)
     check_collision(clusters)
 
     # plot it

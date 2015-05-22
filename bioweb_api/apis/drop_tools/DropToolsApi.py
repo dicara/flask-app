@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Dan DiCara
-@date:   Mar 3, 2015
+@author: Nathan Brown
+@date:   May 22, 2015
 '''
 
 #=============================================================================
@@ -23,14 +23,6 @@ limitations under the License.
 from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.drop_tools.DropSizePostFunction import DropSizePostFunction
 
-
-#=============================================================================
-# Public Static Variables
-#=============================================================================
-
-#=============================================================================
-# Private Static Variables
-#=============================================================================
 
 #=============================================================================
 # Class

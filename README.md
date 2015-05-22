@@ -91,3 +91,6 @@ GnuBio Flask API.
    * Replay image stacks have proper structure.  Monitor camera folders within tar files were renamed.
  * v1.10
    * Tar checking errors are logged.  Bug fix for tar file cleanup.
+ * v1.11
+   * Added drop tools menu
+   * Added drop size tolerance calculator

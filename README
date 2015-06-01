@@ -94,3 +94,6 @@ GnuBio Flask API.
  * v1.11
    * Added drop tools menu
    * Added drop size tolerance calculator
+ * v1.12
+   * Update primary and secondary analysis dependencies to their latest versions.
+   * Update test due to version discrepancies.

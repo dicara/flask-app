@@ -97,3 +97,5 @@ GnuBio Flask API.
  * v1.12
    * Update primary and secondary analysis dependencies to their latest versions.
    * Update test due to version discrepancies.
+ * v1.13
+   * Incorporate secondary analysis (v0.13.1) identity bugfix: Fixed bug with barcode id for zero point clusters being set to None

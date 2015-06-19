@@ -7,6 +7,20 @@ from bioweb_api.apis.ApiConstants import VALID_MON_IMAGE_EXTENSIONS
 from bioweb_api.utilities.io_utilities import silently_remove_tree
 
 
+def set_tar_permissions(tarinfo):
+    """
+    This function is used as the filter function when creating a
+    tarfile.  Tarfile attributes can be set here.
+
+    @param tarinfo: A TarInfo object
+    @return:        A TarInfo object
+    """
+    tarinfo.mode = 0774
+    tarinfo.uname = 'labuser'
+    tarinfo.gname = 'labuser'
+    return tarinfo
+
+
 def check_ham_tar_structure(tar_path, valid_dir_name):
     """
     Verify that tar file has a single directory with appropriate name

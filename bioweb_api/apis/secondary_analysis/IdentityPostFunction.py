@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD
+    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB
     
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
@@ -63,6 +63,8 @@ _PF_TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
 _UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
     "below which a drop decomposition will be excluded from fiducial " \
     "pre-filter training."
+_CALC_DROP_PROB_DESCRIPTION = "Calculate the probability that each drop belongs to its" \
+                              "assigned cluster."
     
 #=============================================================================
 # Class
@@ -121,6 +123,9 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       _UI_THRESHOLD_DESCRIPTION,
                                                       default=500.0, 
                                                       minimum=0.0)
+        cls.calc_drop_prob_param = ParameterFactory.boolean(CALC_DROP_PROB,
+                                                          _CALC_DROP_PROB_DESCRIPTION,
+                                                          default_value=False)
         
         parameters = [
                       cls.job_uuid_param,
@@ -133,6 +138,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.ignored_dyes_param,
                       cls.prefilter_tf_param,
                       cls.ui_threshold_param,
+                      cls.calc_drop_prob_param,
                      ]
         return parameters
     
@@ -157,9 +163,10 @@ class IdentityPostFunction(AbstractPostFunction):
             
         prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
-        
+        calc_probs      = params_dict[cls.calc_drop_prob_param][0]
+
         json_response = {IDENTITY: []}
-        
+
         # Ensure analysis job exists
         try:
             criteria        = {UUID: {"$in": job_uuids}}
@@ -237,6 +244,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       ignored_dyes,
                                                       prefilter_tf,
                                                       ui_threshold,
+                                                      calc_probs,
                                                       response[UUID], 
                                                       cls._DB_CONNECTOR)
                     callback = make_process_callback(response[UUID], 
@@ -272,7 +280,8 @@ class SaIdentityCallable(object):
     """
     def __init__(self, primary_analysis_data, num_probes, training_factor, 
                  plot_path, outfile_path, assay_dye, fiducial_dye, dye_levels, 
-                 ignored_dyes, prefilter_tf, ui_threshold, uuid, db_connector):
+                 ignored_dyes, prefilter_tf, ui_threshold, calc_probs,
+                 uuid, db_connector):
         self.primary_analysis_data = primary_analysis_data
         self.num_probes            = num_probes
         self.training_factor       = training_factor
@@ -284,6 +293,7 @@ class SaIdentityCallable(object):
         self.ignored_dyes          = ignored_dyes
         self.prefilter_tf          = prefilter_tf
         self.ui_threshold          = ui_threshold
+        self.calc_probs            = calc_probs
         self.db_connector          = db_connector
         self.query                 = {UUID: uuid}
         self.identity              = Identity()
@@ -295,8 +305,8 @@ class SaIdentityCallable(object):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
                            START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(SA_IDENTITY_COLLECTION, self.query, update)
-        
-        identity_factory = IdentityFactory.constellation_identity_factory(self.dye_levels)
+        identity_factory = IdentityFactory.constellation_identity_factory(self.dye_levels,
+                                                                          calc_probs=self.calc_probs)
         
         try:
             safe_make_dirs(self.tmp_path)
@@ -312,7 +322,7 @@ class SaIdentityCallable(object):
                                            ignored_dyes=self.ignored_dyes,
                                            prefilter_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
-                                           )
+                                           calc_probs=self.calc_probs)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

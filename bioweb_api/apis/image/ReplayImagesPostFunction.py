@@ -31,6 +31,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from bioweb_api.apis.image.ImageApiHelperFunctions import extract_imgs
+from bioweb_api.apis.image.ImageApiHelperFunctions import set_tar_permissions
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
@@ -174,8 +175,8 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     extract_imgs(existing_ham_stacks[0][RESULT], replay_dir_path)
                     extract_imgs(existing_mon1_stacks[0][RESULT], replay_dir_path)
                     extract_imgs(existing_mon2_stacks[0][RESULT], replay_dir_path)
-                    new_tf.add(replay_dir_path, 'replay')
-                    new_tf.add(readme_path, readme_file_name)
+                    new_tf.add(replay_dir_path, 'replay', filter=set_tar_permissions)
+                    new_tf.add(readme_path, readme_file_name, filter=set_tar_permissions)
                     new_tf.close()
 
                     # move new tar file to results directory

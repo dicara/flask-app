@@ -305,3 +305,9 @@ class Test(unittest.TestCase):
         for job in response[IDENTITY]:
             msg = "PA process job %s still exists in database." % identity_uuid
             self.assertNotEqual(identity_uuid, job[UUID], msg)
+
+#=============================================================================
+# Main
+#=============================================================================
+if __name__ == "__main__":
+    unittest.main()

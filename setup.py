@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = '1.13',
+      version          = '1.14',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com', 
       entry_points     = {'console_scripts': [
@@ -56,7 +56,7 @@ setup(
                           'ncbi-utilities>=0.2',
                           'probe-design>=0.3',
                           'primary-analysis>=2.6',
-                          'secondary-analysis>=0.13',
+                          'secondary-analysis>=0.17',
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,

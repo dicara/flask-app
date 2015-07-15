@@ -101,6 +101,7 @@ JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
 ABSORB           = "absorb"
 ARCHIVE          = "archive"
 ARCHIVES         = "archives"
+CALC_DROP_PROB   = "calc_drop_prob"
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"

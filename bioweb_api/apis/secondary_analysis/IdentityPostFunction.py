@@ -204,6 +204,7 @@ class IdentityPostFunction(AbstractPostFunction):
                         JOB_NAME: cur_job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
+                        CALC_DROP_PROB: calc_probs
                        }
             status_code = 200
             

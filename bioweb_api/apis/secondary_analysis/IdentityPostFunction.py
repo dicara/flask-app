@@ -37,7 +37,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB
+    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB, REPORT, \
+    REPORT_URL
     
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
@@ -216,6 +217,8 @@ class IdentityPostFunction(AbstractPostFunction):
                     outfile_path = os.path.join(RESULTS_PATH, response[UUID])
                     plot_path    = os.path.join(RESULTS_PATH, 
                                                 response[UUID] + ".png")
+                    report_path  = os.path.join(RESULTS_PATH,
+                                                response[UUID] + ".yaml")
 
                     with open(pa_process_job[CONFIG]) as fd:
                         config = yaml.load(fd)
@@ -238,7 +241,8 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       num_probes, 
                                                       training_factor,
                                                       plot_path,
-                                                      outfile_path, 
+                                                      outfile_path,
+                                                      report_path,
                                                       assay_dye,
                                                       fiducial_dye,
                                                       dye_levels,
@@ -251,8 +255,9 @@ class IdentityPostFunction(AbstractPostFunction):
                     callback = make_process_callback(response[UUID], 
                                                      outfile_path,
                                                      plot_path,
+                                                     report_path,
                                                      cls._DB_CONNECTOR)
-     
+
                     # Add to queue and update DB
                     cls._DB_CONNECTOR.insert(SA_IDENTITY_COLLECTION, [response])
                     cls._EXECUTION_MANAGER.add_job(response[UUID], sai_callable,
@@ -264,7 +269,7 @@ class IdentityPostFunction(AbstractPostFunction):
                 finally:
                     if ID in response:
                         del response[ID]
-                    
+
             json_response[IDENTITY].append(response)
             status_codes.append(status_code)
         
@@ -280,14 +285,15 @@ class SaIdentityCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, primary_analysis_data, num_probes, training_factor, 
-                 plot_path, outfile_path, assay_dye, fiducial_dye, dye_levels, 
-                 ignored_dyes, prefilter_tf, ui_threshold, calc_probs,
-                 uuid, db_connector):
+                 plot_path, outfile_path, report_path, assay_dye, fiducial_dye,
+                 dye_levels, ignored_dyes, prefilter_tf, ui_threshold,
+                 calc_probs, uuid, db_connector):
         self.primary_analysis_data = primary_analysis_data
         self.num_probes            = num_probes
         self.training_factor       = training_factor
         self.plot_path             = plot_path
         self.outfile_path          = outfile_path
+        self.report_path           = report_path
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.dye_levels            = dye_levels
@@ -301,7 +307,8 @@ class SaIdentityCallable(object):
         self.tmp_path              = os.path.join(TMP_PATH, uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
         self.tmp_plot_path         = os.path.join(self.tmp_path, "plot.png")
-     
+        self.tmp_report_path       = os.path.join(self.tmp_path, "report.yaml")
+
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
                            START_DATESTAMP: datetime.today()}}     
@@ -316,7 +323,8 @@ class SaIdentityCallable(object):
                                            identity_factory, 
                                            plot_path=self.tmp_plot_path, 
                                            out_file=self.tmp_outfile_path, 
-                                           assay_dye=self.assay_dye, 
+                                           report_path=self.tmp_report_path,
+                                           assay_dye=self.assay_dye,
                                            fiducial_dye=self.fiducial_dye, 
                                            dye_levels=self.dye_levels,
                                            show_figure=False, 
@@ -330,12 +338,14 @@ class SaIdentityCallable(object):
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
             if os.path.isfile(self.tmp_plot_path):
                 shutil.copy(self.tmp_plot_path, self.plot_path)
+            if os.path.isfile(self.tmp_report_path):
+                shutil.copy(self.tmp_report_path, self.report_path)
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
         
          
-def make_process_callback(uuid, outfile_path, plot_path, db_connector):
+def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connector):
     """
     Return a closure that is fired when the job finishes. This 
     callback updates the DB with completion status, result file location, and
@@ -344,6 +354,7 @@ def make_process_callback(uuid, outfile_path, plot_path, db_connector):
     @param uuid:         Unique job id in database
     @param outfile_path: Path where the final identity results will live.
     @param plot_path:    Path where the final PNG plot should live.
+    @param report_path:    Path where the report should live.
     @param db_connector: Object that handles communication with the DB
     """
     query = {UUID: uuid}
@@ -357,9 +368,13 @@ def make_process_callback(uuid, outfile_path, plot_path, db_connector):
                                            (HOSTNAME, PORT, 
                                             os.path.basename(outfile_path)),
                                  PLOT: plot_path,
-                                 PLOT_URL: "http://%s/results/%s/%s" % 
+                                 REPORT: report_path,
+                                 PLOT_URL: "http://%s/results/%s/%s" %
                                            (HOSTNAME, PORT, 
                                             os.path.basename(plot_path)),
+                                 REPORT_URL: "http://%s/results/%s/%s" %
+                                           (HOSTNAME, PORT,
+                                            os.path.basename(report_path)),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }

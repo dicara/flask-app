@@ -101,4 +101,6 @@ GnuBio Flask API.
    * Incorporate secondary analysis (v0.13.1) identity bugfix: Fixed bug with barcode id for zero point clusters being set to None
  * v1.14
    * Added ability for user to get cluster and identity probabilities from bioweb
+ * v1.15
+   * Added ability for user to get a report from secondary analysis
 

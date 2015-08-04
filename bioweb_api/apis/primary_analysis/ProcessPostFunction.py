@@ -21,12 +21,14 @@ limitations under the License.
 # Imports
 #=============================================================================
 import sys
+import traceback
 import os
 
 from uuid import uuid4
 from datetime import datetime
 
 from bioweb_api.utilities.io_utilities import make_clean_response, get_archive_dirs
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file
@@ -76,7 +78,7 @@ class ProcessPostFunction(AbstractPostFunction):
                      { "code": 403, 
                        "message": "Job name already exists. Delete the " \
                                   "existing job or pick a new name."},
-                     { "code": 404, 
+                     { "code": 404,
                        "message": "Submission unsuccessful. At least 10 "\
                                   "images must exist in archive."},
                     ])
@@ -139,6 +141,7 @@ class ProcessPostFunction(AbstractPostFunction):
             archives = get_archive_dirs(archive_name, 
                                         min_num_images=_MIN_NUM_IMAGES)
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
         
@@ -194,6 +197,7 @@ class ProcessPostFunction(AbstractPostFunction):
                     cls._EXECUTION_MANAGER.add_job(response[UUID], 
                                                    abs_callable, callback)
                 except:
+                    APP_LOGGER.exception(traceback.format_exc())
                     response[ERROR]  = str(sys.exc_info()[1])
                     status_code = 500
                 finally:

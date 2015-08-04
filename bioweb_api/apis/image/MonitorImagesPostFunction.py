@@ -24,7 +24,7 @@ limitations under the License.
 import os
 import shutil
 import sys
-import tarfile
+import traceback
 
 from datetime import datetime
 from uuid import uuid4
@@ -143,9 +143,11 @@ class MonitorImagesPostFunction(AbstractPostFunction):
                 cls._DB_CONNECTOR.insert(IMAGES_COLLECTION,
                                          [json_response])
         except IOError:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 415
             json_response[ERROR] = str(sys.exc_info()[1])
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
         finally:

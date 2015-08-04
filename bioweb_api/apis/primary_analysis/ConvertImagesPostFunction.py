@@ -22,6 +22,7 @@ limitations under the License.
 #=============================================================================
 import os
 import sys
+import traceback
 
 from uuid import uuid4
 from datetime import datetime
@@ -31,6 +32,7 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     get_archive_dirs, silently_remove_file
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import ERROR, JOB_NAME, ARCHIVE, UUID, \
     SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, STATUS, JOB_STATUS, \
     JOB_TYPE_NAME, JOB_TYPE, ID, RESULT, URL
@@ -101,6 +103,7 @@ class ConvertImagesPostFunction(AbstractPostFunction):
                 archives.extend(get_archive_dirs(archive_name, 
                                                  extensions=["bin"]))
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
 
@@ -149,6 +152,7 @@ class ConvertImagesPostFunction(AbstractPostFunction):
                                                    abs_callable, callback)
                     del response[ID]
                 except:
+                    APP_LOGGER.exception(traceback.format_exc())
                     response[ERROR]  = str(sys.exc_info()[1])
                     status_code = 500
             
@@ -210,6 +214,7 @@ def make_process_callback(uuid, outfile_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None, 

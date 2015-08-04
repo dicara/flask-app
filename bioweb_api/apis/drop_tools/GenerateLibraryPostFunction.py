@@ -22,10 +22,9 @@ limitations under the License.
 #=============================================================================
 
 import sys
+import traceback
 
 from datetime import datetime
-import numpy
-from uuid import uuid4
 
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
@@ -33,6 +32,7 @@ from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.drop_tools.GenerateLibrary import get_design
 
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Static Variables
@@ -94,9 +94,11 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
             json_response['levels']     = levels
 
         except IOError:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 415
             json_response[ERROR] = str(sys.exc_info()[1])
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
 

@@ -21,6 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 import sys
+import traceback
 import os
 
 from uuid import uuid4
@@ -28,6 +29,7 @@ from datetime import datetime
 from probe_design.absorption import execute_absorption
 
 from bioweb_api.utilities.io_utilities import make_clean_response
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import PROBES_COLLECTION, TARGETS_COLLECTION, \
@@ -134,6 +136,7 @@ class AbsorptionPostFunction(AbstractPostFunction):
                 cls._EXECUTION_MANAGER.add_job(json_response[UUID], 
                                                abs_callable, callback)
             except:
+                APP_LOGGER.exception(traceback.format_exc())
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
             finally:
@@ -190,6 +193,7 @@ def make_absorption_callback(uuid, outfile_path, db_connector):
             elif os.path.isfile(outfile_path):
                 os.remove(outfile_path)
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None, 

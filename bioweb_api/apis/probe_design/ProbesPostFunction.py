@@ -22,11 +22,13 @@ limitations under the License.
 #=============================================================================
 import os
 import sys
+import traceback
 
 from uuid import uuid4
 from datetime import datetime
 
 from bioweb_api.utilities.io_utilities import make_clean_response
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import FORMAT, FILENAME, FILEPATH, ID, URL, \
     DATESTAMP, TYPE, ERROR, UUID
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
@@ -102,6 +104,7 @@ class ProbesPostFunction(AbstractPostFunction):
                 
                 cls._DB_CONNECTOR.insert(PROBES_COLLECTION, [json_response])
             except:
+                APP_LOGGER.exception(traceback.format_exc())
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
             finally:

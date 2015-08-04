@@ -23,6 +23,7 @@ limitations under the License.
 import os
 import shutil
 import sys
+import traceback
 
 from uuid import uuid4
 from datetime import datetime
@@ -30,6 +31,7 @@ from datetime import datetime
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, PA_PROCESS_COLLECTION, \
     TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
@@ -164,6 +166,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
             pa_process_jobs = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, 
                                                      criteria, projection)
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
         
@@ -232,6 +235,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                    callback)
                     
                 except:
+                    APP_LOGGER.exception(traceback.format_exc())
                     response[ERROR] = str(sys.exc_info()[1])
                     status_code = 500
                 finally:
@@ -348,6 +352,7 @@ def make_process_callback(uuid, outfile_path, kde_plot_path, scatter_plot_path,
                 silently_remove_file(kde_plot_path)
                 silently_remove_file(scatter_plot_path)
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None,

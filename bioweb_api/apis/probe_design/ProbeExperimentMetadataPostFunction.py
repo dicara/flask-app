@@ -22,10 +22,12 @@ limitations under the License.
 #=============================================================================
 import os
 import sys
+import traceback
 
 from uuid import uuid4
 
 from bioweb_api.utilities.io_utilities import make_clean_response
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import get_dialect, silently_remove_file, \
@@ -98,9 +100,11 @@ class ProbeExperimentMetadataPostFunction(AbstractPostFunction):
                 json_response[ERROR] = "Invalid file format - file must " \
                     "be either tab or comma delimited."
         except IOError:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 415
             json_response[ERROR] = str(sys.exc_info()[1])
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
         finally:

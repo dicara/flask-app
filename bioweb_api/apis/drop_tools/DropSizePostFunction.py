@@ -20,8 +20,8 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-
 import sys
+import traceback
 
 from datetime import datetime
 import numpy
@@ -34,7 +34,7 @@ from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, UUID, DROP_AVE_DIAMET
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.apis.drop_tools.DropSizeIntensityConverter import make_centroids, \
     make_clusters, check_collision
-
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Static Variables
@@ -114,9 +114,11 @@ class DropSizePostFunction(AbstractPostFunction):
             json_response['nclusters']  = numpy.product(nlvls)
 
         except IOError:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 415
             json_response[ERROR] = str(sys.exc_info()[1])
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
 

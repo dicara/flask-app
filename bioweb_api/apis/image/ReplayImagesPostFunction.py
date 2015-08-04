@@ -20,12 +20,12 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-
 import os
 import shutil
 import sys
 import tarfile
 import tempfile
+import traceback
 
 from datetime import datetime
 from uuid import uuid4
@@ -37,10 +37,11 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import FILENAME, ERROR, RESULT, \
     DESCRIPTION, DATESTAMP, UUID, NAME, URL, ID, HAM_NAME, \
     MON1_NAME, MON2_NAME, STACK_TYPE, MONITOR1, MONITOR2, HAM, REPLAY
-from bioweb_api import TMP_PATH, IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
+from bioweb_api import IMAGES_COLLECTION, RESULTS_PATH, HOSTNAME, \
     PORT
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_tree
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Static Variables
@@ -197,12 +198,14 @@ class ReplayImagesPostFunction(AbstractPostFunction):
                     json_response[DESCRIPTION] = short_desc
                     cls._DB_CONNECTOR.insert(IMAGES_COLLECTION, [json_response])
                 except:
+                    APP_LOGGER.exception(traceback.format_exc())
                     http_status_code     = 500
                     json_response[ERROR] = str(sys.exc_info()[1])
                 finally:
                     silently_remove_tree(tmp_path)
 
         except:
+            APP_LOGGER.exception(traceback.format_exc())
             http_status_code     = 500
             json_response[ERROR] = str(sys.exc_info()[1])
         finally:

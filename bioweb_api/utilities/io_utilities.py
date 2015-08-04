@@ -251,7 +251,8 @@ def get_archive_dirs(archive, min_num_images=1, extensions=VALID_HAM_IMAGE_EXTEN
     for root, _, files in os.walk(archive_path):
         images = filter_files(files, extensions)
         if len(images) >= min_num_images:
-            archives.append(root.lstrip(ARCHIVES_PATH).lstrip("/"))
+            # Strip off parent archive directory and forward slash (+1)
+            archives.append(root[len(ARCHIVES_PATH)+1:])
     return archives
 
 def filter_files(files, extensions):

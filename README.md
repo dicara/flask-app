@@ -103,4 +103,6 @@ GnuBio Flask API.
    * Added ability for user to get cluster and identity probabilities from bioweb
  * v1.15
    * Added ability for user to get a report from secondary analysis
-
+ * v1.16
+   * Logging stack traces when exceptions are caught in API post functions. 
+   * Fixed bug in archive finding where lstrip was being used incorrectly and could result in cryptic primary analysis failures

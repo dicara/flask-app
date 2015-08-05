@@ -111,8 +111,8 @@ def check_collision(clusters, num_nn_check=4, min_prob_thresh=0.66):
                             neighbors to check for each cluster
     @param min_prob_thresh: A float specifying the minimum probability
                             a drop must have to belong to a cluster.
-    @return:                A list of tuples specifying potential cluster
-                            collisions. Tuple format is (cluster ID#1,
+    @return:                A list of dictionaries specifying potential cluster
+                            collisions. Keys are (cluster ID#1,
                             cluster ID#2, percent overlap)
     """
     # get nearest neighbors

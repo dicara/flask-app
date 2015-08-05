@@ -20,38 +20,36 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+
 import sys
 import traceback
 
 from datetime import datetime
-import numpy
-from uuid import uuid4
 
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, UUID, DROP_AVE_DIAMETER, \
-    DROP_STD_DIAMETER, DYE_METRICS
+from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES
 from bioweb_api.utilities.io_utilities import make_clean_response
-from bioweb_api.apis.drop_tools.drop_size_utilities import make_centroids, \
-    make_clusters, check_collision
+from bioweb_api.apis.drop_tools.library_generation_utilities import get_design
+
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #=============================================================================
 # Public Static Variables
 #=============================================================================
-DROP_SIZE = 'DropSize'
+GENERATE_LIBRARY = 'GenerateLibrary'
 
 #=============================================================================
 # Class
 #=============================================================================
-class DropSizePostFunction(AbstractPostFunction):
+class GenerateLibraryPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return DROP_SIZE
+        return GENERATE_LIBRARY
    
     @staticmethod
     def summary():
@@ -60,58 +58,36 @@ class DropSizePostFunction(AbstractPostFunction):
     @staticmethod
     def notes():
         return ''
-
-    def response_messages(self):
-        msgs = super(DropSizePostFunction, self).response_messages()
-        return msgs
     
     @classmethod
     def parameters(cls):
-        cls._dyes_metrics      = ParameterFactory.dye_metrics()
-        cls._drop_ave_diameter = ParameterFactory.float(DROP_AVE_DIAMETER,
-                                                        'Float specifying average drop diameter',
-                                                        required=True)
-        cls._drop_std_diameter = ParameterFactory.float(DROP_STD_DIAMETER,
-                                                        'Float specifying drop diameter standard deviation',
-                                                        required=True)
+        cls._dyes_param      = ParameterFactory.dyes()
+        cls._nbarcodes_param = ParameterFactory.integer(NBARCODES,
+                                                'Integer specifying the number of barcodes to generate',
+                                                required=True)
 
         parameters = [
-                      cls._drop_ave_diameter,
-                      cls._dyes_metrics,
-                      cls._drop_std_diameter
+                      cls._dyes_param,
+                      cls._nbarcodes_param,
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
 
-        dye_metrics      = params_dict[cls._dyes_metrics]
-        drop_ave         = params_dict[cls._drop_ave_diameter][0]
-        drop_std         = params_dict[cls._drop_std_diameter][0]
+        dyes             = params_dict[cls._dyes_param]
+        nbarcodes        = params_dict[cls._nbarcodes_param][0]
         http_status_code = 200
-        uuid             = str(uuid4())
         json_response    = {
-                            UUID: uuid,
                             DATESTAMP: datetime.today(),
                            }
         try:
-            dye_names = list()
-            nlvls = list()
-            intensities = list()
-            for dye_name, nlvl, low, high in dye_metrics:
-                dye_names.append(dye_name)
-                nlvls.append(nlvl)
-                intensities.append((low, high))
+            design, dyes, levels = get_design(nbarcodes, dyes)
 
-            centroids = make_centroids(nlvls, intensities)
-            clusters = make_clusters(centroids, drop_ave=drop_ave, drop_std=drop_std)
-            collisions = check_collision(clusters)
-
-            json_response[DROP_AVE_DIAMETER]     = drop_ave
-            json_response[DROP_STD_DIAMETER]     = drop_std
-            json_response[DYE_METRICS]  = map(list, dye_metrics)
-            json_response['collisions'] = collisions
-            json_response['nclusters']  = numpy.product(nlvls)
+            json_response[NBARCODES]    = nbarcodes
+            json_response['design']     = design
+            json_response['dyes']       = dyes
+            json_response['levels']     = levels
 
         except IOError:
             APP_LOGGER.exception(traceback.format_exc())
@@ -128,5 +104,5 @@ class DropSizePostFunction(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == '__main__':
-    function = DropSizePostFunction()
+    function = GenerateLibraryPostFunction()
     print function        

@@ -106,3 +106,5 @@ GnuBio Flask API.
  * v1.16
    * Logging stack traces when exceptions are caught in API post functions. 
    * Fixed bug in archive finding where lstrip was being used incorrectly and could result in cryptic primary analysis failures
+ * v1.17
+   * Added library design generation tool to the Drop tools menu

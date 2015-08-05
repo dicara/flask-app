@@ -141,7 +141,7 @@ if __name__ == '__main__':
     print design, dyes, levels
 
     # create barcodes
-    from DropSizeIntensityConverter import make_centroids
+    from drop_size_utilities import make_centroids
 
     levels = get_levels(nbarcodes, dyes)
     intensity_ranges = [INTENSITY_RANGES[lvl] for lvl in levels]

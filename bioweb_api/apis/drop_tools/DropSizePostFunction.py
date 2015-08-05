@@ -32,7 +32,7 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, UUID, DROP_AVE_DIAMETER, \
     DROP_STD_DIAMETER, DYE_METRICS
 from bioweb_api.utilities.io_utilities import make_clean_response
-from bioweb_api.apis.drop_tools.DropSizeIntensityConverter import make_centroids, \
+from bioweb_api.apis.drop_tools.drop_size_utilities import make_centroids, \
     make_clusters, check_collision
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 

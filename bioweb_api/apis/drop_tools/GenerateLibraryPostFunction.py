@@ -30,7 +30,7 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES
 from bioweb_api.utilities.io_utilities import make_clean_response
-from bioweb_api.apis.drop_tools.GenerateLibrary import get_design
+from bioweb_api.apis.drop_tools.library_generation_utilities import get_design
 
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
@@ -58,10 +58,6 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
     @staticmethod
     def notes():
         return ''
-
-    def response_messages(self):
-        msgs = super(GenerateLibraryPostFunction, self).response_messages()
-        return msgs
     
     @classmethod
     def parameters(cls):

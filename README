@@ -108,3 +108,5 @@ GnuBio Flask API.
    * Fixed bug in archive finding where lstrip was being used incorrectly and could result in cryptic primary analysis failures
  * v1.17
    * Added library design generation tool to the Drop tools menu
+ * v1.18
+   * Added filtering dyes to secondary analysis

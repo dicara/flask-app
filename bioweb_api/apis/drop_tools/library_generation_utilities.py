@@ -1,17 +1,24 @@
 import itertools
 
+from matplotlib import pyplot as plt
 import numpy
 
+from primary_analysis.dye_datastore import Datastore
 
 # the minimum and maximum number of dyes
 MIN_NDYES  = 1
 MAX_NDYES  = 5
-
+INTENSITY_CAP = 65535
+MAX_INTEN = {
+    'pe-cy7': 30000,
+    'cy5.5':  INTENSITY_CAP,
+    '633':    INTENSITY_CAP,
+    '594':    INTENSITY_CAP,
+    'pe':     30000,
+}
+MIN_INTEN = 3000
 # the minimum number of levels per barcode dye, must be at least two
 MIN_NLEVELS = 2
-
-# intensity ranges for each level
-INTENSITY_RANGES = {2: (3000, 20000), 3: (3000, 30000), 4: (2000, 40000)}
 
 # based on plastic chip data, 60 mW laser power, Gain 0
 BARCODE_DYES = {
@@ -27,6 +34,78 @@ BARCODE_DYES = {
 # In this case 594 is at the end indicating that it is preferred to have
 # the most levels (if needed).
 PREFERED_ORDER = ['pe', 'pe-cy7', '633', 'cy5.5', '594']
+
+
+
+def plot_profiles(scalers, dyes, dye_profiles, nlvls):
+    """
+    A function to generate a visualization of the candidate profiles
+    and what their recomposition would look like.
+
+    @param scalers:         A list of integers used to scale each dye
+    @param dyes:            A list of dye names, order corresponds to scalers order
+    @param dye_profiles:    A list of dye profiles, order corresponds to scalers order
+    @param nlvls:           A list of dye levels, order corresponds to scalers order
+    """
+    max_profile = list()
+    for dye, prof, lvls, scalar in zip(dyes, dye_profiles, nlvls, scalers):
+        dye_profile_scaled = numpy.array(prof) * scalar
+        label = '%s (%d levels)' % (dye, lvls)
+        plt.plot(range(len(prof)), dye_profile_scaled, label=label)
+        max_profile.append(dye_profile_scaled)
+
+    max_profile = numpy.sum(numpy.array(max_profile), axis=0)
+    plt.plot(range(len(max_profile)), max_profile, 'k--', label='Max Profile')
+    plt.plot(range(len(max_profile)), [INTENSITY_CAP] * len(max_profile), 'y--', label='Saturation')
+    plt.legend(loc=('upper right'))
+
+
+def get_maxlvls(nbarcodes, dyes, resolution=40):
+    """
+    The ideal library will take full advantage of our intensity space, which
+    peaks at 65535 intensity units.  This function attempt to optimize the
+    maximum level of each dye by recomposing the profiles and testing that
+    they do not saturate.
+
+    @param dyes:    A list of dye names
+    @return:        A dictionary, keys are dye names, values are max intensity
+    """
+    # sort by prefered order so dye with most tolerance for levels is last
+    dyes = sorted(dyes, key = lambda x: PREFERED_ORDER.index(x))
+    # use default dye map, it should have all barcode dyes by default
+    profiles = Datastore().dye_map()
+    dye_profs = numpy.array([profiles[dye] for dye in dyes])
+    nlvls = get_levels(nbarcodes, dyes)
+
+    # make a group of scalars for each dye (dimension)
+    scalars = [numpy.linspace(20000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in dyes]
+
+    # create barcode profiles by summing each combination of dyes profiles
+    # to find an optimal max barcode profile
+    scalar_combos = scalars.pop(0)
+    while scalars:
+        scalar_combos = numpy.hstack((
+            numpy.repeat(scalar_combos, resolution, axis=0),
+            numpy.tile(scalars.pop(0), (len(scalar_combos), 1))
+        ))
+
+        ndims = scalar_combos.shape[1]
+        barcode_profs = numpy.sum(scalar_combos.reshape(-1, ndims, 1) * dye_profs[:ndims], axis=1)
+
+        # remove barcodes that exceed the maximum
+        invalid = (barcode_profs > INTENSITY_CAP).any(axis=1)
+        scalar_combos = scalar_combos[~invalid]
+        del barcode_profs
+
+        # remove barcodes that are too low
+        criteria = numpy.sum(numpy.abs(numpy.diff(scalar_combos/nlvls[:ndims], axis=1)), axis=1)
+        mask = criteria < numpy.percentile(criteria, 2.5)
+        scalar_combos = scalar_combos[mask]
+
+    midx = numpy.argmax(numpy.sum(scalar_combos, axis=1))
+    # plot_profiles(scalar_combos[midx], dyes, dye_profs, nlvls)
+
+    return dict(zip(dyes, scalar_combos[midx]))
 
 
 def get_dyes():
@@ -101,11 +180,11 @@ def get_design(nbarcodes, dyes):
     """
     dyes.sort()
     levels = get_levels(nbarcodes, dyes)
+    max_lvls = get_maxlvls(nbarcodes, dyes)
 
     design = list()
     for dye, nlvls in zip(dyes, levels):
-        min, max = INTENSITY_RANGES[nlvls]
-        int_range = numpy.linspace(min, max, nlvls)
+        int_range = numpy.linspace(MIN_INTEN, max_lvls[dye], nlvls)
         ug_ml = int_range / BARCODE_DYES[dye]['intensity_ugml']
         design.append({'name': dye, 'levels': ', '.join([str(round(lvl, 2)) for lvl in ug_ml])})
 
@@ -135,20 +214,9 @@ if __name__ == '__main__':
     # inputs
     nbarcodes = 24
     dyes = ['cy5.5', '594', '633']
+    # nbarcodes = 288
+    # dyes = ['cy5.5', '594', '633', 'pe-cy7', 'pe']
 
     # create design
     design, dyes, levels = get_design(nbarcodes, dyes)
-    print design, dyes, levels
 
-    # create barcodes
-    from drop_size_utilities import make_centroids
-
-    levels = get_levels(nbarcodes, dyes)
-    intensity_ranges = [INTENSITY_RANGES[lvl] for lvl in levels]
-
-    cents = make_centroids(levels, intensity_ranges)
-
-    for i, dye in enumerate(dyes):
-        cents[:, i] /= BARCODE_DYES[dye]['intensity_ugml']
-
-    print numpy.round(cents, 1)

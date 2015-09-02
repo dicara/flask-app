@@ -25,6 +25,7 @@ import os
 import shutil
 import time
 import unittest
+import yaml
 
 from datetime import datetime
 
@@ -35,7 +36,7 @@ from bioweb_api.apis.ApiConstants import UUID, FIDUCIAL_DYE, ASSAY_DYE,\
     NUM_PROBES, TRAINING_FACTOR, THRESHOLD, OUTLIERS, DYE_LEVELS, PLOT, \
     JOB_NAME, JOB_TYPE_NAME, JOB_TYPE, ARCHIVE, COV_TYPE, DEVICE, DYES, \
     STATUS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, \
-    URL, CONFIG_URL, RESULT, CONFIG, KDE_PLOT, SCATTER_PLOT
+    URL, CONFIG_URL, REPORT, RESULT, CONFIG, KDE_PLOT, SCATTER_PLOT
 from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
@@ -49,6 +50,7 @@ from secondary_analysis.constants import COVARIANCE_TYPES
 _TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
 _DB_CONNECTOR             = DbConnector.Instance()
 _EXPECTED_IDENTITY_RESULT = "expected_identity.txt"
+_EXPECTED_IDENTITY_REPORT = "expected_report.yaml"
 _SECONDARY_ANALYSIS_URL   = "/api/v1/SecondaryAnalysis"
 _IDENTITY_URL             = os.path.join(_SECONDARY_ANALYSIS_URL, IDENTITY)
 _ASSAY_CALLER_URL         = os.path.join(_SECONDARY_ANALYSIS_URL, ASSAY_CALLER)
@@ -138,11 +140,11 @@ class Test(unittest.TestCase):
         
     def setUp(self):
         self._client = app.test_client(self)
-        self._exp_id_result = os.path.join(_TEST_DIR, _EXPECTED_IDENTITY_RESULT)
-        
-        self.assertTrue(os.path.isfile(self._exp_id_result), 
+        self._exp_id_report_path = os.path.join(_TEST_DIR, _EXPECTED_IDENTITY_REPORT)
+
+        self.assertTrue(os.path.isfile(self._exp_id_report_path),
                         "Expected identity result file doesn't exist: %s" % \
-                        self._exp_id_result)
+                        self._exp_id_report_path)
         
     def test_pa_results_exist(self):
         """
@@ -151,25 +153,25 @@ class Test(unittest.TestCase):
         """
         response = _DB_CONNECTOR.find_one(PA_PROCESS_COLLECTION, UUID,
                                           self._pa_process_ac_uuid)
-         
+
         msg = "No entries in the DB with UUID = %s" % self._pa_process_ac_uuid
         self.assertTrue(response, msg)
-         
+
         msg = "Result file cannot be found: %s" % response[RESULT]
         self.assertTrue(os.path.isfile(response[RESULT]), msg)
- 
+
         msg = "Config file cannot be found: %s" % response[CONFIG]
         self.assertTrue(os.path.isfile(response[CONFIG]), msg)
 
         response = _DB_CONNECTOR.find_one(PA_PROCESS_COLLECTION, UUID,
                                           self._pa_process_id_uuid)
-         
+
         msg = "No entries in the DB with UUID = %s" % self._pa_process_id_uuid
         self.assertTrue(response, msg)
-         
+
         msg = "Result file cannot be found: %s" % response[RESULT]
         self.assertTrue(os.path.isfile(response[RESULT]), msg)
- 
+
         msg = "Config file cannot be found: %s" % response[CONFIG]
         self.assertTrue(os.path.isfile(response[CONFIG]), msg)
 
@@ -179,24 +181,24 @@ class Test(unittest.TestCase):
         """
         # Construct url
         url = _ASSAY_CALLER_URL
-        url = add_url_argument(url, UUID, self._ac_record[UUID], True) 
-        url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME) 
-        url = add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE) 
-        url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE) 
-        url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES) 
-        url = add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR) 
-        url = add_url_argument(url, THRESHOLD, _THRESHOLD) 
-        url = add_url_argument(url, OUTLIERS, _OUTLIERS) 
-        url = add_url_argument(url, COV_TYPE, _COV_TYPE) 
-            
+        url = add_url_argument(url, UUID, self._ac_record[UUID], True)
+        url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME)
+        url = add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE)
+        url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE)
+        url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES)
+        url = add_url_argument(url, TRAINING_FACTOR, _TRAINING_FACTOR)
+        url = add_url_argument(url, THRESHOLD, _THRESHOLD)
+        url = add_url_argument(url, OUTLIERS, _OUTLIERS)
+        url = add_url_argument(url, COV_TYPE, _COV_TYPE)
+
         # Submit identity job
         response          = post_data(self, url, 200)
         assay_caller_uuid = response[ASSAY_CALLER][0][UUID]
-             
+
         # Test that submitting two jobs with the same name fails and returns
-        # the appropriate error code. 
+        # the appropriate error code.
         post_data(self, url, 403)
-     
+
         running = True
         while running:
             time.sleep(10)
@@ -205,38 +207,38 @@ class Test(unittest.TestCase):
                 if assay_caller_uuid == job[UUID]:
                     job_details = job
                     running     = job_details[STATUS] == 'running'
-   
+
         # Copy result files to cwd for bamboo to ingest as artifacts
         assay_caller_txt_path = None
         if RESULT in job_details:
             assay_caller_txt_path = job_details[RESULT]
             if os.path.isfile(assay_caller_txt_path):
                 shutil.copy(assay_caller_txt_path, "observed_assay_caller.txt")
-                  
-        kde_plot_path = None  
+
+        kde_plot_path = None
         if KDE_PLOT in job_details:
             kde_plot_path = job_details[KDE_PLOT]
             if os.path.isfile(kde_plot_path):
                 shutil.copy(kde_plot_path, "observed_kde_plot.png")
-            
-        scatter_plot_path = None  
+
+        scatter_plot_path = None
         if SCATTER_PLOT in job_details:
             scatter_plot_path = job_details[SCATTER_PLOT]
             if os.path.isfile(scatter_plot_path):
                 shutil.copy(scatter_plot_path, "observed_scatter_plot.png")
-            
+
         error = ""
         if 'error' in job_details:
             error = job_details['error']
         msg = "Expected sa assay caller job status succeeded, but found %s. " \
               "Error: %s" % (job_details[STATUS], error)
         self.assertEquals(job_details[STATUS], "succeeded", msg)
-            
+
         # Delete sa assay caller job
-        delete_url = add_url_argument(_ASSAY_CALLER_URL, UUID, 
+        delete_url = add_url_argument(_ASSAY_CALLER_URL, UUID,
                                       assay_caller_uuid, True)
         delete_data(self, delete_url, 200)
-             
+
         # Ensure job no longer exists in the database
         response = get_data(self, _ASSAY_CALLER_URL, 200)
         for job in response[ASSAY_CALLER]:
@@ -271,15 +273,15 @@ class Test(unittest.TestCase):
                 if identity_uuid == job[UUID]:
                     job_details = job
                     running     = job_details[STATUS] == 'running'
-    
+
         # Copy result files to cwd for bamboo to ingest as artifacts
-        identity_txt_path = None
-        if RESULT in job_details:
-            identity_txt_path = job_details[RESULT]
-            if os.path.isfile(identity_txt_path):
-                shutil.copy(identity_txt_path, "observed_identity.txt")
-                    
-        identity_plot_path = None  
+        obs_id_report_path = None
+        if REPORT in job_details:
+            obs_id_report_path = job_details[REPORT]
+            if os.path.isfile(obs_id_report_path):
+                shutil.copy(obs_id_report_path, "observed_report.yaml")
+
+        identity_plot_path = None
         if PLOT in job_details:
             identity_plot_path = job_details[PLOT]
             if os.path.isfile(identity_plot_path):
@@ -291,10 +293,19 @@ class Test(unittest.TestCase):
         msg = "Expected sa identity job status succeeded, but found %s. " \
               "Error: %s" % (job_details[STATUS], error)
         self.assertEquals(job_details[STATUS], "succeeded", msg)
-            
-        msg = "Observed identity result (%s) doesn't match expected result (%s)." % \
-              (identity_txt_path, self._exp_id_result)
-        self.assertTrue(filecmp.cmp(self._exp_id_result, identity_txt_path), msg)
+
+        # check if expected clusters were found
+        with open(self._exp_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
+            exp_report = yaml.load(f_exp)
+            obs_report = yaml.load(f_obs)
+        exp_clusters = exp_report['IDENTITY MODEL METRICS']['CLUSTERS']
+        obs_clusters = obs_report['IDENTITY MODEL METRICS']['CLUSTERS']
+
+        exp_clus_ids = [clus.keys()[0] for clus in exp_clusters]
+        obs_clus_ids = [clus.keys()[0] for clus in obs_clusters]
+
+        msg = 'Identity result contains barcode IDs that were not expected.'
+        self.assertTrue(exp_clus_ids == obs_clus_ids, msg)
     
         # Delete sa assay caller job
         delete_url = add_url_argument(_IDENTITY_URL, UUID, identity_uuid, True)

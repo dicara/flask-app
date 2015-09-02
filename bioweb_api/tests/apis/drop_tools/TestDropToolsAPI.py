@@ -25,15 +25,14 @@ import unittest
 
 from bioweb_api import app
 from bioweb_api.apis.drop_tools.DropSizePostFunction import DROP_SIZE
-from bioweb_api.tests.test_utils import get_data, delete_data, \
-    add_url_argument, upload_file, post_data
+from bioweb_api.tests.test_utils import add_url_argument, post_data
 from bioweb_api.apis.ApiConstants import DROP_AVE_DIAMETER, DROP_STD_DIAMETER, DYE_METRICS
 
 
 #=============================================================================
 # Private Static Variables
 #=============================================================================
-_DROP_SIZE_URL     = os.path.join("/api/v1/DropTools", DROP_SIZE)
+_DROP_SIZE_URL = os.path.join("/api/v1/DropTools", DROP_SIZE)
 
 #=============================================================================
 # Class

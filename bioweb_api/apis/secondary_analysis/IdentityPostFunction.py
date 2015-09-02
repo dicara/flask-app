@@ -8,7 +8,7 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
+distributed under the License is distributed: on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
@@ -20,6 +20,7 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import copy
 import os
 import shutil
 import sys
@@ -40,7 +41,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB, REPORT, \
-    REPORT_URL
+    REPORT_URL, FILTERED_DYES
     
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
@@ -119,6 +120,8 @@ class IdentityPostFunction(AbstractPostFunction):
         cls.dye_levels_param   = ParameterFactory.dye_levels()
         cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
                                                        required=False)
+        cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
+                                                       required=False)
         cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
                                                 _PF_TRAINING_FACTOR_DESCRIPTION,
                                                 default=10, minimum=0)
@@ -139,6 +142,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.training_param,
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
+                      cls.filtered_dyes_param,
                       cls.prefilter_tf_param,
                       cls.ui_threshold_param,
                       cls.calc_drop_prob_param,
@@ -159,11 +163,18 @@ class IdentityPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         dye_levels      = params_dict[cls.dye_levels_param]
-        
-        ignored_dyes=list()
+
+        filtered_dyes = list()
+        if cls.filtered_dyes_param in params_dict:
+            filtered_dyes = list(set(params_dict[cls.filtered_dyes_param]))
+
+        # all filtered dyes should be ignored by default, join ignored
+        # and filtered dyes and remove duplicates
+        ignored_dyes = copy.deepcopy(filtered_dyes)
         if cls.ignored_dyes_param in params_dict:
-            ignored_dyes = params_dict[cls.ignored_dyes_param]
-            
+            uniq_dyes = set(filtered_dyes).union(params_dict[cls.ignored_dyes_param])
+            ignored_dyes = list(uniq_dyes)
+
         prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
         calc_probs      = params_dict[cls.calc_drop_prob_param][0]
@@ -200,6 +211,7 @@ class IdentityPostFunction(AbstractPostFunction):
                         TRAINING_FACTOR: training_factor,
                         DYE_LEVELS: [list(x) for x in dye_levels],
                         IGNORED_DYES: ignored_dyes,
+                        FILTERED_DYES: filtered_dyes,
                         PF_TRAINING_FACTOR: prefilter_tf,
                         UI_THRESHOLD: ui_threshold,
                         UUID: str(uuid4()),
@@ -211,7 +223,7 @@ class IdentityPostFunction(AbstractPostFunction):
                         CALC_DROP_PROB: calc_probs
                        }
             status_code = 200
-            
+
             if cur_job_name in cls._DB_CONNECTOR.distinct(SA_IDENTITY_COLLECTION, 
                                                           JOB_NAME):
                 status_code = 403
@@ -250,6 +262,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       fiducial_dye,
                                                       dye_levels,
                                                       ignored_dyes,
+                                                      filtered_dyes,
                                                       prefilter_tf,
                                                       ui_threshold,
                                                       calc_probs,
@@ -290,7 +303,7 @@ class SaIdentityCallable(object):
     """
     def __init__(self, primary_analysis_data, num_probes, training_factor, 
                  plot_path, outfile_path, report_path, assay_dye, fiducial_dye,
-                 dye_levels, ignored_dyes, prefilter_tf, ui_threshold,
+                 dye_levels, ignored_dyes, filtered_dyes, prefilter_tf, ui_threshold,
                  calc_probs, uuid, db_connector):
         self.primary_analysis_data = primary_analysis_data
         self.num_probes            = num_probes
@@ -302,6 +315,7 @@ class SaIdentityCallable(object):
         self.fiducial_dye          = fiducial_dye
         self.dye_levels            = dye_levels
         self.ignored_dyes          = ignored_dyes
+        self.filtered_dyes         = filtered_dyes
         self.prefilter_tf          = prefilter_tf
         self.ui_threshold          = ui_threshold
         self.calc_probs            = calc_probs
@@ -318,7 +332,8 @@ class SaIdentityCallable(object):
                            START_DATESTAMP: datetime.today()}}     
         self.db_connector.update(SA_IDENTITY_COLLECTION, self.query, update)
         identity_factory = IdentityFactory.constellation_identity_factory(self.dye_levels,
-                                                                          calc_probs=self.calc_probs)
+                                                                          calc_probs=self.calc_probs,
+                                                                          raise_exceptions=False)
         
         try:
             safe_make_dirs(self.tmp_path)
@@ -329,10 +344,11 @@ class SaIdentityCallable(object):
                                            out_file=self.tmp_outfile_path, 
                                            report_path=self.tmp_report_path,
                                            assay_dye=self.assay_dye,
-                                           fiducial_dye=self.fiducial_dye, 
+                                           fiducial_dye=self.fiducial_dye,
                                            dye_levels=self.dye_levels,
                                            show_figure=False, 
                                            ignored_dyes=self.ignored_dyes,
+                                           filtered_dyes=self.filtered_dyes,
                                            prefilter_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
                                            calc_probs=self.calc_probs)
@@ -386,6 +402,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
             if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
                 db_connector.update(SA_IDENTITY_COLLECTION, query, update)
             else:
+                silently_remove_file(report_path)
                 silently_remove_file(outfile_path)
                 silently_remove_file(plot_path)
         except:
@@ -399,6 +416,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
             if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
                 db_connector.update(SA_IDENTITY_COLLECTION, query, update)
             else:
+                silently_remove_file(report_path)
                 silently_remove_file(outfile_path)
                 silently_remove_file(plot_path)
          

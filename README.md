@@ -112,3 +112,5 @@ GnuBio Flask API.
    * Added filtering dyes to secondary analysis
  * v1.19
    * No changes - need to bump version to deploy to new locally hosted Docker Hub.
+ * v1.20
+   * Identity errors are reported in the results table and text/report/png files are still generated

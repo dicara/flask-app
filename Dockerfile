@@ -1,5 +1,5 @@
 # This is a comment
-FROM       gbsoftware/proprietary_base:latest
+FROM       swi-03.global.bio-rad.com/gbsoftware/proprietary_base:latest
 MAINTAINER Dan DiCara <ddicara@gnubio.com>
 
 ENV FLASKR_SETTINGS /flaskr_settings.cfg

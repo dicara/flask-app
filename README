@@ -110,3 +110,5 @@ GnuBio Flask API.
    * Added library design generation tool to the Drop tools menu
  * v1.18
    * Added filtering dyes to secondary analysis
+ * v1.19
+   * No changes - need to bump version to deploy to new locally hosted Docker Hub.

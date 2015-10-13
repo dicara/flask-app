@@ -381,8 +381,10 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
     def process_callback(future):
         try:
             _ = future.result()
+            report_errors = check_report_for_errors(report_path)
+            status = JOB_STATUS.failed if report_errors else JOB_STATUS.succeeded
             update = { "$set": { 
-                                 STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
+                                 STATUS: status, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  URL: "http://%s/results/%s/%s" % 
                                            (HOSTNAME, PORT, 
@@ -396,8 +398,10 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
                                            (HOSTNAME, PORT,
                                             os.path.basename(report_path)),
                                  FINISH_DATESTAMP: datetime.today(),
+                                 ERROR: report_errors,
                                }
                     }
+
             # If job has been deleted, then delete result and don't update DB.
             if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
                 db_connector.update(SA_IDENTITY_COLLECTION, query, update)
@@ -408,10 +412,13 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
         except:
             APP_LOGGER.exception(traceback.format_exc())
             error_msg = str(sys.exc_info()[1])
+
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None,
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
+            if os.path.isfile(report_path):
+                update['$set'][REPORT_URL]
             # If job has been deleted, then delete result and don't update DB.
             if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
                 db_connector.update(SA_IDENTITY_COLLECTION, query, update)
@@ -421,7 +428,34 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
                 silently_remove_file(plot_path)
          
     return process_callback
-            
+
+
+def check_report_for_errors(report_path):
+    """
+    Open and retrieve reportable errors from identity if there are any
+
+    @param report_path: String specify report location
+    @return:            String describing errors or None
+    """
+    if os.path.exists(report_path):
+        report_errors = list()
+        with open(report_path) as fh:
+            id_model_errors = yaml.load(fh)['IDENTITY MODEL METRICS']['PROBLEMS']
+            id_collisions = id_model_errors['Identity Collisions']
+            missing = id_model_errors['Missing Barcodes']
+            resolved_merge = id_model_errors['Resolved Merged']
+            if missing:
+                report_errors.append('Missing barcodes: %s' % str(missing))
+            if id_collisions:
+                report_errors.append('Identity collisions: %s' % str(id_collisions) )
+            if resolved_merge:
+                report_errors.append('Merge Resolution: %s' % str(resolved_merge) )
+        if report_errors:
+            return ', '.join(report_errors)
+
+
+
+
 #===============================================================================
 # Run Main
 #===============================================================================

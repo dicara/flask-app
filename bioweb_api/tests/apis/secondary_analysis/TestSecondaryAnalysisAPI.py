@@ -286,13 +286,6 @@ class Test(unittest.TestCase):
             identity_plot_path = job_details[PLOT]
             if os.path.isfile(identity_plot_path):
                 shutil.copy(identity_plot_path, "identity_plot.png")
-              
-        error = ""
-        if 'error' in job_details:
-            error = job_details['error']
-        msg = "Expected sa identity job status succeeded, but found %s. " \
-              "Error: %s" % (job_details[STATUS], error)
-        self.assertEquals(job_details[STATUS], "succeeded", msg)
 
         # check if expected clusters were found
         with open(self._exp_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:

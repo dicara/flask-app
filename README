@@ -115,4 +115,5 @@ GnuBio Flask API.
  * v1.20
    * Identity errors are reported in the results table and text/report/png files are still generated
    * Primary analysis and secondary analysis versions updated
+ * v1.21
    * Unit test fix for identity

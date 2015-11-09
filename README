@@ -117,3 +117,5 @@ GnuBio Flask API.
    * Primary analysis and secondary analysis versions updated
  * v1.21
    * Unit test fix for identity
+ * v1.22
+   * Unit test fix for assay caller

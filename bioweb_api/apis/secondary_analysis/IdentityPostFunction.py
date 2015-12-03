@@ -42,10 +42,10 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB, REPORT, \
     REPORT_URL, FILTERED_DYES
-    
+
+from secondary_analysis.constants import FACTORY_ORGANIC
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
-from secondary_analysis.identity.identity_factory import IdentityFactory
 
 from primary_analysis.command import InvalidFileError
 
@@ -120,19 +120,18 @@ class IdentityPostFunction(AbstractPostFunction):
         cls.dye_levels_param   = ParameterFactory.dye_levels()
         cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
                                                        required=False)
-        cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
-                                                       required=False)
+        cls.filtered_dyes_param = ParameterFactory.filter_dyes(required=False)
         cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
                                                 _PF_TRAINING_FACTOR_DESCRIPTION,
                                                 default=10, minimum=0)
         cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
                                                       _UI_THRESHOLD_DESCRIPTION,
-                                                      default=500.0, 
+                                                      default=500.0,
                                                       minimum=0.0)
         cls.calc_drop_prob_param = ParameterFactory.boolean(CALC_DROP_PROB,
                                                           _CALC_DROP_PROB_DESCRIPTION,
                                                           default_value=False)
-        
+
         parameters = [
                       cls.job_uuid_param,
                       cls.job_name_param,
@@ -148,17 +147,17 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.calc_drop_prob_param,
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
-        
+
         fiducial_dye=None
         if cls.fid_dye_param in params_dict:
             fiducial_dye    = params_dict[cls.fid_dye_param][0]
         assay_dye = None
-        if cls.assay_dye_param in params_dict:    
+        if cls.assay_dye_param in params_dict:
             assay_dye       = params_dict[cls.assay_dye_param][0]
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
@@ -166,14 +165,12 @@ class IdentityPostFunction(AbstractPostFunction):
 
         filtered_dyes = list()
         if cls.filtered_dyes_param in params_dict:
-            filtered_dyes = list(set(params_dict[cls.filtered_dyes_param]))
+            filtered_dyes = [dye for dye, _ in params_dict[cls.filtered_dyes_param]]
 
-        # all filtered dyes should be ignored by default, join ignored
-        # and filtered dyes and remove duplicates
-        ignored_dyes = copy.deepcopy(filtered_dyes)
+        # ignore filter dyes
+        ignored_dyes = list()
         if cls.ignored_dyes_param in params_dict:
-            uniq_dyes = set(filtered_dyes).union(params_dict[cls.ignored_dyes_param])
-            ignored_dyes = list(uniq_dyes)
+            ignored_dyes = params_dict[cls.ignored_dyes_param]
 
         prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
@@ -185,17 +182,17 @@ class IdentityPostFunction(AbstractPostFunction):
         try:
             criteria        = {UUID: {"$in": job_uuids}}
             projection      = {ID: 0, RESULT: 1, UUID: 1, CONFIG: 1}
-            pa_process_jobs = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, 
+            pa_process_jobs = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION,
                                                      criteria, projection)
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
-        
+
         # Ensure at least one valid analysis job exists
         if len(pa_process_jobs) < 1:
             return make_clean_response(json_response, 404)
-         
+
         # Process each archive
         status_codes  = []
         for i, pa_process_job in enumerate(pa_process_jobs):
@@ -224,36 +221,36 @@ class IdentityPostFunction(AbstractPostFunction):
                        }
             status_code = 200
 
-            if cur_job_name in cls._DB_CONNECTOR.distinct(SA_IDENTITY_COLLECTION, 
+            if cur_job_name in cls._DB_CONNECTOR.distinct(SA_IDENTITY_COLLECTION,
                                                           JOB_NAME):
                 status_code = 403
             else:
                 try:
                     outfile_path = os.path.join(RESULTS_PATH, response[UUID])
-                    plot_path    = os.path.join(RESULTS_PATH, 
+                    plot_path    = os.path.join(RESULTS_PATH,
                                                 response[UUID] + ".png")
                     report_path  = os.path.join(RESULTS_PATH,
                                                 response[UUID] + ".yaml")
 
                     with open(pa_process_job[CONFIG]) as fd:
                         config = yaml.load(fd)
-                        
-                    dyes = [dye for dye in config['dye_map']['dyes'] 
+
+                    dyes = [dye for dye in config['dye_map']['dyes']
                             if dye != fiducial_dye and dye != assay_dye]
-                    
+
                     level_dyes = set([x[0] for x in dye_levels])
-                    
+
                     if not level_dyes.issubset(set(dyes)):
-                        raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)", 
+                        raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)",
                                         level_dyes, dyes)
-                    
+
                     if not os.path.isfile(pa_process_job[RESULT]):
                         raise InvalidFileError(pa_process_job[RESULT])
                     primary_analysis_data = PrimaryAnalysisData.from_file(pa_process_job[RESULT])
-                    
+
                     # Create helper functions
                     sai_callable = SaIdentityCallable(primary_analysis_data,
-                                                      num_probes, 
+                                                      num_probes,
                                                       training_factor,
                                                       plot_path,
                                                       outfile_path,
@@ -266,9 +263,9 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       prefilter_tf,
                                                       ui_threshold,
                                                       calc_probs,
-                                                      response[UUID], 
+                                                      response[UUID],
                                                       cls._DB_CONNECTOR)
-                    callback = make_process_callback(response[UUID], 
+                    callback = make_process_callback(response[UUID],
                                                      outfile_path,
                                                      plot_path,
                                                      report_path,
@@ -289,7 +286,7 @@ class IdentityPostFunction(AbstractPostFunction):
 
             json_response[IDENTITY].append(response)
             status_codes.append(status_code)
-        
+
         # If all jobs submitted successfully, then 200 should be returned.
         # Otherwise, the maximum status code seems good enough.
         return make_clean_response(json_response, max(status_codes))
@@ -301,7 +298,7 @@ class SaIdentityCallable(object):
     """
     Callable that executes the absorption command.
     """
-    def __init__(self, primary_analysis_data, num_probes, training_factor, 
+    def __init__(self, primary_analysis_data, num_probes, training_factor,
                  plot_path, outfile_path, report_path, assay_dye, fiducial_dye,
                  dye_levels, ignored_dyes, filtered_dyes, prefilter_tf, ui_threshold,
                  calc_probs, uuid, db_connector):
@@ -329,17 +326,14 @@ class SaIdentityCallable(object):
 
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
-                           START_DATESTAMP: datetime.today()}}     
+                           START_DATESTAMP: datetime.today()}}
         self.db_connector.update(SA_IDENTITY_COLLECTION, self.query, update)
-        identity_factory = IdentityFactory.constellation_identity_factory(self.dye_levels,
-                                                                          calc_probs=self.calc_probs,
-                                                                          raise_exceptions=False)
-        
+
         try:
             safe_make_dirs(self.tmp_path)
             self.identity.execute_identity(self.primary_analysis_data, 
                                            self.num_probes, self.training_factor, 
-                                           identity_factory, 
+                                           factory_type=FACTORY_ORGANIC,
                                            plot_path=self.tmp_plot_path, 
                                            out_file=self.tmp_outfile_path, 
                                            report_path=self.tmp_report_path,
@@ -351,7 +345,8 @@ class SaIdentityCallable(object):
                                            filtered_dyes=self.filtered_dyes,
                                            prefilter_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
-                                           calc_probs=self.calc_probs)
+                                           calc_probs=self.calc_probs,
+                                           raise_exceptions=False)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

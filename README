@@ -119,3 +119,5 @@ GnuBio Flask API.
    * Unit test fix for identity
  * v1.22
    * Unit test fix for assay caller
+ * v1.23
+   * Constellation identity factory is given picoinjection fiducial dye

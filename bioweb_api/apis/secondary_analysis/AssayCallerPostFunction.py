@@ -33,11 +33,11 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api import SA_ASSAY_CALLER_COLLECTION, PA_PROCESS_COLLECTION, \
-    TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
+from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
+from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
-    ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
+    ERROR, SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
     SCATTER_PLOT, SCATTER_PLOT_URL, THRESHOLD, COV_TYPE, OUTLIERS, JOE, FAM
     
@@ -98,8 +98,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
     
     @classmethod
     def parameters(cls):
-        cls.job_uuid_param  = ParameterFactory.job_uuid(PA_PROCESS_COLLECTION)
-        #IDENTITY JOBS AS WELL???
+        cls.job_uuid_param  = ParameterFactory.job_uuid(SA_IDENTITY_COLLECTION)
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                          "name to give this "
                                                          "job.")
@@ -162,8 +161,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
         # Ensure analysis job exists
         try:
             criteria        = {UUID: {"$in": job_uuids}}
-            projection      = {ID: 0, RESULT: 1, UUID: 1, CONFIG: 1}
-            pa_process_jobs = cls._DB_CONNECTOR.find(PA_PROCESS_COLLECTION, 
+            projection      = {ID: 0, RESULT: 1, UUID: 1}
+            sa_identity_jobs = cls._DB_CONNECTOR.find(SA_IDENTITY_COLLECTION, 
                                                      criteria, projection)
         except:
             APP_LOGGER.exception(traceback.format_exc())
@@ -172,8 +171,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
         
         # Process each archive
         status_codes  = []
-        for i, pa_process_job in enumerate(pa_process_jobs):
-            if len(pa_process_jobs) == 1:
+        for i, sa_identity_job in enumerate(sa_identity_jobs):
+            if len(sa_identity_jobs) == 1:
                 cur_job_name = job_name
             else:
                 cur_job_name = "%s-%d" % (job_name, i)
@@ -187,7 +186,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                         OUTLIERS: outliers,
                         COV_TYPE: cov_type,
                         UUID: str(uuid4()),
-                        PA_PROCESS_UUID: pa_process_job[UUID],
+                        SA_ASSAY_CALLER_UUID: sa_identity_job[UUID],
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
                         JOB_NAME: cur_job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_assay_calling, # @UndefinedVariable
@@ -206,11 +205,11 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     scatter_plot_path = os.path.join(RESULTS_PATH, 
                                                 response[UUID] + "_scatter.png")
                     
-                    if not os.path.isfile(pa_process_job[RESULT]):
-                        raise InvalidFileError(pa_process_job[RESULT])
+                    if not os.path.isfile(sa_identity_job[RESULT]):
+                        raise InvalidFileError(sa_identity_job[RESULT])
                     
                     # Create helper functions
-                    sac_callable = SaAssayCallerCallable(pa_process_job[RESULT],
+                    sac_callable = SaAssayCallerCallable(sa_identity_job[RESULT],
                                                          assay_dye,
                                                          fiducial_dye,
                                                          num_probes, 

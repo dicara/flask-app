@@ -13,14 +13,13 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 #=============================================================================
 # Parse configuration
 #=============================================================================
-DEV                          = app.config['DEV']                 
+PLATFORM                     = app.config['PLATFORM']                 
 HOSTNAME                     = app.config['HOSTNAME'] 
 MAX_BUFFER_SIZE              = app.config['MAX_BUFFER_SIZE']             
 PORT                         = app.config['PORT']
 DATABASE_URL                 = app.config['DATABASE_URL']
 DATABASE_NAME                = app.config['DATABASE_NAME']
 DATABASE_PORT                = app.config['DATABASE_PORT']
-USER_HOME_DIR                = app.config['USER_HOME_DIR']
 HOME_DIR                     = app.config['HOME_DIR']
 TARGETS_UPLOAD_PATH          = app.config['TARGETS_UPLOAD_PATH']
 PROBES_UPLOAD_PATH           = app.config['PROBES_UPLOAD_PATH']

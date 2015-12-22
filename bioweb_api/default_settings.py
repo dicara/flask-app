@@ -21,33 +21,71 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
-from os.path import expanduser
 
 #===============================================================================
-# Configuration Settings
+# Platform-Specific Configuration Settings
+#
+# Select VAGRANT, DEV, or PROD:
+#     --  a Vagrant VM running Ubuntu 12.04
+#     --  DEV on the bioweb server
+#     --  PROD on the bioweb server
+#
+# DEV and PROD share everything but:
+#
+#     --  DB name, as Bioinformatics_dev or Bioinformatics
+#     --  the port value, 8010 or 8020
+#
 #===============================================================================
-DEV             = True
-HOSTNAME        = "localhost"
-# HOSTNAME        = "bioweb"
-USER_HOME_DIR   = expanduser("~")
-ROOT_DIR        = "/mnt/bigdisk/"
-MAX_BUFFER_SIZE = 2*1024*1024*1024 # Max file upload size: 2GB
 
-if DEV:
-    PORT = 8020
-    DATABASE_NAME = "Bioinformatics_dev"
-else:
-    PORT = 8010
-    DATABASE_NAME = "Bioinformatics"
-    
-DATABASE_URL  = HOSTNAME
-DATABASE_PORT = 27017
+PLATFORM = "VAGRANT"
 
-# Directories
-if HOSTNAME == "bioweb":
+if PLATFORM == "VAGRANT":
+
+    # Database server settings
+    HOSTNAME        = "192.168.33.11"  
+    PORT            = 8020
+    DATABASE_NAME   = "Bioinformatics_dev"
+    # File storage locations for pa, sa jobs
+    ROOT_DIR        = "/vagrant/mnt/"
+    ARCHIVES_PATH   = "/vagrant/mnt/runs"
+    # Data Directories
+    HOME_DIR = os.path.join(ROOT_DIR, "gnubio-bioinformatics-rest_api")
+
+elif PLATFORM == "DEV":
+
+    # Database server settings
+    HOSTNAME        = "bioweb"
+    PORT            = 8020
+    DATABASE_NAME   = "Bioinformatics_dev"
+    # File storage locations for pa, sa jobs
+    ROOT_DIR        = "/mnt/bigdisk/"
+    ARCHIVES_PATH   = "/mnt/runs"
+    # Data Directories
     HOME_DIR = os.path.join(ROOT_DIR, "api")
+
+elif PLATFORM == "PROD":
+
+    # Database server settings
+    HOSTNAME        = "bioweb"
+    PORT            = 8010
+    DATABASE_NAME   = "Bioinformatics"
+    # File storage locations for pa, sa jobs
+    ROOT_DIR        = "/mnt/bigdisk/"
+    ARCHIVES_PATH   = "/mnt/runs"
+    # Data Directories
+    HOME_DIR = os.path.join(ROOT_DIR, "api")
+
 else:
-    HOME_DIR = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
+    raise Exception("Unknown execution platform '%s' - get help!" % PLATFORM)
+    
+#===============================================================================
+# Platform-Independent Configuration Settings
+#===============================================================================
+
+DATABASE_URL            = HOSTNAME
+DATABASE_PORT           = 27017    # the Mongo port is well-known and pretty much constant
+
+MAX_BUFFER_SIZE         = 2*1024*1024*1024 # Max file upload size: 2GB
 
 TARGETS_UPLOAD_PATH     = os.path.join(HOME_DIR, "uploads", str(PORT), "targets")
 PROBES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "probes")
@@ -55,8 +93,8 @@ PLATES_UPLOAD_PATH      = os.path.join(HOME_DIR, "uploads", str(PORT), "plates")
 RESULTS_PATH            = os.path.join(HOME_DIR, "results", str(PORT))
 REFS_PATH               = os.path.join(HOME_DIR, "refs")
 TMP_PATH                = os.path.join(HOME_DIR, "tmp")
+
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
-ARCHIVES_PATH           = "/mnt/runs"
 
 # MongoDb Collections
 TARGETS_COLLECTION           = "targets"

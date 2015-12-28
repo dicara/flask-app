@@ -21,11 +21,13 @@ limitations under the License.
 # Imports
 #===============================================================================
 import os
+from os.path import expanduser
 
 #===============================================================================
 # Platform-Specific Configuration Settings
 #
-# Select VAGRANT, DEV, or PROD:
+# Select BAMBOO, VAGRANT, DEV, or PROD:
+#     --  Our test/integration system
 #     --  a Vagrant VM running Ubuntu 12.04
 #     --  DEV on the bioweb server
 #     --  PROD on the bioweb server
@@ -37,9 +39,22 @@ import os
 #
 #===============================================================================
 
-PLATFORM = "VAGRANT"
+PLATFORM = "BAMBOO"
 
-if PLATFORM == "VAGRANT":
+if PLATFORM == "BAMBOO":
+
+    # Database server settings
+    HOSTNAME        = "localhost"
+    PORT            = 8020
+    DATABASE_NAME   = "Bioinformatics_dev"
+    # File storage locations for pa, sa jobs
+    ROOT_DIR        = "/mnt/bigdisk"
+    ARCHIVES_PATH   = "/vagrant/mnt/runs"
+    # Data Directories
+    USER_HOME_DIR   = expanduser("~")
+    HOME_DIR = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
+
+elif PLATFORM == "VAGRANT":
 
     # Database server settings
     HOSTNAME        = "192.168.33.11"  
@@ -61,7 +76,8 @@ elif PLATFORM == "DEV":
     ROOT_DIR        = "/mnt/bigdisk/"
     ARCHIVES_PATH   = "/mnt/runs"
     # Data Directories
-    HOME_DIR = os.path.join(ROOT_DIR, "api")
+    USER_HOME_DIR   = expanduser("~")
+    HOME_DIR = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")
 
 elif PLATFORM == "PROD":
 

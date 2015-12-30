@@ -71,12 +71,15 @@ def get_applications():
 
 def update_archives():
     '''
-    Update the database with available primary analysis archives.
+    Update the database with available primary analysis archives.  It is not
+    an error if zero archives are available at this moment.
     
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available archives...")
+    _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
     if os.path.isdir(ARCHIVES_PATH):
+
         
         # Remove archives named similarly (same name, different capitalization)
         archives    = os.listdir(ARCHIVES_PATH)
@@ -87,12 +90,17 @@ def update_archives():
                        if os.path.isdir(os.path.join(ARCHIVES_PATH,x))]
         records     = [{ARCHIVE: archive} for archive in archives]
         
-        # There is a possible race condition here. Ideally these operations 
-        # would be performed in concert atomically
+        APP_LOGGER.info("Found %d archives" % (len(archives)))
         _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
-        _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
+        if len(records) > 0:
+            # There is a possible race condition here. Ideally these operations 
+            # would be performed in concert atomically
+            _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
+            _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
+        else:
+            _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
     else:
-        APP_LOGGER.error("Couldn't locate archives path to update database.")
+        APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % ARCHIVES_PATH)
         return False
 
     APP_LOGGER.info("Database successfully updated with available archives.")
@@ -108,6 +116,7 @@ def update_dyes():
     try:
         records = [{DYE: dye} for dye in _DATASTORE.dyes()]
         
+        assert len(records) > 0, "Internal error: No dyes found"
         # There is a possible race condition here. Ideally these operations 
         # would be performed in concert atomically
         _DB_CONNECTOR.remove(DYES_COLLECTION, {})
@@ -115,7 +124,7 @@ def update_dyes():
     except:
         APP_LOGGER.info("Failed to update database with available dyes: %s", 
                         str(sys.exc_info()))
-        return False
+        raise
     
     APP_LOGGER.info("Database successfully updated with available dyes.")
     return True
@@ -131,6 +140,7 @@ def update_devices():
         # devices are printed to stderr 
         records   = [{DEVICE: device} for device in _DATASTORE.devices()]
         
+        assert len(records) > 0, "Internal error: No devices found"
         # There is a possible race condition here. Ideally these operations 
         # would be performed in concert atomically
         _DB_CONNECTOR.remove(DEVICES_COLLECTION, {})
@@ -138,7 +148,7 @@ def update_devices():
     except:
         APP_LOGGER.info("Failed to update database with available devices: %s", 
                         str(sys.exc_info()))
-        return False
+        raise
     
     APP_LOGGER.info("Database successfully updated with available devices.")
     return True

@@ -60,7 +60,25 @@ class DbConnector(object):
     #===========================================================================
     @staticmethod
     def insert(collection, records):
-        return _DB[collection].insert(records)
+        '''
+        This function performs a MongoDB insert. The insert command signature is 
+        db.collection.insert(<collection>, <records>). Collection is the
+        name of the collection to receive the records.  Records 
+        specifies the documents to insert.
+
+        Note that Mongo raises an exception if 'records' is empty.  This
+        routine guards against an empty insert, and just supplies a return
+        value for zero records inserted.
+        
+        @param collection   - Name of collection to perform find on.
+        @param records      - List of documents to insert.
+        
+        @return WriteResult - a standard Mongo result object.
+        '''
+        if len(records) > 0:
+            return _DB[collection].insert(records)
+        else:
+            return WriteResult({ "nInserted" : 0 })
 
     @staticmethod
     def find(collection, criteria, projection=None):

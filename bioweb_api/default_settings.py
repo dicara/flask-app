@@ -49,7 +49,7 @@ if PLATFORM == "BAMBOO":
     DATABASE_NAME   = "Bioinformatics_dev"
     # File storage locations for pa, sa jobs
     ROOT_DIR        = "/mnt/bigdisk"
-    ARCHIVES_PATH   = "/vagrant/mnt/runs"
+    ARCHIVES_PATH   = "/mnt/runs"
     # Data Directories
     USER_HOME_DIR   = expanduser("~")
     HOME_DIR = os.path.join(USER_HOME_DIR, "gnubio-bioinformatics-rest_api")

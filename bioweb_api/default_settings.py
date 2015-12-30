@@ -57,7 +57,7 @@ if PLATFORM == "BAMBOO":
 elif PLATFORM == "VAGRANT":
 
     # Database server settings
-    HOSTNAME        = "192.168.33.11"  
+    HOSTNAME        = "192.168.33.10"  
     PORT            = 8020
     DATABASE_NAME   = "Bioinformatics_dev"
     # File storage locations for pa, sa jobs

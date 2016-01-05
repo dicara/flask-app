@@ -91,14 +91,10 @@ def update_archives():
         records     = [{ARCHIVE: archive} for archive in archives]
         
         APP_LOGGER.info("Found %d archives" % (len(archives)))
-        _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
         if len(records) > 0:
             # There is a possible race condition here. Ideally these operations 
             # would be performed in concert atomically
-            _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
             _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
-        else:
-            _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
     else:
         APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % ARCHIVES_PATH)
         return False

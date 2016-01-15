@@ -44,6 +44,7 @@ class LibraryDesign(object):
 
         self.requested_nbarcodes = requested_nbarcodes
         self.profiles = Datastore().dye_map()
+        # fam and joe usually emit a maximum of 15000 intensity units
         self.fam_profile = numpy.array(self.profiles['fam']) * 15000
         self.joe_profile = numpy.array(self.profiles['joe']) * 15000
 

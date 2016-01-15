@@ -30,7 +30,7 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES
 from bioweb_api.utilities.io_utilities import make_clean_response
-from bioweb_api.apis.drop_tools.library_generation_utilities import get_design
+from bioweb_api.apis.drop_tools.library_generation_utilities import LibraryDesign
 
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
@@ -82,7 +82,8 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                             DATESTAMP: datetime.today(),
                            }
         try:
-            design, dyes, levels = get_design(nbarcodes, dyes)
+            ld = LibraryDesign(dyes, nbarcodes)
+            design, dyes, levels = ld.generate()
 
             json_response[NBARCODES]    = nbarcodes
             json_response['design']     = design

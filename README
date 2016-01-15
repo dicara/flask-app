@@ -123,3 +123,5 @@ GnuBio Flask API.
    * Constellation identity factory is given picoinjection fiducial dye
  * v1.24
    * Bumped secondary-analysis requirement
+ * v1.25
+   * Library Generation utility refactored to include joe and fam profile when generating designs

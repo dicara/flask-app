@@ -125,3 +125,5 @@ GnuBio Flask API.
    * Bumped secondary-analysis requirement
  * v1.25
    * Library Generation utility refactored to include joe and fam profile when generating designs
+ * v1.26
+   * Dye profile database added.

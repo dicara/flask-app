@@ -28,6 +28,7 @@ from bioweb_api.apis.probe_design.ProbeDesignApi import ProbeDesignApiV1
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisApi import PrimaryAnalysisApiV1
 from bioweb_api.apis.secondary_analysis.SecondaryAnalysisApi import SecondaryAnalysisAPIV1
 from bioweb_api.apis.drop_tools.DropToolsApi import DropToolsAPIV1
+from bioweb_api.apis.dye_profiles_database.DyeProfilesDatabaseApi import DyeProfilesDatabaseAPIV1
 from bioweb_api.apis.image.ImageApi import ImageAPIV1
 from bioweb_api.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
@@ -48,6 +49,7 @@ _APIS = [
          SecondaryAnalysisAPIV1(),
          ImageAPIV1(),
          DropToolsAPIV1(),
+         DyeProfilesDatabaseAPIV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

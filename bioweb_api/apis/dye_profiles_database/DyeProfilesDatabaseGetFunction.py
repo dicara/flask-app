@@ -10,7 +10,9 @@ from bioweb_api.apis.dye_profiles_database.constants import DYE_STOCKS_COLLECTIO
     DYE_NAME, LOT_NUMBER, MANUFACTURER, DYE_STOCK_UUID, LASER_POWER, GAIN, DATE, \
     CONCENTRATION_UGML, PEAK_INTENSITY, DETECTION_UUID, DETECTIONS_COLLECTION, \
     PROFILES_COLLECTION
-from bioweb_api.apis.ApiConstants import ID
+from bioweb_api.apis.ApiConstants import ID, ERROR
+from bioweb_api.utilities.io_utilities import make_clean_response
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 DYE_PROFILES_DATABASE = 'DyeProfilesDatabase'
 
@@ -28,7 +30,7 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
 
     @staticmethod
     def summary():
-        return "Retrieve list of primary analysis process jobs."
+        return "Retrieve list of dye profiles."
 
     @staticmethod
     def notes():
@@ -46,6 +48,16 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
         dye_stock_data = cls._DB_CONNECTOR.find(DYE_STOCKS_COLLECTION, {})
         detection_data = cls._DB_CONNECTOR.find(DETECTIONS_COLLECTION, {})
 
+        if not dye_stock_data:
+            error_msg = 'Unable to retrieve dye stock data.'
+            APP_LOGGER.error(error_msg)
+            return ([{ERROR: error_msg}], [ERROR], None)
+
+        if not detection_data:
+            error_msg = 'Unable to retrieve detections data.'
+            APP_LOGGER.error(error_msg)
+            return ([{ERROR: error_msg}], [ERROR], None)
+
         columns                     = OrderedDict()
         columns[PEAK_INTENSITY]     = 1
         columns[CONCENTRATION_UGML] = 1
@@ -54,6 +66,10 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
 
 
         data = cls._DB_CONNECTOR.find(PROFILES_COLLECTION, {}, columns)
+        if not data:
+            error_msg = 'Unable to retrieve profiles data.'
+            APP_LOGGER.error(error_msg)
+            return ([{ERROR: error_msg}], [ERROR], None)
 
         # append detection and dye stock data to each profile
         for profile in data:
@@ -78,7 +94,6 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
                 del profile[id]
 
         column_names = data[0].keys()
-
         return (data, column_names, None)
 
 #===============================================================================

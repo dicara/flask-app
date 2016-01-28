@@ -127,3 +127,5 @@ GnuBio Flask API.
    * Library Generation utility refactored to include joe and fam profile when generating designs
  * v1.26
    * Dye profile database added.
+ * v1.27
+   * Bug fix.  Dye profile database will send error message if it is unable to retrieve profile, dye stock, or detection data.

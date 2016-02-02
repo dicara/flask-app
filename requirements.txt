@@ -13,4 +13,4 @@ idt-analyzer>=0.3
 ncbi-utilities>=0.2
 probe-design>=0.3
 primary-analysis>=2.10
-secondary-analysis>=0.31
+secondary-analysis>=0.37

@@ -129,3 +129,6 @@ GnuBio Flask API.
    * Dye profile database added.
  * v1.27
    * Bug fix.  Dye profile database will send error message if it is unable to retrieve profile, dye stock, or detection data.
+ * v1.28
+   * Updated secondary analysis version requirement
+   * Dye profile database returns additional detection data

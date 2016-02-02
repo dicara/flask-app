@@ -1,4 +1,3 @@
-
 #=============================================================================
 # Imports
 #=============================================================================
@@ -7,11 +6,9 @@ from collections import OrderedDict
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.dye_profiles_database.constants import DYE_STOCKS_COLLECTION, \
-    DYE_NAME, LOT_NUMBER, MANUFACTURER, DYE_STOCK_UUID, LASER_POWER, GAIN, DATE, \
-    CONCENTRATION_UGML, PEAK_INTENSITY, DETECTION_UUID, DETECTIONS_COLLECTION, \
-    PROFILES_COLLECTION
+    DYE_STOCK_UUID, CONCENTRATION_UGML, PEAK_INTENSITY, DETECTION_UUID, \
+    DETECTIONS_COLLECTION, PROFILES_COLLECTION
 from bioweb_api.apis.ApiConstants import ID, ERROR
-from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 DYE_PROFILES_DATABASE = 'DyeProfilesDatabase'
@@ -76,15 +73,12 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
             # append detection data
             for detection in detection_data:
                 if profile[DETECTION_UUID] == detection[DETECTION_UUID]:
-                    profile[DATE] = detection[DATE]
-                    profile[GAIN] = detection[GAIN]
-                    profile[LASER_POWER] = detection[LASER_POWER]
+                    profile.update(detection)
                     break
             # append dye stock data
             for dye_stock in dye_stock_data:
                 if profile[DYE_STOCK_UUID] == dye_stock[DYE_STOCK_UUID]:
-                    profile[DYE_NAME] = dye_stock[DYE_NAME]
-                    profile[LOT_NUMBER] = dye_stock[LOT_NUMBER]
+                    profile.update(dye_stock)
                     break
 
         # remove uuids and mongo ids

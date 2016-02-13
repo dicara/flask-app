@@ -20,12 +20,13 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import copy
 import os
 import shutil
 import sys
 import traceback
 import yaml
+
+from secondary_analysis.constants import TRAINING_FACTOR as DEFAULT_TRAINING_FACTOR
 
 from uuid import uuid4
 from datetime import datetime
@@ -43,7 +44,9 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, CALC_DROP_PROB, REPORT, \
     REPORT_URL, FILTERED_DYES
 
-from secondary_analysis.constants import FACTORY_ORGANIC
+
+from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
+    UNINJECTED_THRESHOLD, PICOINJECTION_TRAINING_FACTOR
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
 
@@ -116,17 +119,20 @@ class IdentityPostFunction(AbstractPostFunction):
                                                         default=0, minimum=0)
         cls.training_param     = ParameterFactory.integer(TRAINING_FACTOR, 
                                                    _TRAINING_FACTOR_DESCRIPTION,
-                                                   default=1000, minimum=1)
+                                                   default=DEFAULT_TRAINING_FACTOR, 
+                                                   minimum=1)
         cls.dye_levels_param   = ParameterFactory.dye_levels()
         cls.ignored_dyes_param = ParameterFactory.dyes(name=IGNORED_DYES,
                                                        required=False)
-        cls.filtered_dyes_param = ParameterFactory.filter_dyes(required=False)
+        cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
+                                                        required=False)
         cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
                                                 _PF_TRAINING_FACTOR_DESCRIPTION,
-                                                default=10, minimum=0)
+                                                default=PICOINJECTION_TRAINING_FACTOR, 
+                                                minimum=0)
         cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
                                                       _UI_THRESHOLD_DESCRIPTION,
-                                                      default=500.0,
+                                                      default=UNINJECTED_THRESHOLD,
                                                       minimum=0.0)
         cls.calc_drop_prob_param = ParameterFactory.boolean(CALC_DROP_PROB,
                                                           _CALC_DROP_PROB_DESCRIPTION,
@@ -162,12 +168,11 @@ class IdentityPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         dye_levels      = params_dict[cls.dye_levels_param]
-
+        
         filtered_dyes = list()
         if cls.filtered_dyes_param in params_dict:
-            filtered_dyes = [dye for dye, _ in params_dict[cls.filtered_dyes_param]]
+            filtered_dyes = params_dict[cls.filtered_dyes_param]
 
-        # ignore filter dyes
         ignored_dyes = list()
         if cls.ignored_dyes_param in params_dict:
             ignored_dyes = params_dict[cls.ignored_dyes_param]
@@ -331,19 +336,19 @@ class SaIdentityCallable(object):
 
         try:
             safe_make_dirs(self.tmp_path)
-            self.identity.execute_identity(self.primary_analysis_data, 
-                                           self.num_probes, self.training_factor, 
-                                           factory_type=FACTORY_ORGANIC,
+            self.identity.execute_identity(self.primary_analysis_data,
+                                           self.num_probes, FACTORY_ORGANIC,
+                                           training_factor=self.training_factor, 
                                            plot_path=self.tmp_plot_path, 
                                            out_file=self.tmp_outfile_path, 
                                            report_path=self.tmp_report_path,
                                            assay_dye=self.assay_dye,
-                                           fiducial_dye=self.fiducial_dye,
+                                           picoinjection_dye=self.fiducial_dye,
                                            dye_levels=self.dye_levels,
                                            show_figure=False, 
                                            ignored_dyes=self.ignored_dyes,
                                            filtered_dyes=self.filtered_dyes,
-                                           prefilter_tf=self.prefilter_tf,
+                                           picoinjection_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
                                            calc_probs=self.calc_probs,
                                            raise_exceptions=False)
@@ -435,7 +440,7 @@ def check_report_for_errors(report_path):
     if os.path.exists(report_path):
         report_errors = list()
         with open(report_path) as fh:
-            id_model_errors = yaml.load(fh)['IDENTITY MODEL METRICS']['PROBLEMS']
+            id_model_errors = yaml.load(fh)[ID_MODEL_METRICS]['PROBLEMS']
             id_collisions = id_model_errors['Identity Collisions']
             missing = id_model_errors['Missing Barcodes']
             resolved_merge = id_model_errors['Resolved Merged']
@@ -447,8 +452,6 @@ def check_report_for_errors(report_path):
                 report_errors.append('Merge Resolution: %s' % str(resolved_merge) )
         if report_errors:
             return ', '.join(report_errors)
-
-
 
 
 #===============================================================================

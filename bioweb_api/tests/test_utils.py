@@ -26,6 +26,8 @@ import yaml
 
 from StringIO import StringIO
 
+from bioweb_api.apis.ApiConstants import ERROR 
+
 #===============================================================================
 # Utility Functions
 #===============================================================================
@@ -56,6 +58,12 @@ def delete_data(test_case, url, exp_resp_code):
 def assert_response_code(test_case, exp_resp_code, response, url):
     msg = "Expected response code (%s) doesn't match observed (%s) for " \
           "%s." % (exp_resp_code, response.status_code, url)
+    try:
+        data = json.loads(response.data)
+        if ERROR in data:
+            msg = "\nERROR: %s" % data[ERROR]
+    except:
+        pass
     test_case.assertEqual(response.status_code, exp_resp_code, msg)
     
 def read_yaml(yaml_path):

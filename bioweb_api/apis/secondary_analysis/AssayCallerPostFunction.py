@@ -36,13 +36,13 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
 from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
-    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
-    ERROR, SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
+    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
+    ERROR, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
-    SCATTER_PLOT, SCATTER_PLOT_URL, THRESHOLD, COV_TYPE, OUTLIERS, JOE, FAM
+    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM
     
-from secondary_analysis.constants import COVARIANCE_TYPES
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
+from secondary_analysis.constants import AC_TRAINING_FACTOR
 
 from primary_analysis.command import InvalidFileError
 
@@ -58,11 +58,6 @@ _NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "the required training set."
 _TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
     "set: size = num_probes*training_factor."
-_THRESHOLD_DESCRIPTION = "The minimum value accepted for fiducial. Values " \
-    "lower than this indicate uninjected"
-_OUTLIER_DESCRIPTION = "Detect and remove outliers."
-_COV_TYPE_DESCRIPTION = "Type of covariance parameters to use in deriving " \
-    "the GMM."
 
 #=============================================================================
 # Class
@@ -115,21 +110,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                        required=True)
         cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR, 
                                                        _TRAINING_FACTOR_DESCRIPTION,
-                                                       default=10, minimum=1,
+                                                       default=AC_TRAINING_FACTOR, minimum=1,
                                                        required=True)
-        cls.threshold_param = ParameterFactory.float(THRESHOLD,
-                                                     _THRESHOLD_DESCRIPTION,
-                                                     default=2500.0,
-                                                     required=True)
-        cls.outliers_param  = ParameterFactory.boolean(OUTLIERS,
-                                                       _OUTLIER_DESCRIPTION,
-                                                       default_value=False,
-                                                       required=True)
-        cls.cov_type_param  = ParameterFactory.lc_string(COV_TYPE, 
-                                                         _COV_TYPE_DESCRIPTION,
-                                                         enum=COVARIANCE_TYPES,
-                                                         default=COVARIANCE_TYPES[-1],
-                                                         required=True)
         
         parameters = [
                       cls.job_uuid_param,
@@ -138,9 +120,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.assay_dye_param,
                       cls.n_probes_param,
                       cls.training_param,
-                      cls.threshold_param,
-                      cls.outliers_param,
-                      cls.cov_type_param,
                      ]
         return parameters
     
@@ -152,9 +131,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
         assay_dye       = params_dict[cls.assay_dye_param][0]
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
-        threshold       = params_dict[cls.threshold_param][0]
-        outliers        = params_dict[cls.outliers_param][0]
-        cov_type        = params_dict[cls.cov_type_param][0]
         
         json_response = {ASSAY_CALLER: []}
 
@@ -182,9 +158,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                         ASSAY_DYE: assay_dye,
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
-                        THRESHOLD: threshold,
-                        OUTLIERS: outliers,
-                        COV_TYPE: cov_type,
                         UUID: str(uuid4()),
                         SA_ASSAY_CALLER_UUID: sa_identity_job[UUID],
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
@@ -214,9 +187,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          fiducial_dye,
                                                          num_probes, 
                                                          training_factor,
-                                                         threshold,
-                                                         outliers,
-                                                         cov_type,
                                                          outfile_path, 
                                                          kde_plot_path,
                                                          scatter_plot_path,
@@ -256,16 +226,13 @@ class SaAssayCallerCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, analysis_file, assay_dye, fiducial_dye, num_probes, 
-                 training_factor, threshold, outliers, cov_type, outfile_path,
-                 kde_plot_path, scatter_plot_path, uuid, db_connector):
+                 training_factor, outfile_path, kde_plot_path, 
+                 scatter_plot_path, uuid, db_connector):
         self.analysis_file         = analysis_file
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.num_probes            = num_probes
         self.training_factor       = training_factor
-        self.threshold             = threshold
-        self.outliers              = outliers
-        self.cov_type              = cov_type
         self.outfile_path          = outfile_path
         self.kde_plot_path         = kde_plot_path
         self.scatter_plot_path     = scatter_plot_path
@@ -291,10 +258,8 @@ class SaAssayCallerCallable(object):
                              out_file=self.tmp_outfile_path, 
                              kde_plot_file=self.tmp_kde_plot_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
-                             training_size=self.training_factor,
-                             assay=self.assay_dye, fiducial=self.fiducial_dye,
-                             threshold=self.threshold, outliers=self.outliers,
-                             cov_type=self.cov_type)
+                             training_factor=self.training_factor,
+                             assay=self.assay_dye, fiducial=self.fiducial_dye)
             
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis assay caller job " +

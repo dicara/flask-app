@@ -132,3 +132,9 @@ GnuBio Flask API.
  * v1.28
    * Updated secondary analysis version requirement
    * Dye profile database returns additional detection data
+ * v1.29
+   * Updated secondary-analysis to v0.43.
+     * Removed deprecated assay caller arguments.
+     * Updated default arguments for identity.
+     * Updated tests to reflect these changes.
+   * Simplified default settings.

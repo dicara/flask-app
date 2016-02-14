@@ -60,12 +60,28 @@ def assert_response_code(test_case, exp_resp_code, response, url):
           "%s." % (exp_resp_code, response.status_code, url)
     try:
         data = json.loads(response.data)
-        if ERROR in data:
-            msg = "\nERROR: %s" % data[ERROR]
+        print data
+        msg = append_errors(data, msg)
     except:
         pass
     test_case.assertEqual(response.status_code, exp_resp_code, msg)
+  
+  
+def append_errors(response_data, msg):
+    """
+    Recursively search through the response data for all error messages and
+    append them to the provided error message.
     
+    @param response_data: json response data from API call
+    @param msg: assertion error message
+    """
+    if isinstance(response_data, dict):
+        for key in response_data:
+            if key == ERROR:
+                msg += "\nERROR: %s" % response_data[ERROR]
+            append_errors(response_data[key], msg)
+    return msg
+  
 def read_yaml(yaml_path):
     if not os.path.isfile(yaml_path):
         raise Exception("Provided yaml file either doesn't exist or isn't " \

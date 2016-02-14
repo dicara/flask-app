@@ -246,7 +246,7 @@ class Test(unittest.TestCase):
         url = add_url_argument(url, DYE_LEVELS, _DYE_LEVELS)
           
         # Submit identity job
-        response      = post_data(self, url, 200)
+        response      = post_data(self, url, 201)
         identity_uuid = response[IDENTITY][0][UUID]
               
         # Test that submitting two jobs with the same name fails and returns

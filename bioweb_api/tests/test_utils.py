@@ -60,26 +60,32 @@ def assert_response_code(test_case, exp_resp_code, response, url):
           "%s." % (exp_resp_code, response.status_code, url)
     try:
         data = json.loads(response.data)
-        print data
+        orig_msg = msg
         msg = append_errors(data, msg)
+        if msg != orig_msg:
+            print "ORIG MESSAGE: %s" % orig_msg
+            print "NEW MESSAGE:  %s" % msg
     except:
         pass
     test_case.assertEqual(response.status_code, exp_resp_code, msg)
   
   
-def append_errors(response_data, msg):
+def append_errors(item, msg):
     """
     Recursively search through the response data for all error messages and
     append them to the provided error message.
     
-    @param response_data: json response data from API call
+    @param item: item in json response data from API call
     @param msg: assertion error message
     """
-    if isinstance(response_data, dict):
-        for key in response_data:
+    if isinstance(item, list):
+        for x in item:
+            msg = append_errors(x, msg)
+    elif isinstance(item, dict):
+        for key in item:
             if key == ERROR:
-                msg += "\nERROR: %s" % response_data[ERROR]
-            append_errors(response_data[key], msg)
+                msg += "\nERROR: %s" % item[ERROR]
+            msg = append_errors(item[key], msg)
     return msg
   
 def read_yaml(yaml_path):

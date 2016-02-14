@@ -59,16 +59,10 @@ def assert_response_code(test_case, exp_resp_code, response, url):
     msg = "Expected response code (%s) doesn't match observed (%s) for " \
           "%s." % (exp_resp_code, response.status_code, url)
     try:
-        data = json.loads(response.data)
-        orig_msg = msg
-        msg = append_errors(data, msg)
-        if msg != orig_msg:
-            print "ORIG MESSAGE: %s" % orig_msg
-            print "NEW MESSAGE:  %s" % msg
+        msg = append_errors(json.loads(response.data), msg)
     except:
         pass
     test_case.assertEqual(response.status_code, exp_resp_code, msg)
-  
   
 def append_errors(item, msg):
     """

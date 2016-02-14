@@ -203,7 +203,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     cls._EXECUTION_MANAGER.add_job(response[UUID], sac_callable,
                                                    callback)
                     
-                    response[ERROR] = "Here's an error for testing"
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
                     response[ERROR] = str(sys.exc_info()[1])

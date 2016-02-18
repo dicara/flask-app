@@ -278,10 +278,10 @@ class ParameterFactory(object):
                                       required=required)
     
     @classmethod
-    def job_uuid(cls, collection):
+    def job_uuid(cls, collection, allow_multiple=True):
         job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)
         return cls.lc_string(UUID, "Comma separated job UUID(s).", 
-                             allow_multiple=True, enum=job_uuids)
+                             allow_multiple=allow_multiple, enum=job_uuids)
         
     @classmethod
     def date(cls, required=True, enum=None):

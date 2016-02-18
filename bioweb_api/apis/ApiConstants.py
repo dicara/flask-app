@@ -135,6 +135,7 @@ HAM_UUID         = "ham_uuid"
 ID               = "_id"
 IGNORED_DYES     = "ignored_dyes"
 JOB_NAME         = "job_name"
+JOB_NAME_DESC    = "Unique name to give this job."
 JOB_TYPE_NAME    = "job_type"
 KDE_PLOT         = "kde_plot"
 KDE_PLOT_URL     = "kde_plot_url"
@@ -162,7 +163,9 @@ REPORT           = "report"
 REPORT_URL       = "report_url"
 RESULT           = "result"
 RUN_ID           = "run_id"
+REQUIRED_DROPS   = "required_drops"
 SA_ASSAY_CALLER_UUID = "sa_assay_caller_uuid"
+SA_GENOTYPER_UUID = "sa_genotyper_uuid"
 SA_IDENTITY_UUID = "sa_identity_uuid"
 SAMPLE_ID        = "sample_id"
 SCATTER_PLOT     = "scatter_plot"
@@ -267,5 +270,6 @@ JOB_TYPE_TUPLE = namedtuple('JobType',
                              'pa_convert_images',
                              'sa_identity',
                              'sa_assay_calling',
+                             'sa_genotyping',
                             ])
 JOB_TYPE = JOB_TYPE_TUPLE(*JOB_TYPE_TUPLE._fields)

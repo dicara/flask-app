@@ -28,12 +28,10 @@ from copy import deepcopy
 from bioweb_api.utilities.io_utilities import clean_item, TIME_FORMAT
 
 #=============================================================================
-# Public Global Variables
+# Setup Logging
 #=============================================================================
-
-#=============================================================================
-# Private Global Variables
-#=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
 
 #=============================================================================
 # Class

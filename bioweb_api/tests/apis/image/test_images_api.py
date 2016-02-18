@@ -33,8 +33,10 @@ from bioweb_api.apis.ApiConstants import EXP_DEF, NAME, DESCRIPTION, UUID,\
     NUM_IMAGES, STACK_TYPE, MONITOR1, MONITOR2, HAM_NAME, MON1_NAME, MON2_NAME
 
 #=============================================================================
-# Public Static Variables
+# Setup Logging
 #=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
 
 #=============================================================================
 # Private Static Variables

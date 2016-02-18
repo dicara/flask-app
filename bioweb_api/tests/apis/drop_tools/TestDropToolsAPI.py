@@ -28,6 +28,11 @@ from bioweb_api.apis.drop_tools.DropSizePostFunction import DROP_SIZE
 from bioweb_api.tests.test_utils import add_url_argument, post_data
 from bioweb_api.apis.ApiConstants import DROP_AVE_DIAMETER, DROP_STD_DIAMETER, DYE_METRICS
 
+#=============================================================================
+# Setup Logging
+#=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
 
 #=============================================================================
 # Private Static Variables

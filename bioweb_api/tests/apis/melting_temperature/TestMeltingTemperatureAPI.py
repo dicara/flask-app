@@ -30,6 +30,12 @@ from bioweb_api import app
 from bioweb_api.tests.test_utils import get_data
 
 #=============================================================================
+# Setup Logging
+#=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
+
+#=============================================================================
 # Private Global Variables
 #=============================================================================
 _IDT                      = "IDT"

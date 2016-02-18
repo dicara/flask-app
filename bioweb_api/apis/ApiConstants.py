@@ -154,6 +154,7 @@ OFFSETS          = "offsets"
 PA_PROCESS_UUID  = "pa_process_uuid"
 PAGE             = "page"
 PASS             = "pass"
+PDF              = "pdf"
 PLOT             = "plot"
 PLOT_URL         = "plot_url"
 PROBE            = "probe"
@@ -182,6 +183,7 @@ TYPE             = "type"
 URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
+VCF              = "vcf"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
 VALID_MON_IMAGE_EXTENSIONS = ["jpg"]

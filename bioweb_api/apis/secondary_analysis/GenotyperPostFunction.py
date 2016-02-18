@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, EXP_DEF_UUID, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
-    STATUS, JOB_TYPE, JOB_TYPE_NAME
+    STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -158,7 +158,7 @@ class GenotyperPostFunction(AbstractPostFunction):
                 status_code = 403
             else:
                 try:
-                    outfile_path = os.path.join(RESULTS_PATH, response[UUID])
+                    outfile_path = os.path.join(RESULTS_PATH, response[UUID] + '.%s' % VCF)
                     ac_uuid = assay_caller_job[SA_IDENTITY_UUID]
                     record = cls._DB_CONNECTOR.find_one(SA_IDENTITY_COLLECTION, 
                         UUID, ac_uuid)
@@ -220,7 +220,7 @@ class SaGenotyperCallable(object):
         self.db_connector     = db_connector
         self.query            = {UUID: uuid}
         self.tmp_path         = os.path.join(TMP_PATH, uuid)
-        self.tmp_outfile_path = os.path.join(self.tmp_path, uuid)
+        self.tmp_outfile_path = os.path.join(self.tmp_path, uuid + ".%s" % VCF)
         
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
@@ -242,6 +242,7 @@ class SaGenotyperCallable(object):
                                 "failed: output file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
+                shutil.copy(self.tmp_outfile_path[:-3] + PDF, self.outfile_path[:-3] + PDF)
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
@@ -263,6 +264,7 @@ def make_process_callback(uuid, outfile_path, db_connector):
             update = { "$set": { 
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
+                                 PDF: outfile_path[:-3] + PDF,
                                  URL: "http://%s/results/%s/%s" % 
                                            (HOSTNAME, PORT, 
                                             os.path.basename(outfile_path)),
@@ -274,11 +276,13 @@ def make_process_callback(uuid, outfile_path, db_connector):
                 db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
+                silently_remove_file(outfile_path[:-3] + PDF)
         except:
             APP_LOGGER.exception("Error in Genotyper post request process callback.")
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None,
+                                   PDF: None,
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
             # If job has been deleted, then delete result and don't update DB.
@@ -286,6 +290,7 @@ def make_process_callback(uuid, outfile_path, db_connector):
                 db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
+                silently_remove_file(outfile_path[:-3] + PDF)
          
     return process_callback
 

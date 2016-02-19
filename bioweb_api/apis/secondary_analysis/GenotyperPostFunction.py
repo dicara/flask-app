@@ -36,7 +36,8 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, EXP_DEF_UUID, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
-    STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF, PNG, PNG_SUM
+    STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF, PDF_URL, PNG, PNG_URL, PNG_SUM, \
+    PNG_SUM_URL
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -278,15 +279,24 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             generate_plots(exp_def_name, ac_result_path, 
                            outfile_path[:-3] + PNG, ignored_dyes)
 
+            url_prefix = "http://%s/results/%s/" % (HOSTNAME, PORT)
+            dirname    = os.path.dirname(outfile_path)
+            vcf_fn     = os.path.basename(outfile_path)
+            basename   = os.path.splitext(vcf_fn)[0]
+            pdf_fn     = '%s.%s' % (basename, PDF)
+            png_fn     = '%s.%s' % (basename, PNG)
+            png_sum_fn = '%s_%s.%s' % (basename, 'sum', PNG)
+            
             update = { "$set": { 
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 PDF: outfile_path[:-3] + PDF,
-                                 PNG: outfile_path[:-3] + PNG,
-                                 PNG_SUM: outfile_path[:-4] + '_sum.%s' % PNG,
-                                 URL: "http://%s/results/%s/%s" % 
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(outfile_path)),
+                                 URL: url_prefix + vcf_fn,
+                                 PDF: os.path.join(dirname, pdf_fn),
+                                 PDF_URL: url_prefix + pdf_fn,
+                                 PNG: os.path.join(dirname, png_fn),
+                                 PNG_URL: url_prefix + png_fn,
+                                 PNG_SUM: os.path.join(dirname, png_sum_fn),
+                                 PNG_SUM_URL: url_prefix + png_sum_fn,
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }
@@ -295,9 +305,9 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                 db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
-                silently_remove_file(outfile_path[:-3] + PDF)
-                silently_remove_file(outfile_path[:-3] + PNG)
-                silently_remove_file(outfile_path[:-4] + '_sum.%s' % PNG)
+                silently_remove_file(os.path.join(dirname, pdf_fn))
+                silently_remove_file(os.path.join(dirname, png_fn))
+                silently_remove_file(os.path.join(dirname, png_sum_fn))
         except:
             APP_LOGGER.exception("Error in Genotyper post request process callback.")
             error_msg = str(sys.exc_info()[1])
@@ -313,9 +323,9 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                 db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
-                silently_remove_file(outfile_path[:-3] + PDF)
-                silently_remove_file(outfile_path[:-3] + PNG)
-                silently_remove_file(outfile_path[:-4] + '_sum.%s' % PNG)
+                silently_remove_file(os.path.join(dirname, pdf_fn))
+                silently_remove_file(os.path.join(dirname, png_fn))
+                silently_remove_file(os.path.join(dirname, png_sum_fn))
          
     return process_callback
 

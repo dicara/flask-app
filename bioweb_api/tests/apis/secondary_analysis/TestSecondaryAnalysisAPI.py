@@ -70,7 +70,7 @@ _JOB_NAME                 = "test_pa_process_job"
 
 _IDENTITY_JOB_NAME     = "test_identity"
 _ASSAY_CALLER_JOB_NAME = "test_assay_caller"
-_GENOTYPER_JOB_NAME    = "test_genotyper2"
+_GENOTYPER_JOB_NAME    = "test_genotyper"
 _FIDUCIAL_DYE          = "joe"
 _ASSAY_DYE             = "fam"
 _AC_NUM_PROBES         = 8

@@ -35,6 +35,12 @@ from bioweb_api.apis.ApiConstants import UUID, STRICT
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH
 
+#=============================================================================
+# Setup Logging
+#=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
+
 #===============================================================================
 # Global Private Variables
 #===============================================================================

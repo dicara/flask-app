@@ -138,3 +138,5 @@ GnuBio Flask API.
      * Updated default arguments for identity.
      * Updated tests to reflect these changes.
    * Simplified default settings.
+ * v2.0
+   * Added Genotyper APIs

@@ -37,7 +37,7 @@ from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
 from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
-    ERROR, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
+    ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
     SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM
     
@@ -159,7 +159,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
                         UUID: str(uuid4()),
-                        SA_ASSAY_CALLER_UUID: sa_identity_job[UUID],
+                        SA_IDENTITY_UUID: sa_identity_job[UUID],
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
                         JOB_NAME: cur_job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_assay_calling, # @UndefinedVariable
@@ -223,7 +223,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
 #===============================================================================
 class SaAssayCallerCallable(object):
     """
-    Callable that executes the absorption command.
+    Callable that executes the assay caller command.
     """
     def __init__(self, analysis_file, assay_dye, fiducial_dye, num_probes, 
                  training_factor, outfile_path, kde_plot_path, 

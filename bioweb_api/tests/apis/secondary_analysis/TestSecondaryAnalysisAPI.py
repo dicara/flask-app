@@ -45,7 +45,7 @@ from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION, SA_IDENTI
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
-from secondary_analysis.constants import AC_TRAINING_FACTOR
+from secondary_analysis.constants import AC_TRAINING_FACTOR, ID_MODEL_METRICS
 
 from bioweb_api.DbConnector import DbConnector
 
@@ -338,8 +338,8 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         with open(self._exp_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
             exp_report = yaml.load(f_exp)
             obs_report = yaml.load(f_obs)
-        exp_clusters = exp_report['MODEL_METRICS']['CLUSTERS']
-        obs_clusters = obs_report['MODEL_METRICS']['CLUSTERS']
+        exp_clusters = exp_report[ID_MODEL_METRICS]['CLUSTERS']
+        obs_clusters = obs_report[ID_MODEL_METRICS]['CLUSTERS']
      
         exp_clus_ids = exp_clusters.keys()
         exp_clus_ids.sort()
@@ -419,8 +419,8 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         with open(self._exp_abl_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
             exp_report = yaml.load(f_exp)
             obs_report = yaml.load(f_obs)
-        exp_clusters = exp_report['MODEL_METRICS']['CLUSTERS']
-        obs_clusters = obs_report['MODEL_METRICS']['CLUSTERS']
+        exp_clusters = exp_report[ID_MODEL_METRICS]['CLUSTERS']
+        obs_clusters = obs_report[ID_MODEL_METRICS]['CLUSTERS']
      
         exp_clus_ids = exp_clusters.keys()
         exp_clus_ids.sort()

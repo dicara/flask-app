@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, EXP_DEF_UUID, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
-    STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF
+    STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF, PNG, PNG_SUM
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -45,6 +45,7 @@ from expdb import HotspotExperiment
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.genotyping.genotype_analysis import GenotypeProcessor
+from secondary_analysis.assay_calling.assay_caller_plotting import generate_plots
 
 #=============================================================================
 # Public Static Variables
@@ -176,8 +177,11 @@ class GenotyperPostFunction(AbstractPostFunction):
                                                              response[UUID],
                                                              cls._DB_CONNECTOR)
                     callback = make_process_callback(response[UUID],
+                                                     exp_def_name,
+                                                     assay_caller_job[RESULT],
+                                                     ignored_dyes,
                                                      outfile_path,
-                                                     cls._DB_CONNECTOR) 
+                                                     cls._DB_CONNECTOR)
                     
                     # Add to queue and update DB
                     cls._DB_CONNECTOR.insert(SA_GENOTYPER_COLLECTION, 
@@ -235,36 +239,51 @@ class SaGenotyperCallable(object):
             GenotypeProcessor(experiment, None, self.tmp_outfile_path, 
                               required_drops=self.required_drops, 
                               in_file=self.ac_result_path,
-                              ignored_dyes=self.ignored_dyes)            
+                              ignored_dyes=self.ignored_dyes)
             
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis genotyper job " +
-                                "failed: output file not generated.")
+                                "failed: VCF file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
+                
+            if not os.path.isfile(self.tmp_outfile_path[:-3] + PDF):
+                raise Exception("Secondary analysis genotyper job " +
+                                "failed: PDF file not generated.")
+            else:
                 shutil.copy(self.tmp_outfile_path[:-3] + PDF, self.outfile_path[:-3] + PDF)
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
-def make_process_callback(uuid, outfile_path, db_connector):
+def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes, 
+                          outfile_path, db_connector):
     """
     Return a closure that is fired when the job finishes. This 
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
      
     @param uuid:         Unique job id in database
-    @param outfile_path: Path where the final identity results will live.
+    @param exp_def_name: Experiment definition name
+    @param ac_result_path: Path to assay caller result
+    @param ignored_dyes: List of dyes to ignore
+    @param outfile_path: Path where the final identity results will live
     @param db_connector: Object that handles communication with the DB
     """
     query = {UUID: uuid}
     def process_callback(future):
         try:
             _ = future.result()
+            
+            generate_plots(exp_def_name, ac_result_path, 
+                           outfile_path[:-3] + PNG, ignored_dyes)
+
             update = { "$set": { 
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  PDF: outfile_path[:-3] + PDF,
+                                 PNG: outfile_path[:-3] + PNG,
+                                 PNG_SUM: outfile_path[:-4] + '_sum.%s' % PNG,
                                  URL: "http://%s/results/%s/%s" % 
                                            (HOSTNAME, PORT, 
                                             os.path.basename(outfile_path)),
@@ -277,12 +296,16 @@ def make_process_callback(uuid, outfile_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
                 silently_remove_file(outfile_path[:-3] + PDF)
+                silently_remove_file(outfile_path[:-3] + PNG)
+                silently_remove_file(outfile_path[:-4] + '_sum.%s' % PNG)
         except:
             APP_LOGGER.exception("Error in Genotyper post request process callback.")
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
                                    RESULT: None,
                                    PDF: None,
+                                   PNG: None,
+                                   PNG_SUM: None,
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
             # If job has been deleted, then delete result and don't update DB.
@@ -291,6 +314,8 @@ def make_process_callback(uuid, outfile_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
                 silently_remove_file(outfile_path[:-3] + PDF)
+                silently_remove_file(outfile_path[:-3] + PNG)
+                silently_remove_file(outfile_path[:-4] + '_sum.%s' % PNG)
          
     return process_callback
 

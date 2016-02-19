@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from bioweb_api.apis.ApiConstants import RESULT, PDF
+from bioweb_api.apis.ApiConstants import RESULT, PDF, PNG, PNG_SUM
 from bioweb_api import SA_GENOTYPER_COLLECTION
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
 
@@ -46,7 +46,7 @@ class GenotyperDeleteFunction(AbstractDeleteJobFunction):
         return SA_GENOTYPER_COLLECTION
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=[RESULT, PDF]):
+    def process_request(cls, params_dict, del_file_keys=[RESULT, PDF, PNG, PNG_SUM]):
         return super(GenotyperDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

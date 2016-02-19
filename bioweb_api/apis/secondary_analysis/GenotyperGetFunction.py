@@ -28,7 +28,7 @@ from bioweb_api import SA_GENOTYPER_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, ID, \
     JOB_TYPE_NAME, RESULT, ERROR, SUBMIT_DATESTAMP, START_DATESTAMP, \
     FINISH_DATESTAMP, URL, REQUIRED_DROPS, SA_ASSAY_CALLER_UUID, EXP_DEF_NAME, \
-    EXP_DEF_UUID, PDF
+    EXP_DEF_UUID, PDF, PNG, PNG_SUM
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
 
 #=============================================================================
@@ -76,6 +76,8 @@ class GenotyperGetFunction(AbstractGetFunction):
         columns[ERROR]                = 1
         columns[RESULT]               = 1
         columns[PDF]                  = 1
+        columns[PNG]                  = 1
+        columns[PNG_SUM]              = 1
         columns[URL]                  = 1
 
         column_names = columns.keys()  

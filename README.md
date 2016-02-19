@@ -140,3 +140,5 @@ GnuBio Flask API.
    * Simplified default settings.
  * v2.0
    * Added Genotyper APIs
+ * v2.1
+   * Add URLs to genotyper pdf and png results files.

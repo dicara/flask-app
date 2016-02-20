@@ -142,3 +142,5 @@ GnuBio Flask API.
    * Added Genotyper APIs
  * v2.1
    * Add URLs to genotyper pdf and png results files.
+ * v2.2
+   * Update secondary analysis to v1.2.1 which contains some identity and assay caller plotting updates.

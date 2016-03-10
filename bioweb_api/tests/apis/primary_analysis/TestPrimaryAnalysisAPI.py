@@ -180,3 +180,6 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         url += "&device=%s" % _DEVICE
         url += "&job_name=%s" % _JOB_NAME
         return url
+
+if __name__ == "__main__":
+    unittest.main()

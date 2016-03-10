@@ -245,6 +245,5 @@ if __name__ == '__main__':
     ld = LibraryDesign(input_dyes, input_requested_nbarcodes)
     design, dyes, levels = ld.generate()
 
-    print design
-    print dyes
-    print levels
+    for dye in design:
+        print '%s: [%s]' % (dye['name'], dye['levels'],)

@@ -22,11 +22,11 @@ MIN_NLEVELS = 2
 
 # based on pdms chip data, 40 mW laser power, Gain 0
 BARCODE_DYES = {
-    'pe-cy7': {'max_nlvls': 3, 'intensity_ugml': 615.0},
+    'pe-cy7': {'max_nlvls': 3, 'intensity_ugml': 1550.0},
     'cy5.5':  {'max_nlvls': 4, 'intensity_ugml': 3646.7},
-    '633':    {'max_nlvls': 3, 'intensity_ugml': 2142.0},
-    '594':    {'max_nlvls': 4, 'intensity_ugml': 3000.7},
-    'pe':     {'max_nlvls': 2, 'intensity_ugml': 10000.3},
+    '633':    {'max_nlvls': 3, 'intensity_ugml': 1666.0},
+    '594':    {'max_nlvls': 4, 'intensity_ugml': 3500.7},
+    'pe':     {'max_nlvls': 2, 'intensity_ugml': 8333.3},
 }
 
 # Define a preferred order from the dyes that you would prefer to have the
@@ -54,19 +54,41 @@ class LibraryDesign(object):
         self._get_nlevels()
         self._get_max_intensities()
 
-    def generate(self):
+    def generate(self, intensity_scaler=1.25):
         """
         Generate a design based on the dyes and requested number of barcodes
 
-        @return:    A tuple containing the design (a list of dictionaries
-                    containing information on each dye in the design), and
-                    the input dyes and levels for each dye.
+        @param intensity_scaler:    Float, scaled difference in intensity between the
+                                    highest two levels and the lowest two.  For example
+                                    a value of 1.25 means that the highest two levels have
+                                    an intensity difference that is 1.25X greater than the
+                                    lowest two levels.
+        @return:                    A tuple containing the design (a list of dictionaries
+                                    containing information on each dye in the design), and
+                                    the input dyes and levels for each dye.
         """
         design = list()
-        for dye, nlvls in zip(self.dyes, self.nlvls):
-            int_range = numpy.linspace(MIN_INTEN, self.dye_max_intensities[dye], nlvls)
-            ug_ml = int_range / BARCODE_DYES[dye]['intensity_ugml']
-            design.append({'name': dye, 'levels': ', '.join([str(round(lvl, 2)) for lvl in ug_ml])})
+        for dye, nlvls in reversed(zip(self.dyes, self.nlvls)):
+            # scales are how the intensity gap between each level will scale
+            # scales [1.0, 1.125, 1.25] means that the gap between the highest two
+            # levels is 1.25 times greater than the gap between the lowest two levels
+            scales = numpy.linspace(1.0, intensity_scaler, nlvls-1)
+
+            # total relative intensity space the dye has to work with
+            intensity_space = self.dye_max_intensities[dye] - MIN_INTEN
+
+            # intensity space between levels at a scale of 1.0 (the minimum)
+            min_intensity_space = intensity_space/numpy.sum(scales)
+
+            # intensity space between levels scaled
+            scaled_intensity_spaces = (scales * min_intensity_space)
+
+            # scaled levels
+            lvls_scaled_intensity = numpy.cumsum(numpy.concatenate(([MIN_INTEN], scaled_intensity_spaces)))
+
+            # convert to ug/ml
+            lvls_scaled_ug_ml = lvls_scaled_intensity / BARCODE_DYES[dye]['intensity_ugml']
+            design.append({'name': dye, 'levels': ', '.join([str(round(lvl, 2)) for lvl in lvls_scaled_ug_ml])})
 
         return design, self.dyes, map(int, self.nlvls)
 

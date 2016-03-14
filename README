@@ -145,7 +145,7 @@ GnuBio Flask API.
  * v2.2
    * Update secondary analysis to v1.2.1 which contains some identity and assay caller plotting updates.
  * v2.3
-   * Updated secondary analysis to 1.5
+   * Updated secondary analysis to 1.7
    * Updated primary analysis to 2.13
    * Library generator switched from constant distance between levels to scaled distance.
    * Updated intensity/concentration ratios to cope with new dye lots

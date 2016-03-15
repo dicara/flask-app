@@ -443,13 +443,10 @@ def check_report_for_errors(report_path):
             id_model_errors = yaml.load(fh)[ID_MODEL_METRICS]['PROBLEMS']
             id_collisions = id_model_errors['Identity Collisions']
             missing = id_model_errors['Missing Barcodes']
-            resolved_merge = id_model_errors['Resolved Merged']
             if missing:
                 report_errors.append('Missing barcodes: %s' % str(missing))
             if id_collisions:
                 report_errors.append('Identity collisions: %s' % str(id_collisions) )
-            if resolved_merge:
-                report_errors.append('Merge Resolution: %s' % str(resolved_merge) )
         if report_errors:
             return ', '.join(report_errors)
 

@@ -151,3 +151,10 @@ GnuBio Flask API.
    * Updated intensity/concentration ratios to cope with new dye lots
  * v2.4
    * Removed merge resolution check from IdentityPostFunction
+ * v2.5
+   * Updated secondary-analysis to v1.10
+      * Attempt to reduce memory footprint of assay caller.
+   	  * Add individual probe counts to assay caller plots.
+      * Added helper method to print probes in an experiment definition.
+      * Genotype now handles controls when reading assay caller results from a file.
+   

@@ -157,4 +157,5 @@ GnuBio Flask API.
    	  * Add individual probe counts to assay caller plots.
       * Added helper method to print probes in an experiment definition.
       * Genotype now handles controls when reading assay caller results from a file.
-   
+ * v2.6
+   * Update secondary-analysis dependency to v1.12 which handles controls and fixes a bug where constellation identity was making dimension groups of one.

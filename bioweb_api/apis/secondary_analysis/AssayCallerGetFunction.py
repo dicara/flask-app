@@ -29,7 +29,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, KDE_PLOT, KDE_PLOT_URL, SCATTER_PLOT, SCATTER_PLOT_URL, \
-    FINISH_DATESTAMP, URL
+    FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 
 #=============================================================================
@@ -66,6 +66,8 @@ class AssayCallerGetFunction(AbstractGetFunction):
         columns[JOB_NAME]         = 1
         columns[JOB_TYPE_NAME]    = 1
         columns[UUID]             = 1
+        columns[EXP_DEF_NAME]     = 1
+        columns[EXP_DEF_UUID]     = 1
         columns[SA_IDENTITY_UUID] = 1
         columns[FIDUCIAL_DYE]     = 1
         columns[ASSAY_DYE]        = 1

@@ -39,12 +39,13 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
-    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM
+    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM, EXP_DEF_NAME, EXP_DEF_UUID
     
+from expdb import HotspotExperiment
+from primary_analysis.command import InvalidFileError
+from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR
-
-from primary_analysis.command import InvalidFileError
 
 #=============================================================================
 # Public Static Variables
@@ -97,6 +98,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                          "name to give this "
                                                          "job.")
+        cls.exp_defs_param  = ParameterFactory.experiment_definition()
         cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE, 
                                                    "Fiducial dye.",
                                                    default=JOE,
@@ -116,6 +118,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         parameters = [
                       cls.job_uuid_param,
                       cls.job_name_param,
+                      cls.exp_defs_param,
                       cls.fid_dye_param,
                       cls.assay_dye_param,
                       cls.n_probes_param,
@@ -127,6 +130,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
+        exp_def_name    = params_dict[cls.exp_defs_param][0]
         fiducial_dye    = params_dict[cls.fid_dye_param][0]
         assay_dye       = params_dict[cls.assay_dye_param][0]
         num_probes      = params_dict[cls.n_probes_param][0]
@@ -140,6 +144,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
             projection      = {ID: 0, RESULT: 1, UUID: 1}
             sa_identity_jobs = cls._DB_CONNECTOR.find(SA_IDENTITY_COLLECTION, 
                                                      criteria, projection)
+            exp_defs     = ExperimentDefinitions()
+            exp_def_uuid = exp_defs.get_experiment_uuid(exp_def_name)
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
@@ -154,6 +160,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
                 cur_job_name = "%s-%d" % (job_name, i)
 
             response = {
+                        EXP_DEF_NAME: exp_def_name,
+                        EXP_DEF_UUID: exp_def_uuid,
                         FIDUCIAL_DYE: fiducial_dye,
                         ASSAY_DYE: assay_dye,
                         NUM_PROBES: num_probes,
@@ -182,7 +190,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
                         raise InvalidFileError(sa_identity_job[RESULT])
                     
                     # Create helper functions
-                    sac_callable = SaAssayCallerCallable(sa_identity_job[RESULT],
+                    sac_callable = SaAssayCallerCallable(exp_def_uuid,
+                                                         sa_identity_job[RESULT],
                                                          assay_dye,
                                                          fiducial_dye,
                                                          num_probes, 
@@ -225,9 +234,10 @@ class SaAssayCallerCallable(object):
     """
     Callable that executes the assay caller command.
     """
-    def __init__(self, analysis_file, assay_dye, fiducial_dye, num_probes, 
-                 training_factor, outfile_path, kde_plot_path, 
+    def __init__(self, exp_def_uuid, analysis_file, assay_dye, fiducial_dye, 
+                 num_probes, training_factor, outfile_path, kde_plot_path, 
                  scatter_plot_path, uuid, db_connector):
+        self.exp_def_uuid          = exp_def_uuid
         self.analysis_file         = analysis_file
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
@@ -254,12 +264,17 @@ class SaAssayCallerCallable(object):
         try:
             safe_make_dirs(self.tmp_path)
             
+            exp_def_fetcher = ExperimentDefinitions()
+            exp_def = exp_def_fetcher.get_experiment_defintion(self.exp_def_uuid)
+            experiment = HotspotExperiment.from_dict(exp_def)
+            
             AssayCallManager(self.num_probes, in_file=self.analysis_file, 
                              out_file=self.tmp_outfile_path, 
                              kde_plot_file=self.tmp_kde_plot_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
-                             assay=self.assay_dye, fiducial=self.fiducial_dye)
+                             assay=self.assay_dye, fiducial=self.fiducial_dye,
+                             controls=experiment.controls.barcodes)
             
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis assay caller job " +

@@ -56,7 +56,7 @@ setup(
                           'ncbi-utilities>=0.2',
                           'probe-design>=0.3',
                           'primary-analysis>=2.13',
-                          'secondary-analysis>=1.11',
+                          'secondary-analysis>=1.12',
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,

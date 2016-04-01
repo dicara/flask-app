@@ -448,6 +448,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         url = _ASSAY_CALLER_URL
         url = add_url_argument(url, UUID, self._id_record[UUID], True)
         url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME)
+        url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
         url = add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE)
         url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE)
         url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES)

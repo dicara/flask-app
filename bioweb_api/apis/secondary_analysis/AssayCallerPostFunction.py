@@ -39,13 +39,14 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
-    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM, EXP_DEF_NAME, EXP_DEF_UUID
+    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM, EXP_DEF_NAME, EXP_DEF_UUID, \
+    CTRL_THRESH
     
 from expdb import HotspotExperiment
 from primary_analysis.command import InvalidFileError
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
-from secondary_analysis.constants import AC_TRAINING_FACTOR
+from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 
 #=============================================================================
 # Public Static Variables
@@ -59,6 +60,8 @@ _NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "the required training set."
 _TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
     "set: size = num_probes*training_factor."
+_CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
+    "intersect positive population."
 
 #=============================================================================
 # Class
@@ -114,6 +117,10 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                        _TRAINING_FACTOR_DESCRIPTION,
                                                        default=AC_TRAINING_FACTOR, minimum=1,
                                                        required=True)
+        cls.ctrl_thresh     = ParameterFactory.float(CTRL_THRESH, 
+                                                     _CTRL_THRESH_DESCRIPTION,
+                                                     default=AC_CTRL_THRESHOLD,
+                                                     minimum=0.0, maximum=100.0)
         
         parameters = [
                       cls.job_uuid_param,
@@ -123,6 +130,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.assay_dye_param,
                       cls.n_probes_param,
                       cls.training_param,
+                      cls.ctrl_thresh,
                      ]
         return parameters
     
@@ -135,6 +143,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         assay_dye       = params_dict[cls.assay_dye_param][0]
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
+        ctrl_thresh     = params_dict[cls.ctrl_thresh][0]
         
         json_response = {ASSAY_CALLER: []}
 
@@ -166,6 +175,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                         ASSAY_DYE: assay_dye,
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
+                        CTRL_THRESH: ctrl_thresh,
                         UUID: str(uuid4()),
                         SA_IDENTITY_UUID: sa_identity_job[UUID],
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
@@ -199,6 +209,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          outfile_path, 
                                                          kde_plot_path,
                                                          scatter_plot_path,
+                                                         ctrl_thresh,
                                                          response[UUID], 
                                                          cls._DB_CONNECTOR)
                     callback = make_process_callback(response[UUID], 
@@ -236,7 +247,7 @@ class SaAssayCallerCallable(object):
     """
     def __init__(self, exp_def_uuid, analysis_file, assay_dye, fiducial_dye, 
                  num_probes, training_factor, outfile_path, kde_plot_path, 
-                 scatter_plot_path, uuid, db_connector):
+                 scatter_plot_path, ctrl_thresh, uuid, db_connector):
         self.exp_def_uuid          = exp_def_uuid
         self.analysis_file         = analysis_file
         self.assay_dye             = assay_dye
@@ -246,6 +257,7 @@ class SaAssayCallerCallable(object):
         self.outfile_path          = outfile_path
         self.kde_plot_path         = kde_plot_path
         self.scatter_plot_path     = scatter_plot_path
+        self.ctrl_thresh           = ctrl_thresh
         self.db_connector          = db_connector
         self.query                 = {UUID: uuid}
         self.tmp_path              = os.path.join(TMP_PATH, uuid)
@@ -274,7 +286,9 @@ class SaAssayCallerCallable(object):
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
                              assay=self.assay_dye, fiducial=self.fiducial_dye,
-                             controls=experiment.controls.barcodes)
+                             controls=experiment.controls.barcodes,
+                             ctrl_thresh=self.ctrl_thresh,
+                             n_jobs=8)
             
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis assay caller job " +

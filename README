@@ -159,3 +159,5 @@ GnuBio Flask API.
       * Genotype now handles controls when reading assay caller results from a file.
  * v2.6
    * Update secondary-analysis dependency to v1.12 which handles controls and fixes a bug where constellation identity was making dimension groups of one.
+ * v2.7
+   * Update secondary-analysis dependency to v1.13 wit bugfix for assay caller in offline analysis - handle negative controls failure.

@@ -20,6 +20,7 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import copy
 import sys
 import traceback
 import os
@@ -36,7 +37,7 @@ from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
-    OFFSETS, MAJOR, MINOR, USE_IID
+    OFFSETS, MAJOR, MINOR, USE_IID, PA_MIN_NUM_IMAGES
     
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process
     
@@ -50,7 +51,7 @@ PROCESS        = "Process"
 #===============================================================================
 # Private Static Variables
 #===============================================================================
-_MIN_NUM_IMAGES = 10 # Minimum number of images required to run 
+
 
 #===============================================================================
 # Class
@@ -135,11 +136,11 @@ class ProcessPostFunction(AbstractPostFunction):
             minor = params_dict[cls.minor_param][0]
         
         json_response = {PROCESS: []}
-        
+
         # Ensure archive directory is valid
         try:
-            archives = get_archive_dirs(archive_name, 
-                                        min_num_images=_MIN_NUM_IMAGES)
+            archives = get_archive_dirs(archive_name,
+                                        min_num_images=PA_MIN_NUM_IMAGES)
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
@@ -156,55 +157,41 @@ class ProcessPostFunction(AbstractPostFunction):
                 cur_job_name = job_name
             else:
                 cur_job_name = "%s-%d" % (job_name, i)
-                
-            response = {
-                        ARCHIVE: archive,
-                        DYES: dyes,
-                        DEVICE: device,
-                        OFFSETS: offset,
-                        USE_IID: use_iid,
-                        UUID: str(uuid4()),
-                        STATUS: JOB_STATUS.submitted,       # @UndefinedVariable
-                        JOB_NAME: cur_job_name,
-                        JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
-                        SUBMIT_DATESTAMP: datetime.today(),
-                       }
+
+
             status_code = 200
             
             if cur_job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
                                                       JOB_NAME):
                 status_code = 403
+                json_response[PROCESS].append({ERROR: 'Job exists.'})
             else:
                 try:
-                    outfile_path = os.path.join(RESULTS_PATH, response[UUID])
-                    config_path  = outfile_path + ".cfg"
-                    
                     # Create helper functions
-                    abs_callable = PaProcessCallable(archive, dyes, device,
+                    pa_callable = PaProcessCallable(archive, dyes, device,
                                                      major, minor,
-                                                     offset, use_iid, 
-                                                     outfile_path, 
-                                                     config_path,
-                                                     response[UUID], 
+                                                     offset, use_iid,
+                                                     cls._DB_CONNECTOR,
+                                                     cur_job_name)
+                    response = copy.deepcopy(pa_callable.document)
+                    callback = make_process_callback(pa_callable.uuid,
+                                                     pa_callable.outfile_path,
+                                                     pa_callable.config_path,
                                                      cls._DB_CONNECTOR)
-                    callback = make_process_callback(response[UUID], 
-                                                     outfile_path, 
-                                                     config_path,
-                                                     cls._DB_CONNECTOR)
-    
-                    # Add to queue and update DB
-                    cls._DB_CONNECTOR.insert(PA_PROCESS_COLLECTION, [response])
+
+
+                    # Add to queue
                     cls._EXECUTION_MANAGER.add_job(response[UUID], 
-                                                   abs_callable, callback)
+                                                   pa_callable, callback)
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
-                    response[ERROR]  = str(sys.exc_info()[1])
+                    response = {JOB_NAME: cur_job_name, ERROR: str(sys.exc_info()[1])}
                     status_code = 500
                 finally:
                     if ID in response:
                         del response[ID]
-                        
-            json_response[PROCESS].append(response)
+                    json_response[PROCESS].append(response)
+
             status_codes.append(status_code)
         
         # If all jobs submitted successfully, then 200 should be returned.
@@ -219,7 +206,8 @@ class PaProcessCallable(object):
     Callable that executes the process command.
     """
     def __init__(self, archive, dyes, device, major, minor, offset, use_iid,
-                 outfile_path, config_path, uuid, db_connector):
+                 db_connector, job_name):
+        self.uuid         = str(uuid4())
         self.archive      = archive
         self.dyes         = dyes
         self.device       = device
@@ -227,19 +215,33 @@ class PaProcessCallable(object):
         self.minor        = minor
         self.offsets      = range(-offset, offset)
         self.use_iid      = use_iid
-        self.outfile_path = outfile_path
-        self.config_path  = config_path
+        self.outfile_path = os.path.join(RESULTS_PATH, self.uuid)
+        self.config_path  = self.outfile_path + '.cfg'
         self.db_connector = db_connector
-        self.query        = {UUID: uuid}
-    
+        self.document     = {ARCHIVE: archive,
+                             DYES: dyes,
+                             DEVICE: device,
+                             OFFSETS: offset,
+                             USE_IID: use_iid,
+                             UUID: self.uuid,
+                             STATUS: JOB_STATUS.submitted, # @UndefinedVariable
+                             JOB_NAME: job_name,
+                             JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
+                             SUBMIT_DATESTAMP: datetime.today()}
+        if job_name in self.db_connector.distinct(PA_PROCESS_COLLECTION, JOB_NAME):
+            raise Exception('Job name %s already exists in primary analysis collection' % job_name)
+
+        self.db_connector.insert(PA_PROCESS_COLLECTION, [self.document])
+
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
-                           START_DATESTAMP: datetime.today()}}     
-        self.db_connector.update(PA_PROCESS_COLLECTION, self.query, update)
+                           START_DATESTAMP: datetime.today()}}
+        query = {UUID: self.uuid}
+        self.db_connector.update(PA_PROCESS_COLLECTION, query, update)
         return execute_process(self.archive, self.dyes, self.device, self.major,
                                self.minor, self.offsets, self.use_iid, 
                                self.outfile_path, self.config_path, 
-                               self.query[UUID])
+                               self.uuid)
         
 def make_process_callback(uuid, outfile_path, config_path, db_connector):
     """
@@ -283,7 +285,7 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
                 silently_remove_file(config_path)
-        
+
     return process_callback
          
 #===============================================================================

@@ -26,6 +26,7 @@ from bioweb_api.apis.snp_search.SnpSearchApi import SnpSearchApiV1
 from bioweb_api.apis.melting_temperature.MeltingTemperatureApi import MeltingTemperatureApiV1
 from bioweb_api.apis.probe_design.ProbeDesignApi import ProbeDesignApiV1
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisApi import PrimaryAnalysisApiV1
+from bioweb_api.apis.full_analysis.FullAnalysisApi import FullAnalysisApiV1
 from bioweb_api.apis.secondary_analysis.SecondaryAnalysisApi import SecondaryAnalysisAPIV1
 from bioweb_api.apis.drop_tools.DropToolsApi import DropToolsAPIV1
 from bioweb_api.apis.dye_profiles_database.DyeProfilesDatabaseApi import DyeProfilesDatabaseAPIV1
@@ -46,6 +47,7 @@ _APIS = [
          MeltingTemperatureApiV1(),
          ProbeDesignApiV1(),
          PrimaryAnalysisApiV1(),
+         FullAnalysisApiV1(),
          SecondaryAnalysisAPIV1(),
          ImageAPIV1(),
          DropToolsAPIV1(),

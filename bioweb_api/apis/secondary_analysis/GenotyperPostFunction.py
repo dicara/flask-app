@@ -20,6 +20,7 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import copy
 import logging
 import os
 import shutil
@@ -37,7 +38,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
     STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF, PDF_URL, PNG, PNG_URL, PNG_SUM, \
-    PNG_SUM_URL
+    PNG_SUM_URL, REQ_DROPS_DESCRIPTION
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -57,7 +58,7 @@ GENOTYPER = "Genotyper"
 # Private Static Variables
 #=============================================================================
 log = logging.getLogger(__name__)
-_REQ_DROPS_DESC = "Number of drops to use in genotyping (0 to use all available)."
+
 
 #=============================================================================
 # Class
@@ -94,7 +95,7 @@ class GenotyperPostFunction(AbstractPostFunction):
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, JOB_NAME_DESC)
         cls.exp_defs_param  = ParameterFactory.experiment_definition()
         cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS, 
-                                                       _REQ_DROPS_DESC, 
+                                                       REQ_DROPS_DESCRIPTION,
                                                        required=True, default=0, 
                                                        minimum=0)
 
@@ -114,93 +115,48 @@ class GenotyperPostFunction(AbstractPostFunction):
         required_drops  = params_dict[cls.req_drops_param][0]
         
         json_response = {GENOTYPER: []}
-        
-        # Retrieve assay caller job
-        try:
-            criteria          = {UUID: {"$in": job_uuids}}
-            projection        = {ID: 0, RESULT: 1, UUID: 1, SA_IDENTITY_UUID: 1}
-            assay_caller_jobs = cls._DB_CONNECTOR.find(SA_ASSAY_CALLER_COLLECTION, 
-                                                       criteria, projection)
-        except:
-            APP_LOGGER.exception("Error retrieving provided assay caller job(s).")
-            json_response[ERROR] = str(sys.exc_info()[1])
-            return make_clean_response(json_response, 500)
-        
-        # Retrieve experiment definition
-        try:
-            exp_defs     = ExperimentDefinitions()
-            exp_def_uuid = exp_defs.get_experiment_uuid(exp_def_name)
-        except:
-            APP_LOGGER.exception("Error retrieving provided experiment definition.")
-            json_response[ERROR] = str(sys.exc_info()[1])
-            return make_clean_response(json_response, 500)
-            
         status_codes = list()
-        for i, assay_caller_job in enumerate(assay_caller_jobs):
-            if len(assay_caller_jobs) == 1:
+        for i, assay_caller_uuid in enumerate(job_uuids):
+            if len(job_uuids) == 1:
                 cur_job_name = job_name
             else:
                 cur_job_name = "%s-%d" % (job_name, i)
-
-            response = {
-                        EXP_DEF_NAME: exp_def_name,
-                        EXP_DEF_UUID: exp_def_uuid,
-                        REQUIRED_DROPS: required_drops,
-                        UUID: str(uuid4()),
-                        SA_ASSAY_CALLER_UUID: assay_caller_job[UUID],
-                        STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
-                        JOB_NAME: cur_job_name,
-                        JOB_TYPE_NAME: JOB_TYPE.sa_genotyping, # @UndefinedVariable
-                        SUBMIT_DATESTAMP: datetime.today(),
-                       }
             status_code = 200
-            
+
             if cur_job_name in cls._DB_CONNECTOR.distinct(SA_GENOTYPER_COLLECTION,
                                                           JOB_NAME):
                 status_code = 403
+                json_response[GENOTYPER].append({ERROR: 'Job exists.'})
             else:
                 try:
-                    outfile_path = os.path.join(RESULTS_PATH, response[UUID] + '.%s' % VCF)
-                    ac_uuid = assay_caller_job[SA_IDENTITY_UUID]
-                    record = cls._DB_CONNECTOR.find_one(SA_IDENTITY_COLLECTION, 
-                        UUID, ac_uuid)
-                    ignored_dyes = record[IGNORED_DYES] + record[FILTERED_DYES]
-                    
-                    if not os.path.isfile(assay_caller_job[RESULT]):
-                        raise InvalidFileError(assay_caller_job[RESULT])
-
                     # Create helper functions
-                    genotyper_callable = SaGenotyperCallable(exp_def_uuid,
-                                                             assay_caller_job[RESULT],
-                                                             outfile_path,
+                    genotyper_callable = SaGenotyperCallable(assay_caller_uuid,
+                                                             exp_def_name,
                                                              required_drops,
-                                                             ignored_dyes,
-                                                             response[UUID],
-                                                             cls._DB_CONNECTOR)
-                    callback = make_process_callback(response[UUID],
+                                                             cls._DB_CONNECTOR,
+                                                             cur_job_name)
+                    response = copy.deepcopy(genotyper_callable.document)
+                    callback = make_process_callback(genotyper_callable.uuid,
                                                      exp_def_name,
-                                                     assay_caller_job[RESULT],
-                                                     ignored_dyes,
-                                                     outfile_path,
+                                                     genotyper_callable.ac_result_path,
+                                                     genotyper_callable.ignored_dyes,
+                                                     genotyper_callable.outfile_path,
                                                      cls._DB_CONNECTOR)
-                    
-                    # Add to queue and update DB
-                    cls._DB_CONNECTOR.insert(SA_GENOTYPER_COLLECTION, 
-                                             [response])
-                    cls._EXECUTION_MANAGER.add_job(response[UUID], 
+
+                    # Add to queue
+                    cls._EXECUTION_MANAGER.add_job(response[UUID],
                                                    genotyper_callable,
                                                    callback)
 
-                    
                 except:
                     APP_LOGGER.exception("Error processing Genotyper post request.")
-                    response[ERROR] = str(sys.exc_info()[1])
+                    response = {JOB_NAME: cur_job_name, ERROR: str(sys.exc_info()[1])}
                     status_code = 500
                 finally:
                     if ID in response:
                         del response[ID]
-           
-            json_response[GENOTYPER].append(response)
+                    json_response[GENOTYPER].append(response)
+
             status_codes.append(status_code)
 
 
@@ -215,27 +171,52 @@ class SaGenotyperCallable(object):
     """
     Callable that executes the genotyper command.
     """
-    def __init__(self, exp_def_uuid, ac_result_path, outfile_path, 
-                 required_drops, ignored_dyes, uuid, db_connector):
-        self.exp_def_uuid     = exp_def_uuid
-        self.ac_result_path   = ac_result_path
-        self.outfile_path     = outfile_path
+    def __init__(self, assay_caller_uuid, exp_def_name,
+                 required_drops, db_connector, job_name):
+
+        assay_caller_doc = db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, assay_caller_uuid)
+        identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, assay_caller_doc[SA_IDENTITY_UUID])
+
+        if not os.path.isfile(assay_caller_doc[RESULT]):
+            raise InvalidFileError(assay_caller_doc[RESULT])
+
+        self.uuid = str(uuid4())
+        self.exp_def_name = exp_def_name
+        self.assay_caller_uuid = assay_caller_uuid
+        self.ac_result_path   = assay_caller_doc[RESULT]
+        self.outfile_path     = os.path.join(RESULTS_PATH, self.uuid + '.%s' % VCF)
         self.required_drops   = required_drops
-        self.ignored_dyes     = ignored_dyes
+        self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
-        self.query            = {UUID: uuid}
-        self.tmp_path         = os.path.join(TMP_PATH, uuid)
-        self.tmp_outfile_path = os.path.join(self.tmp_path, uuid + ".%s" % VCF)
-        
+        self.tmp_path         = os.path.join(TMP_PATH, self.uuid)
+        self.tmp_outfile_path = os.path.join(self.tmp_path, self.uuid + ".%s" % VCF)
+        self.document = {
+                        EXP_DEF_NAME: exp_def_name,
+                        REQUIRED_DROPS: required_drops,
+                        UUID: self.uuid,
+                        SA_ASSAY_CALLER_UUID: assay_caller_uuid,
+                        STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
+                        JOB_NAME: job_name,
+                        JOB_TYPE_NAME: JOB_TYPE.sa_genotyping, # @UndefinedVariable
+                        SUBMIT_DATESTAMP: datetime.today(),
+                       }
+
+        if job_name in self.db_connector.distinct(SA_GENOTYPER_COLLECTION, JOB_NAME):
+            raise Exception('Job name %s already exists in genotyper collection' % job_name)
+
+        self.db_connector.insert(SA_GENOTYPER_COLLECTION, [self.document])
+
     def __call__(self):
         update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
-                           START_DATESTAMP: datetime.today()}}     
-        self.db_connector.update(SA_GENOTYPER_COLLECTION, self.query, update)
+                           START_DATESTAMP: datetime.today()}}
+        query = {UUID: self.uuid}
+        self.db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
         try:
             safe_make_dirs(self.tmp_path)
             
             exp_def_fetcher = ExperimentDefinitions()
-            exp_def = exp_def_fetcher.get_experiment_defintion(self.exp_def_uuid)
+            exp_def_uuid = exp_def_fetcher.get_experiment_uuid(self.exp_def_name)
+            exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
             experiment = HotspotExperiment.from_dict(exp_def)
             GenotypeProcessor(experiment, None, self.tmp_outfile_path, 
                               required_drops=self.required_drops, 

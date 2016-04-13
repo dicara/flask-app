@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import UUID, FIDUCIAL_DYE, ASSAY_DYE,\
     STATUS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, \
     URL, CONFIG_URL, REPORT, RESULT, CONFIG, \
     FILTERED_DYES, IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD,\
-    CALC_DROP_PROB, PA_PROCESS_UUID, PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, \
+    PA_PROCESS_UUID, PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, \
     JOE, FAM, JOB_STATUS, KDE_PLOT, KDE_PLOT_URL, SCATTER_PLOT, \
     SCATTER_PLOT_URL, REQUIRED_DROPS, EXP_DEF, PDF, PNG, PNG_SUM, VCF
 from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,\
@@ -175,7 +175,6 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                           JOB_NAME : "2016-01-28_05.22pm_beta_15-ddicara",
                           JOB_TYPE_NAME : JOB_TYPE.sa_identity,# @UndefinedVariable
                           SUBMIT_DATESTAMP : datetime.today(),
-                          CALC_DROP_PROB: False,
                           START_DATESTAMP : datetime.today(),
                           FINISH_DATESTAMP : datetime.today(),
                           URL : "http://bioweb/results/8020/" + cls._identity_uuid,

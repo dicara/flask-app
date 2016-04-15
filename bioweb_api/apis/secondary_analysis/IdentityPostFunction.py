@@ -374,25 +374,24 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
             _ = future.result()
             report_errors = check_report_for_errors(report_path)
             status = JOB_STATUS.failed if report_errors else JOB_STATUS.succeeded
-            update = { "$set": { 
-                                 STATUS: status, # @UndefinedVariable
-                                 RESULT: outfile_path,
-                                 URL: "http://%s/results/%s/%s" % 
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(outfile_path)),
-                                 PLOT: plot_path,
-                                 REPORT: report_path,
-                                 PLOT_URL: "http://%s/results/%s/%s" %
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(plot_path)),
-                                 REPORT_URL: "http://%s/results/%s/%s" %
-                                           (HOSTNAME, PORT,
-                                            os.path.basename(report_path)),
-                                 FINISH_DATESTAMP: datetime.today(),
-                                 ERROR: report_errors,
-                               }
-                    }
+            update_data = { STATUS: status, # @UndefinedVariable
+                            RESULT: outfile_path,
+                            URL: "http://%s/results/%s/%s" %
+                                 (HOSTNAME, PORT,
+                                  os.path.basename(outfile_path)),
+                            PLOT: plot_path,
+                            REPORT: report_path,
+                            PLOT_URL: "http://%s/results/%s/%s" %
+                                      (HOSTNAME, PORT,
+                                       os.path.basename(plot_path)),
+                            REPORT_URL: "http://%s/results/%s/%s" %
+                                        (HOSTNAME, PORT,
+                                         os.path.basename(report_path)),
+                            FINISH_DATESTAMP: datetime.today()}
+            if report_errors:
+                update_data[ERROR] = report_errors
 
+            update = {"$set": update_data}
             # If job has been deleted, then delete result and don't update DB.
             if len(db_connector.find(SA_IDENTITY_COLLECTION, query, {})) > 0:
                 db_connector.update(SA_IDENTITY_COLLECTION, query, update)

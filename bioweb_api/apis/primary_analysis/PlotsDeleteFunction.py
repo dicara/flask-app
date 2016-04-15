@@ -46,7 +46,7 @@ class PlotsDeleteFunction(AbstractDeleteJobFunction):
         return PA_PLOTS_COLLECTION
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=[PLOT]):
+    def process_request(cls, params_dict, del_file_keys=(PLOT,)):
         return super(PlotsDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

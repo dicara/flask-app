@@ -25,16 +25,15 @@ import copy
 from datetime import datetime
 import sys
 import traceback
-from uuid import uuid4
 
 from bioweb_api import FA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import EXP_DEF, SUBMIT_DATESTAMP, ERROR, \
+from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, FIDUCIAL_DYE, STATUS, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
     PF_TRAINING_FACTOR, UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, PF_TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
-    PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, FINISH_DATESTAMP
+    PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response, get_archive_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -50,6 +49,7 @@ from secondary_analysis.constants import PICO_DYE as DEFAULT_PICO_DYE
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 
+FULL_ANALYSIS = 'FullAnalysis'
 
 #===============================================================================
 # Class
@@ -61,7 +61,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
     #===========================================================================    
     @staticmethod
     def name():
-        return 'Process'
+        return FULL_ANALYSIS
    
     @staticmethod
     def summary():
@@ -200,7 +200,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        json_response = {'Process': []}
+        json_response = {FULL_ANALYSIS: []}
 
         parameters = dict()
         for param in params_dict:
@@ -249,7 +249,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         if IGNORED_DYES not in parameters:
             parameters[IGNORED_DYES] = list()
 
-
         # Ensure archive directory is valid
         try:
             archives = get_archive_dirs(parameters[ARCHIVE],
@@ -266,42 +265,36 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         fa_job_names = set(cls._DB_CONNECTOR.distinct(FA_PROCESS_COLLECTION, JOB_NAME))
 
         status_codes = list()
-        archives = get_archive_dirs(parameters[ARCHIVE])
         for idx, archive in enumerate(archives):
             cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx)
-            cur_uuid = str(uuid4())
-            cur_parameters = copy.deepcopy(parameters)
-            cur_parameters[JOB_NAME] = cur_job_name
-            cur_parameters[ARCHIVE] = archive
 
-            fa_workflow = FullAnalysisWorkFlowCallable(uuid=cur_uuid,
-                                                      parameters=cur_parameters,
-                                                      db_connector=cls._DB_CONNECTOR)
-
-            callback = make_process_callback(cur_uuid, cls._DB_CONNECTOR)
-
-            response = {UUID: cur_uuid,
-                        JOB_NAME: cur_job_name,
-                        SUBMIT_DATESTAMP: datetime.today(),}
-
-            json_response['Process'].append(response)
-
-
+            status_code = 200
             if cur_job_name in fa_job_names:
-                status_codes.append(403)
+                status_code = 403
+                json_response[FULL_ANALYSIS].append({ERROR: 'Job exists.'})
             else:
-
                 try:
+                    cur_parameters = copy.deepcopy(parameters)
+                    cur_parameters[JOB_NAME] = cur_job_name
+                    cur_parameters[ARCHIVE] = archive
+
+                    fa_workflow = FullAnalysisWorkFlowCallable(parameters=cur_parameters,
+                                                               db_connector=cls._DB_CONNECTOR)
+                    response = fa_workflow.document
+                    callback = make_process_callback(fa_workflow.uuid, cls._DB_CONNECTOR)
+
                     cls._EXECUTION_MANAGER.add_job(response[UUID],
                                                    fa_workflow, callback)
-                    status_codes.append(200)
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
-                    response[ERROR] = str(sys.exc_info()[1])
-                    status_codes.append(500)
+                    response = {JOB_NAME: cur_job_name, ERROR: str(sys.exc_info()[1])}
+                    status_code = 500
                 finally:
                     if ID in response:
                         del response[ID]
+                    json_response[FULL_ANALYSIS].append(response)
+
+            status_codes.append(status_code)
 
         return make_clean_response(json_response, max(status_codes))
 

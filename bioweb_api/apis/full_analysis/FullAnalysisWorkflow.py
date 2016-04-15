@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from uuid import uuid4
 
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
@@ -8,7 +9,10 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, AC_TRAINING_FACTOR, REQUIRED_DROPS, EXP_DEF, JOB_TYPE_NAME, JOB_TYPE, \
     STATUS, JOB_STATUS, START_DATESTAMP, SUCCEEDED, PA_PROCESS_UUID, CTRL_THRESH, \
-    SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID
+    SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, FA_JOB_START_DATESTAMP, URL, \
+    CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
+    PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
+    FINISH_DATESTAMP
 
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable
@@ -22,14 +26,13 @@ from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_proces
 
 
 class FullAnalysisWorkFlowCallable(object):
-    def __init__(self, uuid, parameters, db_connector):
+    def __init__(self, parameters, db_connector):
         """
-        @param uuid:            String, uuid of full analysis job.
         @param parameters:      Dictionary containing parameters for all arguments
                                 for the full analysis job.
         @param db_connector:    A DbConnector object.
         """
-        self.uuid = uuid
+        self.uuid = str(uuid4())
         self.parameters = parameters
         self.db_connector = db_connector
         self.query = {UUID: self.uuid}
@@ -83,16 +86,23 @@ class FullAnalysisWorkFlowCallable(object):
 
         # enter primary analysis uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
-                                 {"$set": {PA_PROCESS_UUID: callable.uuid}})
+                                 {"$set": {PA_PROCESS_UUID: callable.uuid,
+                                           PA_DOCUMENT: {START_DATESTAMP: datetime.today()}}})
 
         # run primary analysis job
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(callable)
             future.add_done_callback(callback)
 
+        # update full analysis entry with results from primary analysis
+        result = self.db_connector.find_one(PA_PROCESS_COLLECTION, UUID, callable.uuid)
+        keys = [URL, CONFIG_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        document = {key: result[key] for key in keys if key in result}
+        update = {"$set": {PA_DOCUMENT: document}}
+        self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
+
         # return primary analysis status and uuid
-        status = self.db_connector.find_one(PA_PROCESS_COLLECTION, UUID, callable.uuid)[STATUS]
-        return callable.uuid, status, 'primary_analysis'
+        return callable.uuid, result[STATUS], 'primary_analysis'
 
     def identity_job(self, primary_analysis_uuid):
         """
@@ -123,16 +133,23 @@ class FullAnalysisWorkFlowCallable(object):
 
         # enter identity uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
-                                 {"$set": {SA_IDENTITY_UUID: callable.uuid}})
+                                 {"$set": {SA_IDENTITY_UUID: callable.uuid,
+                                           ID_DOCUMENT: {START_DATESTAMP: datetime.today()}}})
 
         # run identity job
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(callable)
             future.add_done_callback(callback)
 
+        # update full analysis entry with results from identity
+        result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
+        keys = [URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        document = {key: result[key] for key in keys if key in result}
+        update = {"$set": {ID_DOCUMENT: document}}
+        self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
+
         # return identity status and uuid
-        status = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)[STATUS]
-        return callable.uuid, status, 'identity'
+        return callable.uuid, result[STATUS], 'identity'
 
     def assay_caller_job(self, identity_uuid):
         """
@@ -160,16 +177,23 @@ class FullAnalysisWorkFlowCallable(object):
 
         # enter assay caller uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
-                                 {"$set": {SA_ASSAY_CALLER_UUID: callable.uuid}})
+                                 {"$set": {SA_ASSAY_CALLER_UUID: callable.uuid,
+                                           AC_DOCUMENT: {START_DATESTAMP: datetime.today()}}})
 
         # run assay caller job
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(callable)
             future.add_done_callback(callback)
 
+        # update full analysis entry with results from assay caller
+        result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
+        keys = [URL, KDE_PLOT_URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        document = {key: result[key] for key in keys if key in result}
+        update = {"$set": {AC_DOCUMENT: document}}
+        self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
+
         # return assay caller status and uuid
-        status = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)[STATUS]
-        return callable.uuid, status, 'assay_caller'
+        return callable.uuid, result[STATUS], 'assay_caller'
 
     def genotyper_job(self, assay_caller_uuid):
         """
@@ -194,16 +218,23 @@ class FullAnalysisWorkFlowCallable(object):
 
         # enter genotyper uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
-                                 {"$set": {SA_GENOTYPER_UUID: callable.uuid}})
+                                 {"$set": {SA_GENOTYPER_UUID: callable.uuid,
+                                           GT_DOCUMENT: {START_DATESTAMP: datetime.today()}}})
 
         # run genotyper job
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(callable)
             future.add_done_callback(callback)
 
+        # update full analysis entry with results from genotyper
+        result = self.db_connector.find_one(SA_GENOTYPER_COLLECTION, UUID, callable.uuid)
+        keys = [URL, PDF_URL, PNG_URL, PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        document = {key: result[key] for key in keys if key in result}
+        update = {"$set": {GT_DOCUMENT: document}}
+        self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
+
         # return genotyper status and uuid
-        status = self.db_connector.find_one(SA_GENOTYPER_COLLECTION, UUID, callable.uuid)[STATUS]
-        return callable.uuid, status, 'genotyper'
+        return callable.uuid, result[STATUS], 'genotyper'
 
     def start_new_analysis(self):
         """

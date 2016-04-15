@@ -47,7 +47,7 @@ class ProcessDeleteFunction(AbstractDeleteJobFunction):
         return PA_PROCESS_COLLECTION
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=[RESULT, 'config']):
+    def process_request(cls, params_dict, del_file_keys=(RESULT, 'config',)):
         return super(ProcessDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

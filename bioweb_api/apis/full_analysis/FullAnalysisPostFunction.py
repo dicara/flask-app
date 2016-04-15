@@ -220,10 +220,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                 exp_def = exp_defs.get_experiment_defintion(exp_def_uuid)
 
                 probes = exp_def['probes']
-                # TODO reset controls to experiment defintion controls
-                # control barcodes should be included, testing 8 element ABL so ignore for now
                 controls = exp_def['controls']
-                controls = []
                 barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
                 dye_levels = defaultdict(int)
                 for barcode in barcodes + controls:

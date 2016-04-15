@@ -149,7 +149,9 @@ class ProcessPostFunction(AbstractPostFunction):
         # Ensure at least one valid archive is found
         if len(archives) < 1:
             return make_clean_response(json_response, 404)
-        
+
+        pa_job_names = set(cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, JOB_NAME))
+
         # Process each archive
         status_codes  = []
         for i, archive in enumerate(archives):
@@ -158,16 +160,12 @@ class ProcessPostFunction(AbstractPostFunction):
             else:
                 cur_job_name = "%s-%d" % (job_name, i)
 
-
             status_code = 200
-            
-            if cur_job_name in cls._DB_CONNECTOR.distinct(PA_PROCESS_COLLECTION, 
-                                                      JOB_NAME):
+            if cur_job_name in pa_job_names:
                 status_code = 403
                 json_response[PROCESS].append({ERROR: 'Job exists.'})
             else:
                 try:
-                    # Create helper functions
                     pa_callable = PaProcessCallable(archive, dyes, device,
                                                      major, minor,
                                                      offset, use_iid,

@@ -47,7 +47,7 @@ class AssayCallerDeleteFunction(AbstractDeleteJobFunction):
     
     @classmethod
     def process_request(cls, params_dict, 
-                        del_file_keys=[RESULT, KDE_PLOT, SCATTER_PLOT]):
+                        del_file_keys=(RESULT, KDE_PLOT, SCATTER_PLOT,)):
         return super(AssayCallerDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

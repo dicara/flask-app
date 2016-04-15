@@ -46,7 +46,7 @@ class GenotyperDeleteFunction(AbstractDeleteJobFunction):
         return SA_GENOTYPER_COLLECTION
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=[RESULT, PDF, PNG, PNG_SUM]):
+    def process_request(cls, params_dict, del_file_keys=(RESULT, PDF, PNG, PNG_SUM,)):
         return super(GenotyperDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

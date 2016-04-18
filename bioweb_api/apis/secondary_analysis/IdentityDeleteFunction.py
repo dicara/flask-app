@@ -46,7 +46,7 @@ class IdentityDeleteFunction(AbstractDeleteJobFunction):
         return SA_IDENTITY_COLLECTION
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=[RESULT, PLOT]):
+    def process_request(cls, params_dict, del_file_keys=(RESULT, PLOT,)):
         return super(IdentityDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

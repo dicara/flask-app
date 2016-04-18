@@ -161,3 +161,5 @@ GnuBio Flask API.
    * Update secondary-analysis dependency to v1.12 which handles controls and fixes a bug where constellation identity was making dimension groups of one.
  * v2.7
    * Update secondary-analysis dependency to v1.13 wit bugfix for assay caller in offline analysis - handle negative controls failure.
+ * v2.8
+   * Full analysis api implemented.

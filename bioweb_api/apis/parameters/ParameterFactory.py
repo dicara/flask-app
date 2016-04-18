@@ -203,11 +203,12 @@ class ParameterFactory(object):
                                             default=default)
 
     @staticmethod
-    def device(required=True):
+    def device(required=True, default=None):
         return CaseSensitiveStringParameter(DEVICE, "Device name.",
                                             required=required,
                                             allow_multiple=False,
-                                            enum=get_devices())
+                                            enum=get_devices(),
+                                            default=default)
 
     @staticmethod
     def uuid(required=True, allow_multiple=True,
@@ -278,10 +279,10 @@ class ParameterFactory(object):
                                       required=required)
     
     @classmethod
-    def job_uuid(cls, collection, allow_multiple=True):
+    def job_uuid(cls, collection, required=True, allow_multiple=True):
         job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)
         return cls.lc_string(UUID, "Comma separated job UUID(s).", 
-                             allow_multiple=allow_multiple, enum=job_uuids)
+                             allow_multiple=allow_multiple, enum=job_uuids, required=required)
         
     @classmethod
     def date(cls, required=True, enum=None):

@@ -86,22 +86,15 @@ PARAMETER_TYPES_TUPLE = namedtuple('ParameterTypes',
                                    ])
 PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 
-JOB_STATUS_TUPLE = namedtuple('JobStatus',
-                              [
-                               'submitted',
-                               'running',
-                               'succeeded',
-                               'failed',
-                              ])
-JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
+
 
 #=============================================================================
 # Miscellaneous Constants 
 #=============================================================================
 ABSORB           = "absorb"
+AC_DOCUMENT      = 'ac_document'
 ARCHIVE          = "archive"
 ARCHIVES         = "archives"
-CALC_DROP_PROB   = "calc_drop_prob"
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"
@@ -122,7 +115,9 @@ ERROR            = "error"
 EXP_DEF          = "exp_def"
 EXP_DEF_NAME     = EXP_DEF + "_name"
 EXP_DEF_UUID     = EXP_DEF + "_uuid"
+FA_JOB_START_DATESTAMP = 'fa_job_start_datestamp'
 FAIL             = "fail"
+FAILED           = 'failed'
 FILE             = "file"
 FILENAME         = "filename"
 FILENAMES        = "filenames"
@@ -130,10 +125,13 @@ FILEPATH         = "filepath"
 FILTERED_DYES    = "filtered_dyes"
 FINISH_DATESTAMP = "finish_datestamp"
 FORMAT           = "format"
+FULL_ANALYSIS_UUID = 'full_analysis_uuid'
+GT_DOCUMENT      = 'gt_document'
 HAM_NAME         = "ham_name"
 HAM              = "ham"
 HAM_UUID         = "ham_uuid"
 ID               = "_id"
+ID_DOCUMENT      = 'id_document'
 IGNORED_DYES     = "ignored_dyes"
 JOB_NAME         = "job_name"
 JOB_NAME_DESC    = "Unique name to give this job."
@@ -151,7 +149,9 @@ NAME             = "name"
 NBARCODES        = "nbarcodes"
 NUM              = "num"
 NUM_IMAGES       = "num_images"
-OFFSETS          = "offsets"          
+OFFSETS          = "offsets"
+PA_DOCUMENT      = 'pa_document'
+PA_MIN_NUM_IMAGES = 10 # Minimum number of images required to run
 PA_PROCESS_UUID  = "pa_process_uuid"
 PAGE             = "page"
 PASS             = "pass"
@@ -170,6 +170,7 @@ REPORT           = "report"
 REPORT_URL       = "report_url"
 RESULT           = "result"
 RUN_ID           = "run_id"
+RUNNING          = 'running'
 REQUIRED_DROPS   = "required_drops"
 SA_ASSAY_CALLER_UUID = "sa_assay_caller_uuid"
 SA_GENOTYPER_UUID = "sa_genotyper_uuid"
@@ -184,6 +185,8 @@ START_DATESTAMP  = "start_datestamp"
 STATUS           = "status"
 STRICT           = "strict"
 SUBMIT_DATESTAMP = "submit_datestamp"
+SUBMITTED        = 'submitted'
+SUCCEEDED        = 'succeeded'
 TARGETS          = "targets"
 TYPE             = "type"
 URL              = "url"
@@ -198,15 +201,34 @@ VALID_MON_IMAGE_EXTENSIONS = ["jpg"]
 # Secondary Analysis Constants
 #=============================================================================
 ASSAY_DYE          = "assay_dye"
+AC_TRAINING_FACTOR = 'ac_training_factor'
 COV_TYPE           = "cov_type"
 DYE_LEVELS         = "dye_levels"
 FIDUCIAL_DYE       = "fiducial_dye"
+ID_TRAINING_FACTOR = "id_training_factor"
 NUM_PROBES         = "num_probes"
+OUTLIERS           = "outliers"
+PF_TRAINING_FACTOR = "pf_training_factor"
 THRESHOLD          = "threshold"
 UI_THRESHOLD       = "ui_threshold"
 TRAINING_FACTOR    = "training_factor"
-OUTLIERS           = "outliers"
-PF_TRAINING_FACTOR = "pf_training_factor"
+
+
+#=============================================================================
+# Secondary Analysis Parameter Descriptions
+#=============================================================================
+NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
+    "the required training set."
+TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
+    "set: size = num_probes*training_factor."
+PF_TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
+    "set used for fiducial pre-filtering: size = num_probes*pf_training_factor."
+UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
+    "below which a drop decomposition will be excluded from fiducial " \
+    "pre-filter training."
+REQ_DROPS_DESCRIPTION = "Number of drops to use in genotyping (0 to use all available)."
+CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
+    "intersect positive population."
 
 #=============================================================================
 # Probe Experiment Constants
@@ -238,6 +260,17 @@ PROBE_METADATA_HEADERS = [
                           COSMIC_ID,
                           MUTATION_POSITION,
                          ]
+
+
+JOB_STATUS_TUPLE = namedtuple('JobStatus',
+                              [
+                               SUBMITTED,
+                               RUNNING,
+                               SUCCEEDED,
+                               FAILED,
+                              ])
+JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
+
 
 #=============================================================================
 # Miscellaneous namedtuples 
@@ -273,6 +306,7 @@ EQUALITY = EQUALITY_TUPLE(*EQUALITY_TUPLE._fields)
 JOB_TYPE_TUPLE = namedtuple('JobType',
                             [
                              'absorption',
+                             'full_analysis',
                              'pa_process',
                              'pa_plots',
                              'pa_convert_images',

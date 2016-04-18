@@ -13,45 +13,63 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Dan DiCara
-@date:   Feb 17, 2016
+@author: Nathan Brown
+@date:   March 28, 2016
 '''
 
 #=============================================================================
 # Imports
 #=============================================================================
-from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from bioweb_api.apis.ApiConstants import RESULT, PDF, PNG, PNG_SUM
-from bioweb_api import SA_GENOTYPER_COLLECTION
-from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
+from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
+from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
+from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
+from bioweb_api import FA_PROCESS_COLLECTION
+from bioweb_api.apis.ApiConstants import ID, ERROR
 
 #=============================================================================
 # Class
 #=============================================================================
-class GenotyperDeleteFunction(AbstractDeleteJobFunction):
-
+class FullAnalysisGetFunction(AbstractGetFunction):
+    
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return GENOTYPER
+        return FULL_ANALYSIS
    
     @staticmethod
     def summary():
-        return "Delete secondary analysis genotyper jobs."
+        return "Retrieve list of full analysis jobs."
+    
+    @staticmethod
+    def notes():
+        return ""
     
     @classmethod
-    def get_collection(cls):
-        return SA_GENOTYPER_COLLECTION
+    def parameters(cls):
+        parameters = [
+                      ParameterFactory.format(),
+                     ]
+        return parameters
     
     @classmethod
-    def process_request(cls, params_dict, del_file_keys=(RESULT, PDF, PNG, PNG_SUM,)):
-        return super(GenotyperDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
+    def process_request(cls, params_dict):
+        fa_documents = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
+        for doc in fa_documents:
+            if ID in doc:
+                del doc[ID]
 
+        if fa_documents:
+            column_names = fa_documents[0].keys()
+        else:
+            column_names = ['']
+         
+        return (fa_documents, column_names, None)
+         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = GenotyperDeleteFunction()
-    print function        
+    function = FullAnalysisGetFunction()
+    print function

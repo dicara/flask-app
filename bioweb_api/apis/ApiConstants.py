@@ -35,11 +35,11 @@ API_BASE_URL       = "http://%s:%s/%s" % (HOSTNAME, PORT, API)
 API_DOCS_BASE_URL  = "http://%s:%s/%s" % (HOSTNAME, PORT, API_DOCS)
 
 #=============================================================================
-# Swagger Constants 
+# Swagger Constants
 #=============================================================================
 SWAGGER_VERSION = "1.2"
 
-# Swagger Primitives (type) table taken from 
+# Swagger Primitives (type) table taken from
 # https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#431-primitives
 #############################################################
 # Common Name  #  type     #  format     #  Comments        #
@@ -47,10 +47,10 @@ SWAGGER_VERSION = "1.2"
 # integer      #  integer  #  int32      #  signed 32 bits  #
 # long         #  integer  #  int64      #  signed 64 bits  #
 # float        #  number   #  float      #                  #
-# double       #  number   #  double     #                  #  
+# double       #  number   #  double     #                  #
 # string       #  string   #             #                  #
-# byte         #  string   #  byte       #                  #   
-# boolean      #  boolean  #             #                  #   
+# byte         #  string   #  byte       #                  #
+# boolean      #  boolean  #             #                  #
 # date         #  string   #  date       #                  #
 # dateTime     #  string   #  date-time  #                  #
 #############################################################
@@ -89,7 +89,7 @@ PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 
 
 #=============================================================================
-# Miscellaneous Constants 
+# Miscellaneous Constants
 #=============================================================================
 ABSORB           = "absorb"
 AC_DOCUMENT      = 'ac_document'
@@ -150,8 +150,6 @@ NBARCODES        = "nbarcodes"
 NUM              = "num"
 NUM_IMAGES       = "num_images"
 OFFSETS          = "offsets"
-PA_DOCUMENT      = 'pa_document'
-PA_MIN_NUM_IMAGES = 10 # Minimum number of images required to run
 PA_PROCESS_UUID  = "pa_process_uuid"
 PAGE             = "page"
 PASS             = "pass"
@@ -193,6 +191,7 @@ URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
 VCF              = "vcf"
+RUN_REPORT       = "run_report"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
 VALID_MON_IMAGE_EXTENSIONS = ["jpg"]
@@ -273,7 +272,7 @@ JOB_STATUS = JOB_STATUS_TUPLE(*JOB_STATUS_TUPLE._fields)
 
 
 #=============================================================================
-# Miscellaneous namedtuples 
+# Miscellaneous namedtuples
 #=============================================================================
 FORMATS_TUPLE = namedtuple('Formats',
                            [

@@ -31,6 +31,7 @@ from bioweb_api.apis.secondary_analysis.SecondaryAnalysisApi import SecondaryAna
 from bioweb_api.apis.drop_tools.DropToolsApi import DropToolsAPIV1
 from bioweb_api.apis.dye_profiles_database.DyeProfilesDatabaseApi import DyeProfilesDatabaseAPIV1
 from bioweb_api.apis.image.ImageApi import ImageAPIV1
+from bioweb_api.apis.run_info.RunInfoApi import RunInfoAPIV1
 from bioweb_api.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
 #=============================================================================
@@ -52,6 +53,7 @@ _APIS = [
          ImageAPIV1(),
          DropToolsAPIV1(),
          DyeProfilesDatabaseAPIV1(),
+         RunInfoAPIV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)
@@ -67,27 +69,27 @@ class ApiManager(object):
     @staticmethod
     def get_apis():
         return _APIS
-    
+
     @staticmethod
     def get_api(name, version):
         version = version.lower()
         if name in _APIS_DICT and version in _APIS_DICT[name]:
             return _APIS_DICT[name][version]
         return None
-    
+
     @classmethod
     def get_api_function(cls, name, version, path, method):
         api = cls.get_api(name, version)
         if api:
             return api.get_function(path, method)
         return None
-    
+
     @classmethod
     def getSwaggerResourceListing(cls):
         '''
-        The Swagger RESTful API Documentation provides a schema for its 
+        The Swagger RESTful API Documentation provides a schema for its
         resource listing here:
-         
+
         https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#51-resource-listing
         '''
         swagger_resource_listing = dict()
@@ -97,13 +99,13 @@ class ApiManager(object):
         for api in cls.get_apis():
             swagger_resource_listing["apis"].append(api.getSwaggerResource())
         return swagger_resource_listing
-    
+
     @classmethod
     def getSwaggerApiDeclaration(cls, name, version):
         '''
         The Swagger RESTful API Documentation provides a schema for its API
         declaration here:
-         
+
         https://github.com/wordnik/swagger-spec/blob/master/versions/1.2.md#52-api-declaration
         '''
         api = cls.get_api(name, version)

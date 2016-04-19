@@ -86,7 +86,7 @@ class RunReport(object):
         self._verify_tdi_stacks()
 
     def _verify_run_id(self):
-        if not isinstance(self._run_id, str):
+        if self._run_id is not None and not isinstance(self._run_id, str):
             raise Exception("Run ID is not a string.")
 
     def _verify_cartridge_sn(self):

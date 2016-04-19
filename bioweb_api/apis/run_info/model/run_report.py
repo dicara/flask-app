@@ -38,7 +38,7 @@ class RunReport(object):
         self._datetime              = kwargs.get(DATETIME)
 
         if kwargs.get(FILE_TYPE) == 'txt':
-            self._run_id                = kwargs.get(RUN_ID_TXT) # RUN_ID_TXT cannot be None
+            self._run_id                = kwargs.get(RUN_ID_TXT)
             self._cartridge_sn          = kwargs.get(CARTRIDGE_SN_TXT)
             self._chip_sn               = kwargs.get(CHIP_SN_TXT)
             self._run_description       = kwargs.get(RUN_DESCRIPTION_TXT)
@@ -50,6 +50,7 @@ class RunReport(object):
             self._exit_notes            = kwargs.get(EXIT_NOTES_TXT)
             self._tdi_stacks            = kwargs.get(TDI_STACKS_TXT)
         elif kwargs.get(FILE_TYPE) == 'yaml':
+
             self._run_id                = kwargs.get(RUN_ID)
             self._cartridge_sn          = kwargs.get(CARTRIDGE_SN)
             self._chip_sn               = kwargs.get(CHIP_SN)

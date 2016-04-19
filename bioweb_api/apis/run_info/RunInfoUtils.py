@@ -139,6 +139,13 @@ def read_report_file(report_file, date_obj):
     else:
         raise Exception("File extension must be txt or yaml.")
 
+def get_run_info_path(path, sub_folder):
+    for f in [RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE]:
+        run_info_path = os.path.join(path, sub_folder, f)
+        if os.path.isfile(run_info_path):
+            return run_info_path
+    return None
+
 def update_run_reports():
     '''
     Update the database with available run reports.  It is not an error
@@ -159,15 +166,11 @@ def update_run_reports():
             path = os.path.join(RUN_REPORT_PATH, folder)
             date_obj = datetime.strptime(folder, '%m_%d_%y')
 
-            report_files = [os.path.join(path, sub_folder, run_info_file)
-                            for sub_folder in os.listdir(path)
-                            for run_info_file in [RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE]
-                            if os.path.isfile(os.path.join(path, sub_folder,
-                                                    run_info_file))]
+            report_files = [get_run_info_path(path, sf) for sf in os.listdir(path)]
 
-            reports += [read_report_file(report_file, date_obj)
-                        for report_file in report_files
-                        if read_report_file(report_file, date_obj) is not None]
+            reports.extend([read_report_file(f, date_obj) for f in report_files
+                            if f is not None])
+        reports = [r for r in reports if r is not None]
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

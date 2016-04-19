@@ -1,0 +1,14 @@
+cart_serial_number: S0029859
+chip_rev: R4
+chip_serial_number: S0030177
+device_name: beta17
+exit_notes: ''
+exp_def: ABL_24_V1
+reagent_info: abl24
+run_id: id1460644705
+starting_notes: software
+tdi_stacks:
+- /mnt/runs/2016-04-14_1259.50-beta17
+- /mnt/runs/2016-04-14_1303.21-beta17
+- /mnt/runs/2016-04-14_1307.13-beta17
+user_list: thung,ddicara

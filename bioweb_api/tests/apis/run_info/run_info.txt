@@ -1,0 +1,10 @@
+Run ID: id1459882049
+Cartridge Serial Number: S0028035
+Chip Serial Number: S0027943
+Run Description: software run with Eben  ABL 24 element mutant
+User List: thung, erahut
+Reagent Info: low protein lot 2
+Chip Revision: R4
+Experiment Definition: ABL_24_V1
+Device Name: beta17
+Exit Notes: 

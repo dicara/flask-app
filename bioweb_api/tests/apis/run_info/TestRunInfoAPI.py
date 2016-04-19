@@ -14,7 +14,7 @@ class TestRunReportAPI(unittest.TestCase):
         """
         test read_report_file, read a run_info.txt file and return a dictionary
         """
-        report_file = '/mnt/runs/run_reports/04_05_16/Tue05_1534_beta17/run_info.txt'
+        report_file = '/home/vagrant/test/run_info.txt'
         datetime_obj = datetime.datetime.today()
         report_doc = read_report_file(report_file, datetime_obj)
 
@@ -29,7 +29,7 @@ class TestRunReportAPI(unittest.TestCase):
         """
         test read_report_file, read a run_info.yaml file and return a dictionary
         """
-        report_file = '/mnt/runs/run_reports/04_14_16/Thu14_1420_beta17/run_info.yaml'
+        report_file = '/home/vagrant/test/run_info.yaml'
         datetime_obj = datetime.datetime.today()
         report_doc = read_report_file(report_file, datetime_obj)
 

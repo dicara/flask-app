@@ -57,7 +57,7 @@ class TestRunReportAPI(unittest.TestCase):
         """
         datetime_obj = datetime.datetime.today()
         report_file = os.path.join(_TEST_DIR, _RUN_REPORT_TXTFILE)
-        report_doc = read_report_file(report_file, datetime_obj)
+        report_doc = read_report_file(report_file, datetime_obj, 'test')
 
         self.assertIn(CARTRIDGE_SN, report_doc)
         self.assertIn(RUN_DESCRIPTION, report_doc)
@@ -72,7 +72,7 @@ class TestRunReportAPI(unittest.TestCase):
         """
         datetime_obj = datetime.datetime.today()
         report_file = os.path.join(_TEST_DIR, _RUN_REPORT_YAMLFILE)
-        report_doc = read_report_file(report_file, datetime_obj)
+        report_doc = read_report_file(report_file, datetime_obj, 'test')
 
         self.assertIn(CARTRIDGE_SN, report_doc)
         self.assertIn(CHIP_SN, report_doc)

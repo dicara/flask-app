@@ -23,17 +23,14 @@ from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
 
-def populate_document(doc, prev_doc, exist_steps=[]):
+def populate_document(doc, prev_doc, exist_docs=[]):
     """
     Add uuid and existing steps of previous job document to current document
     @param doc:                 Dictionary of current document
     @param prev_doc:            Dictionary of previous document
     @param exist_steps:         list of names of existing steps, e.g., IDENTITY
     """
-    document_map = {PROCESS: PA_DOCUMENT, IDENTITY: ID_DOCUMENT,
-                    ASSAY_CALLER: AC_DOCUMENT, GENOTYPER: GT_DOCUMENT}
-    for step in exist_steps:
-        doc_name = document_map[step]
+    for doc_name in exist_docs:
         doc[doc_name] = prev_doc[doc_name]
     return doc
 
@@ -74,9 +71,9 @@ class FullAnalysisWorkFlowCallable(object):
                         last_succ_job = prev_doc[document_list[i-1]] # last succeeded job
                         self.uuid_container.append(last_succ_job[UUID])
 
-                    exist_steps = self.workflow[:i] if i > 0 else self.workflow
+                    exist_docs = document_list[:i] if i > 0 else document_list
                     self.workflow = self.workflow[i:]
-                    self.document = populate_document(self.document, prev_doc, exist_steps)
+                    self.document = populate_document(self.document, prev_doc, exist_docs)
                     break
 
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])

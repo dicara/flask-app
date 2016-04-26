@@ -3,6 +3,7 @@ import os
 from bioweb_api import ARCHIVES_PATH
 
 # constants ending with _TXT are field names in run_info.txt
+ARCHIVE_IDX                 = 'archive_idx'
 CARTRIDGE_SN                = 'cart_serial_number'
 CARTRIDGE_SN_TXT            = 'Cartridge Serial Number'
 CHIP_SN                     = 'chip_serial_number'
@@ -17,7 +18,10 @@ EXIT_NOTES                  = 'exit_notes'
 EXIT_NOTES_TXT              = 'Exit Notes'
 EXP_DEF_NAME                = 'exp_def'
 EXP_DEF_NAME_TXT            = 'Experiment Definition'
+FA_UUID                     = 'fa_uuid'
+FA_UUID_MAP                 = 'fa_uuid_map'
 FILE_TYPE                   = 'file_type'
+METHOD                      = 'method'
 IMAGE_STACKS                = 'image_stacks'
 REAGENT_INFO                = 'reagent_info'
 REAGENT_INFO_TXT            = 'Reagent Info'
@@ -32,3 +36,4 @@ TDI_STACKS                  = 'tdi_stacks'
 TDI_STACKS_TXT              = 'TDI Stacks'
 USER                        = 'user_list'
 USER_TXT                    = 'User List'
+UTAG                        = 'unique_tag'

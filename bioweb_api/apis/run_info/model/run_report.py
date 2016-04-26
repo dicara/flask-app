@@ -30,12 +30,13 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     TDI_STACKS_TXT, USER_TXT, CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, RUN_DESCRIPTION, \
-    TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE
+    TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, FA_UUID_MAP
 
 class RunReport(object):
     def __init__(self, **kwargs):
         self._uuid                  = str(uuid4())
         self._datetime              = kwargs.get(DATETIME)
+        self._utag                  = kwargs.get(UTAG)
 
         if kwargs.get(FILE_TYPE) == 'txt':
             self._run_id                = kwargs.get(RUN_ID_TXT)
@@ -71,6 +72,7 @@ class RunReport(object):
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
             self._image_stack_names = [path.split('/')[-1]
                                         for path in self._tdi_stacks]
+        self._fa_uuid_map = dict() # initiate a dict to store archive name, full analysis uuids as key, value
 
     def verify(self):
         self._verify_run_id()
@@ -152,4 +154,6 @@ class RunReport(object):
                 EXIT_NOTES:         self._exit_notes,
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
+                UTAG:               self._utag,
+                FA_UUID_MAP:           self._fa_uuid_map,
         }

@@ -33,7 +33,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
-    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE
+    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP
 from bioweb_api.apis.run_info.model.run_report import RunReport
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -59,6 +59,7 @@ def get_run_reports():
     columns[EXP_DEF_NAME]       = 1
     columns[RUN_DESCRIPTION]    = 1
     columns[IMAGE_STACKS]       = 1
+    columns[FA_UUID_MAP]           = 1
 
     column_names = columns.keys()
     column_names.remove(ID)
@@ -69,7 +70,11 @@ def get_run_reports():
 
 strip_str = lambda str : str.rstrip().lstrip()
 
-def read_report_file_txt(report_file, date_obj):
+def set_utag(date_obj, sf):
+    date_str = "%s_%s_%s" % (date_obj.year, date_obj.month, date_obj.day)
+    return '_'.join([date_str, sf])
+
+def read_report_file_txt(report_file, date_obj, utag):
     """
     Extract information from a run_log.txt file, and returns a dictionary
     """
@@ -78,7 +83,7 @@ def read_report_file_txt(report_file, date_obj):
             lines = rf.readlines()
         if not lines:
             raise Exception("The log file is empty.")
-        data = {FILE_TYPE: 'txt', DATETIME: date_obj}
+        data = {FILE_TYPE: 'txt', DATETIME: date_obj, UTAG: utag}
         for i, line in enumerate(lines):
             if line.strip():
                 try:
@@ -106,7 +111,7 @@ def read_report_file_txt(report_file, date_obj):
     except IOError:
         raise Exception("Could not open the run log file.")
 
-def read_report_file_yaml(report_file, date_obj):
+def read_report_file_yaml(report_file, date_obj, utag):
     """
     Extract information from a run_log.yaml file, and returns a dictionary
     """
@@ -118,24 +123,29 @@ def read_report_file_yaml(report_file, date_obj):
                 raise Exception("YMALError %s received" % (exc, ))
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
+        data[UTAG] = utag
         data[USER] = [strip_str(user) for user in data[USER].split(',')]
         report_obj = RunReport(**data)
         return report_obj.to_dict
     except IOError:
         raise Exception("Could not open the run log file.")
 
-def read_report_file(report_file, date_obj):
+def read_report_file(report_file, date_obj, utag):
     """
     Extract information from a run log file in txt or yaml format
+    The path of a sample run_info file is:
+    /mnt/runs/run_reprots/04_05_16/Tue05_1424_beta17/run_info.txt
+    date_obj is based on 04_05_16
+    utag is 2016_04_05_Tue05_1424_beta17
     """
     if not report_file:
         raise Exception("File pathname is an empty string.")
 
     basename = os.path.basename(report_file).lower()
     if basename.endswith('txt'):
-        return read_report_file_txt(report_file, date_obj)
+        return read_report_file_txt(report_file, date_obj, utag)
     elif basename.endswith('yaml'):
-        return read_report_file_yaml(report_file, date_obj)
+        return read_report_file_yaml(report_file, date_obj, utag)
     else:
         raise Exception("File extension must be txt or yaml.")
 
@@ -154,7 +164,6 @@ def update_run_reports():
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available run reports...")
-    _DB_CONNECTOR.remove(RUN_REPORT_COLLECTION, {})
 
     if os.path.isdir(RUN_REPORT_PATH):
         date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
@@ -166,10 +175,17 @@ def update_run_reports():
             path = os.path.join(RUN_REPORT_PATH, folder)
             date_obj = datetime.strptime(folder, '%m_%d_%y')
 
-            report_files = [get_run_info_path(path, sf) for sf in os.listdir(path)]
+            report_files_utags = [(get_run_info_path(path, sf), sf)
+                                   for sf in os.listdir(path)]
+            for sf in os.listdir(path):
+                report_file_path = get_run_info_path(path, sf)
+                if report_file_path is None: continue
 
-            reports.extend([read_report_file(f, date_obj) for f in report_files
-                            if f is not None])
+                utag = set_utag(date_obj, sf)
+                doc = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
+                if doc is None: # if not exist, need to insert to collection
+                    reports.append(read_report_file(report_file_path, date_obj, utag))
+
         reports = [r for r in reports if r is not None]
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))

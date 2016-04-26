@@ -194,6 +194,7 @@ UUID             = "uuid"
 USE_IID          = "use_iid"
 VCF              = "vcf"
 RUN_REPORT       = "run_report"
+RUN_REPORT_FULL_ANALYSIS = "run_report/full_analysis"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
 VALID_MON_IMAGE_EXTENSIONS = ["jpg"]

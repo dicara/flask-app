@@ -24,7 +24,7 @@ import sys
 import traceback
 
 from bioweb_api import FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION
-from bioweb_api.apis.ApiConstants import UUID, ERROR, RUN_REPORT
+from bioweb_api.apis.ApiConstants import UUID, ERROR, RUN_REPORT, RUN_REPORT_FULL_ANALYSIS
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
@@ -35,14 +35,14 @@ from bioweb_api.apis.run_info.constants import FA_UUID_MAP, FA_UUID, METHOD, \
 #===============================================================================
 # Class
 #===============================================================================
-class RunInfoPostFunction(AbstractPostFunction):
+class RunInfoFullAnalysisPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return RUN_REPORT
+        return RUN_REPORT_FULL_ANALYSIS
 
     @staticmethod
     def summary():
@@ -53,7 +53,7 @@ class RunInfoPostFunction(AbstractPostFunction):
         return ''
 
     def response_messages(self):
-        msgs = super(RunInfoPostFunction, self).response_messages()
+        msgs = super(RunInfoFullAnalysisPostFunction, self).response_messages()
         msgs.extend([
                      { 'code': 404,
                        'message': 'Update failed.'},
@@ -70,7 +70,8 @@ class RunInfoPostFunction(AbstractPostFunction):
                                                            "full analysis job")
         cls.method_param      = ParameterFactory.lc_string(METHOD, "Method of "\
                                                           "updating",
-                                                          required=True)
+                                                          required=True,
+                                                          enum=["add", "delete"])
 
         parameters = [
                       cls.rr_uuid_param,
@@ -97,8 +98,6 @@ class RunInfoPostFunction(AbstractPostFunction):
                 update = {"$set": {field: fa_uuid}}
             elif method == "delete":
                 update = {"$unset": {field: 1}}
-            else:
-                APP_LOGGER.exception("Unknown update method")
             if update is not None:
                 cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION, query, update)
         except:

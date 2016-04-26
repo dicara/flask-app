@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.run_info.RunInfoGetFunction import RunInfoGetFunction
-from bioweb_api.apis.run_info.RunInfoPostFunction import RunInfoPostFunction
+from bioweb_api.apis.run_info.RunInfoFullAnalysisPostFunction import RunInfoFullAnalysisPostFunction
 
 #=============================================================================
 # Class
@@ -31,7 +31,7 @@ class RunInfoAPIV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   RunInfoGetFunction(),
-                  RunInfoPostFunction(),
+                  RunInfoFullAnalysisPostFunction(),
                  ]
 
     @staticmethod

@@ -55,18 +55,18 @@ FULL_ANALYSIS = 'FullAnalysis'
 # Class
 #===============================================================================
 class FullAnalysisPostFunction(AbstractPostFunction):
-    
+
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return FULL_ANALYSIS
-   
+
     @staticmethod
     def summary():
         return 'Run full analysis jobs.'
-    
+
     @staticmethod
     def notes():
         return ''
@@ -74,14 +74,14 @@ class FullAnalysisPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(FullAnalysisPostFunction, self).response_messages()
         msgs.extend([
-                     { 'code': 403, 
+                     { 'code': 403,
                        'message': 'Job name already exists. Delete the ' \
                                   'existing job or pick a new name.'},
                      { 'code': 404,
                        'message': 'Submission unsuccessful.'},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         # required parameters
@@ -91,7 +91,9 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         cls.exp_def_param   = ParameterFactory.experiment_definition()
 
         # primary analysis parameters
-        cls.archives_param = ParameterFactory.archive(required=True)
+        cls.archives_param = ParameterFactory.cs_string(ARCHIVE,
+                                                        "Archive directory name.",
+                                                        required=True)
         cls.dyes_param     = ParameterFactory.dyes(required=False)
         cls.device_param   = ParameterFactory.device(required=False,
                                                      default='beta7')

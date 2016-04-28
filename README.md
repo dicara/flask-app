@@ -163,3 +163,12 @@ GnuBio Flask API.
    * Update secondary-analysis dependency to v1.13 wit bugfix for assay caller in offline analysis - handle negative controls failure.
  * v2.8
    * Full analysis api implemented.
+ * v2.9
+   * Update secondary analysis from v1.13 to v1.15 which includes:
+     * v1.14
+       * Fixed errors that occur when generating a identity report if very few clusters are identified
+     * v1.15
+       * Reduce GridSearchCV hyper-parameters to make assay caller more efficient.
+       * Renamed commands submodule to sa_commands, since there is a native commands module that resulting in an import conflict.
+       * Added retry capability to assay caller.
+       * Added tool for testing offline analysis.

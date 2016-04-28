@@ -12,7 +12,8 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, FA_JOB_START_DATESTAMP, URL, \
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
-    FINISH_DATESTAMP
+    FINISH_DATESTAMP, TRAINING_FACTOR
+from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff
 
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
@@ -23,16 +24,19 @@ from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
 
-def populate_document(doc, prev_doc, exist_docs=[]):
+DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
+
+def populate_document(curr_job, prev_job, exist_docs=[]):
     """
     Add uuid and existing steps of previous job document to current document
-    @param doc:                 Dictionary of current document
-    @param prev_doc:            Dictionary of previous document
-    @param exist_steps:         list of names of existing steps, e.g., IDENTITY
+    @param curr_job:            Dictionary of current job
+    @param prev_job:            Dictionary of previous job
+    @param exist_docs:          list of names of existing job documents, e.g., PA_DOCUMENT
     """
+    if not exist_docs: return curr_job
     for doc_name in exist_docs:
-        doc[doc_name] = prev_doc[doc_name]
-    return doc
+        curr_job[doc_name] = prev_job[doc_name]
+    return curr_job
 
 class FullAnalysisWorkFlowCallable(object):
     def __init__(self, parameters, db_connector):
@@ -63,17 +67,17 @@ class FullAnalysisWorkFlowCallable(object):
 
         # if this job is a re-run, do a truncated workflow
         if UUID in parameters:
-            prev_doc = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, parameters[UUID])
-            document_list = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
-            for i, job_document in enumerate(document_list):
-                if job_document not in prev_doc or prev_doc[job_document][STATUS] != SUCCEEDED:
+            prev_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, parameters[UUID])
+            for i, doc_name in enumerate(DOCUMENT_LIST):
+                if doc_name not in prev_job or STATUS not in prev_job[doc_name] \
+                    or prev_job[doc_name][STATUS] != SUCCEEDED or is_param_diff(prev_job[doc_name], parameters):
                     if i > 0:  # if passed primary analysis
-                        last_succ_job = prev_doc[document_list[i-1]] # last succeeded job
+                        last_succ_job = prev_job[DOCUMENT_LIST[i-1]] # last succeeded job
                         self.uuid_container.append(last_succ_job[UUID])
 
-                    exist_docs = document_list[:i] if i > 0 else document_list
+                    exist_docs = DOCUMENT_LIST[:i] if i > 0 else []
                     self.workflow = self.workflow[i:]
-                    self.document = populate_document(self.document, prev_doc, exist_docs)
+                    self.document = populate_document(self.document, prev_job, exist_docs)
                     break
 
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
@@ -112,7 +116,10 @@ class FullAnalysisWorkFlowCallable(object):
         # enter primary analysis uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
                                  {"$set": {PA_DOCUMENT: {START_DATESTAMP: datetime.today(),
-                                                         PA_PROCESS_UUID: callable.uuid}}})
+                                                         PA_PROCESS_UUID: callable.uuid,
+                                                         MAJOR: self.parameters[MAJOR],
+                                                         MINOR: self.parameters[MINOR],
+                                                         OFFSETS: self.parameters[OFFSETS]}}})
 
         # run primary analysis job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -121,7 +128,8 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from primary analysis
         result = self.db_connector.find_one(PA_PROCESS_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, CONFIG_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        keys = [UUID, URL, CONFIG_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP,
+                MAJOR, MINOR, OFFSETS]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {PA_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
@@ -159,7 +167,10 @@ class FullAnalysisWorkFlowCallable(object):
         # enter identity uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
                                  {"$set": {ID_DOCUMENT: {START_DATESTAMP: datetime.today(),
-                                                         SA_IDENTITY_UUID: callable.uuid}}})
+                                                         SA_IDENTITY_UUID: callable.uuid,
+                                                         TRAINING_FACTOR: self.parameters[ID_TRAINING_FACTOR],
+                                                         PF_TRAINING_FACTOR: self.parameters[PF_TRAINING_FACTOR],
+                                                         UI_THRESHOLD: self.parameters[UI_THRESHOLD]}}})
 
         # run identity job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -168,7 +179,8 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from identity
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
+                FINISH_DATESTAMP, TRAINING_FACTOR, PF_TRAINING_FACTOR, UI_THRESHOLD]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
@@ -203,7 +215,9 @@ class FullAnalysisWorkFlowCallable(object):
         # enter assay caller uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
                                  {"$set": {AC_DOCUMENT: {START_DATESTAMP: datetime.today(),
-                                                         SA_ASSAY_CALLER_UUID: callable.uuid}}})
+                                                         SA_ASSAY_CALLER_UUID: callable.uuid,
+                                                         TRAINING_FACTOR: self.parameters[AC_TRAINING_FACTOR],
+                                                         CTRL_THRESH: self.parameters[CTRL_THRESH]}}})
 
         # run assay caller job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -212,7 +226,8 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from assay caller
         result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, KDE_PLOT_URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        keys = [UUID, URL, KDE_PLOT_URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
+                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {AC_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
@@ -244,7 +259,8 @@ class FullAnalysisWorkFlowCallable(object):
         # enter genotyper uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
                                  {"$set": {GT_DOCUMENT: {START_DATESTAMP: datetime.today(),
-                                                         SA_GENOTYPER_UUID: callable.uuid}}})
+                                                         SA_GENOTYPER_UUID: callable.uuid,
+                                                         REQUIRED_DROPS: self.parameters[REQUIRED_DROPS]}}})
 
         # run genotyper job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -253,7 +269,8 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from genotyper
         result = self.db_connector.find_one(SA_GENOTYPER_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, PDF_URL, PNG_URL, PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        keys = [UUID, URL, PDF_URL, PNG_URL, PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP,
+                FINISH_DATESTAMP, REQUIRED_DROPS]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {GT_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

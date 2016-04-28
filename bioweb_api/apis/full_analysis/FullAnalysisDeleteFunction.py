@@ -25,8 +25,6 @@ from collections import defaultdict
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
 from bioweb_api import FA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import UUID, PA_PROCESS_UUID, SA_IDENTITY_UUID, \
-    SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID
 from bioweb_api.apis.primary_analysis.ProcessDeleteFunction import ProcessDeleteFunction
 from bioweb_api.apis.secondary_analysis.IdentityDeleteFunction import IdentityDeleteFunction
 from bioweb_api.apis.secondary_analysis.AssayCallerDeleteFunction import AssayCallerDeleteFunction
@@ -54,33 +52,6 @@ class FullAnalysisDeleteFunction(AbstractDeleteJobFunction):
 
     @classmethod
     def process_request(cls, params_dict, del_file_keys=()):
-        fa_uuid = params_dict.values()[0][0]
-        fa_document = cls._DB_CONNECTOR.find_one(FA_PROCESS_COLLECTION, UUID, fa_uuid)
-
-        if PA_PROCESS_UUID in fa_document:
-            query_params = defaultdict(list)
-            query_params[UUID].append(fa_document[PA_PROCESS_UUID])
-            pa_params_dict, _ = ProcessDeleteFunction._parse_query_params(query_params)
-            ProcessDeleteFunction.process_request(pa_params_dict)
-
-        if SA_IDENTITY_UUID in fa_document:
-            query_params = defaultdict(list)
-            query_params[UUID].append(fa_document[SA_IDENTITY_UUID])
-            pa_params_dict, _ = IdentityDeleteFunction._parse_query_params(query_params)
-            IdentityDeleteFunction.process_request(pa_params_dict)
-
-        if SA_ASSAY_CALLER_UUID in fa_document:
-            query_params = defaultdict(list)
-            query_params[UUID].append(fa_document[SA_ASSAY_CALLER_UUID])
-            pa_params_dict, _ = AssayCallerDeleteFunction._parse_query_params(query_params)
-            AssayCallerDeleteFunction.process_request(pa_params_dict)
-
-        if SA_GENOTYPER_UUID in fa_document:
-            query_params = defaultdict(list)
-            query_params[UUID].append(fa_document[SA_GENOTYPER_UUID])
-            pa_params_dict, _ = GenotyperDeleteFunction._parse_query_params(query_params)
-            GenotyperDeleteFunction.process_request(pa_params_dict)
-
         return super(FullAnalysisDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

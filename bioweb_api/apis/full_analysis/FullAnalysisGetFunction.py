@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: Nathan Brown
+@author: Nathan Brown & Yuewei Sheng
 @date:   March 28, 2016
 '''
 
@@ -24,49 +24,47 @@ from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import FA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import ID, ERROR
+from bioweb_api.apis.full_analysis.FullAnalysisUtils import update_fa_docs
 
 #=============================================================================
 # Class
 #=============================================================================
 class FullAnalysisGetFunction(AbstractGetFunction):
-    
+
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return FULL_ANALYSIS
-   
+
     @staticmethod
     def summary():
         return "Retrieve list of full analysis jobs."
-    
+
     @staticmethod
     def notes():
         return ""
-    
+
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         fa_documents = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
-        for doc in fa_documents:
-            if ID in doc:
-                del doc[ID]
+        fa_documents = update_fa_docs(fa_documents)
 
         if fa_documents:
             column_names = fa_documents[0].keys()
         else:
             column_names = ['']
-         
+
         return (fa_documents, column_names, None)
-         
+
 #===============================================================================
 # Run Main
 #===============================================================================

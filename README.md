@@ -13,8 +13,8 @@ GnuBio Flask API.
  * v0.1.4
    * Forgot a few instances where reponses needed to be cleaned for serialization.
  * v0.1.5
-   * Added test for melting temperatures API. 
-   * Removed datetime conversion in ProbeExperimentGetFunction - this is now being done automatically by the abstract base class. 
+   * Added test for melting temperatures API.
+   * Removed datetime conversion in ProbeExperimentGetFunction - this is now being done automatically by the abstract base class.
    * Fixed header license info in a few files.
  * v0.1.6
    * Removed unnecessary Makefiles.
@@ -56,8 +56,8 @@ GnuBio Flask API.
    * Alphabetized constants.
    * Added Assay Caller APIs.
  * v1.1
-   * Application is no longer provided as a column in a file, but rather as a separate argument to the probe metadata api. 
-   * Added api to retrieve current applications. 
+   * Application is no longer provided as a column in a file, but rather as a separate argument to the probe metadata api.
+   * Added api to retrieve current applications.
    * Replaced fam/joe sd with signal.
  * v1.2
    * Added tests for identity and assay caller APIs
@@ -68,7 +68,7 @@ GnuBio Flask API.
  * v1.4
    * Bugfix: url now contains archive name with the .tar.gz extension.
  * v1.5
-   * Incorporate primary-analysis v2.5 (previous was v2.0) 
+   * Incorporate primary-analysis v2.5 (previous was v2.0)
      * Remove IID peak detection by default but add argument for turning back on
      * Add the default dye profiles configuration
      * Remove the *.peak and *.sum columns from the primary analysis output file
@@ -104,7 +104,7 @@ GnuBio Flask API.
  * v1.15
    * Added ability for user to get a report from secondary analysis
  * v1.16
-   * Logging stack traces when exceptions are caught in API post functions. 
+   * Logging stack traces when exceptions are caught in API post functions.
    * Fixed bug in archive finding where lstrip was being used incorrectly and could result in cryptic primary analysis failures
  * v1.17
    * Added library design generation tool to the Drop tools menu
@@ -154,7 +154,7 @@ GnuBio Flask API.
  * v2.5
    * Updated secondary-analysis to v1.10
       * Attempt to reduce memory footprint of assay caller.
-   	  * Add individual probe counts to assay caller plots.
+       * Add individual probe counts to assay caller plots.
       * Added helper method to print probes in an experiment definition.
       * Genotype now handles controls when reading assay caller results from a file.
  * v2.6
@@ -172,3 +172,5 @@ GnuBio Flask API.
        * Renamed commands submodule to sa_commands, since there is a native commands module that resulting in an import conflict.
        * Added retry capability to assay caller.
        * Added tool for testing offline analysis.
+ * v3.0
+   * Run info api implemented.

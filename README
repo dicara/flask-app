@@ -174,3 +174,5 @@ GnuBio Flask API.
        * Added tool for testing offline analysis.
  * v3.0
    * Run info api implemented.
+ * v3.1
+   * Secondary analysis requirement updated

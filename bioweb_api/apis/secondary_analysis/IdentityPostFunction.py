@@ -330,7 +330,6 @@ class SaIdentityCallable(object):
             safe_make_dirs(self.tmp_path)
             self.identity.execute_identity(self.primary_analysis_data,
                                            self.num_probes, FACTORY_ORGANIC,
-                                           training_factor=self.training_factor, 
                                            plot_path=self.tmp_plot_path, 
                                            out_file=self.tmp_outfile_path, 
                                            report_path=self.tmp_report_path,
@@ -342,7 +341,7 @@ class SaIdentityCallable(object):
                                            filtered_dyes=self.filtered_dyes,
                                            picoinjection_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
-                                           raise_exceptions=False)
+                                           require_perfect_id=False)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:
@@ -431,12 +430,12 @@ def check_report_for_errors(report_path):
         report_errors = list()
         with open(report_path) as fh:
             id_model_errors = yaml.load(fh)[ID_MODEL_METRICS]['PROBLEMS']
-            id_collisions = id_model_errors['Identity Collisions']
-            missing = id_model_errors['Missing Barcodes']
+            id_collisions = id_model_errors['id_collisions']
+            missing = id_model_errors['missing']
             if missing:
                 report_errors.append('Missing barcodes: %s' % str(missing))
             if id_collisions:
-                report_errors.append('Identity collisions: %s' % str(id_collisions) )
+                report_errors.append('Identity collisions: %s' % str(id_collisions))
         if report_errors:
             return ', '.join(report_errors)
 

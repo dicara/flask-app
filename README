@@ -176,3 +176,5 @@ GnuBio Flask API.
    * Run info api implemented.
  * v3.1
    * Secondary analysis requirement updated
+ * v3.2
+   * Secondary analysis requirement updated

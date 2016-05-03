@@ -13,7 +13,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR
-from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff
+from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str
 
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
@@ -98,6 +98,7 @@ class FullAnalysisWorkFlowCallable(object):
         @return:    String, uuid of job, String, status of job
         """
         dyes = self.parameters[DYES] + [self.parameters[ASSAY_DYE], self.parameters[FIDUCIAL_DYE]]
+        job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = PaProcessCallable(archive=self.parameters[ARCHIVE],
                                     dyes=dyes,
@@ -106,7 +107,7 @@ class FullAnalysisWorkFlowCallable(object):
                                     minor=self.parameters[MINOR],
                                     offset=self.parameters[OFFSETS],
                                     use_iid=self.parameters[USE_IID],
-                                    job_name=self.parameters[JOB_NAME],
+                                    job_name=job_name,
                                     db_connector=self.db_connector)
         callback = pa_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
@@ -117,8 +118,6 @@ class FullAnalysisWorkFlowCallable(object):
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
                                  {"$set": {PA_DOCUMENT: {START_DATESTAMP: datetime.today(),
                                                          PA_PROCESS_UUID: callable.uuid,
-                                                         MAJOR: self.parameters[MAJOR],
-                                                         MINOR: self.parameters[MINOR],
                                                          OFFSETS: self.parameters[OFFSETS]}}})
 
         # run primary analysis job
@@ -145,6 +144,7 @@ class FullAnalysisWorkFlowCallable(object):
                                         will be used as an input for identity.
         @return:                        String, uuid of job, String, status of job
         """
+        job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = SaIdentityCallable(primary_analysis_uuid=primary_analysis_uuid,
                                     num_probes=self.parameters[NUM_PROBES],
@@ -157,7 +157,7 @@ class FullAnalysisWorkFlowCallable(object):
                                     prefilter_tf=self.parameters[PF_TRAINING_FACTOR],
                                     ui_threshold=self.parameters[UI_THRESHOLD],
                                     db_connector=self.db_connector,
-                                    job_name=self.parameters[JOB_NAME])
+                                    job_name=job_name)
         callback = id_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             plot_path=callable.plot_path,
@@ -196,6 +196,7 @@ class FullAnalysisWorkFlowCallable(object):
                                 will be used as an input for assay caller.
         @return:                String, uuid of job, String, status of job
         """
+        job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = SaAssayCallerCallable(identity_uuid=identity_uuid,
                                         exp_def_name=self.parameters[EXP_DEF],
@@ -205,7 +206,7 @@ class FullAnalysisWorkFlowCallable(object):
                                         fiducial_dye=self.parameters[FIDUCIAL_DYE],
                                         ctrl_thresh=self.parameters[CTRL_THRESH],
                                         db_connector=self.db_connector,
-                                        job_name=self.parameters[JOB_NAME])
+                                        job_name=job_name)
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             kde_plot_path=callable.kde_plot_path,
@@ -243,12 +244,13 @@ class FullAnalysisWorkFlowCallable(object):
                                     will be used as an input for genotyper.
         @return:                    String, uuid of job, String, status of job
         """
+        job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = SaGenotyperCallable(assay_caller_uuid=assay_caller_uuid,
                                         exp_def_name=self.parameters[EXP_DEF],
                                         required_drops=self.parameters[REQUIRED_DROPS],
                                         db_connector=self.db_connector,
-                                        job_name=self.parameters[JOB_NAME])
+                                        job_name=job_name)
         callback = gt_make_process_callback(uuid=callable.uuid,
                                             exp_def_name=self.parameters[EXP_DEF],
                                             ac_result_path=callable.ac_result_path,

@@ -20,22 +20,26 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from random import choice
+from string import ascii_letters
+
 from bioweb_api.apis.ApiConstants import ID, ERROR, PA_DOCUMENT, ID_DOCUMENT, \
-     AC_DOCUMENT, GT_DOCUMENT, MAJOR, MINOR, OFFSETS, ID_TRAINING_FACTOR, \
+     AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      PF_TRAINING_FACTOR, UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, ARCHIVE, DIFF_PARAMS, TRAINING_FACTOR
 
 #=============================================================================
 # Local static variables
 #=============================================================================
-PARAM_MAP = {MAJOR: PA_DOCUMENT, MINOR:PA_DOCUMENT, OFFSETS: PA_DOCUMENT,
-             ID_TRAINING_FACTOR: ID_DOCUMENT, PF_TRAINING_FACTOR: ID_DOCUMENT,
-             UI_THRESHOLD: ID_DOCUMENT, AC_TRAINING_FACTOR: AC_DOCUMENT,
-             CTRL_THRESH: AC_DOCUMENT, REQUIRED_DROPS: GT_DOCUMENT}
+PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
+             ID_TRAINING_FACTOR:    ID_DOCUMENT,
+             PF_TRAINING_FACTOR:    ID_DOCUMENT,
+             UI_THRESHOLD:          ID_DOCUMENT,
+             AC_TRAINING_FACTOR:    AC_DOCUMENT,
+             CTRL_THRESH:           AC_DOCUMENT,
+             REQUIRED_DROPS:        GT_DOCUMENT}
 
-DEFAULTS = {MAJOR:              2,
-            MINOR:              0,
-            OFFSETS:            30,
+DEFAULTS = {OFFSETS:            30,
             ID_TRAINING_FACTOR: 1000,
             PF_TRAINING_FACTOR: 100,
             UI_THRESHOLD:       4000,
@@ -80,3 +84,5 @@ def is_param_diff(doc, parameters):
             if param_name in doc and parameters[param] != doc[param_name]:
                 return True
     return False
+
+generate_random_str = lambda length : ''.join(choice(ascii_letters) for _ in xrange(length))

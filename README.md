@@ -178,3 +178,5 @@ GnuBio Flask API.
    * Secondary analysis requirement updated
  * v3.2
    * Secondary analysis requirement updated
+ * v3.3
+   * Identity training factor set to default max training factor

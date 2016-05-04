@@ -27,7 +27,7 @@ import sys
 import traceback
 import yaml
 
-from secondary_analysis.constants import TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 
 from uuid import uuid4
 from datetime import datetime

@@ -42,7 +42,7 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import PICOINJECTION_TRAINING_FACTOR
-from secondary_analysis.constants import TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import ASSAY_DYE as DEFAULT_ASSAY_DYE
 from secondary_analysis.constants import PICO_DYE as DEFAULT_PICO_DYE

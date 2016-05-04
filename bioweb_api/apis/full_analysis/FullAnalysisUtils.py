@@ -71,15 +71,17 @@ def update_fa_docs(documents):
 
     return documents
 
-def is_param_diff(doc, parameters):
+def is_param_diff(doc, doc_name, parameters):
     """
     Check whether the input parameters are different from those in specified doc
     of previous job
-    @param doc:                 A job document, e.g., PA_DOCUMENT
+    @param doc:                 A job document
+    @param doc_name:            Document type of a job document, e.g., PA_DOCUMENT
     @param parameters:          New input parameters
     """
     for param in PARAM_MAP:
         if param in parameters:
+            if PARAM_MAP[param] != doc_name: continue
             param_name = convert_param_name(param)
             if param_name in doc and parameters[param] != doc[param_name]:
                 return True

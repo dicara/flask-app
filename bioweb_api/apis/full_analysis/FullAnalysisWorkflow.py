@@ -68,17 +68,25 @@ class FullAnalysisWorkFlowCallable(object):
         # if this job is a re-run, do a truncated workflow
         if UUID in parameters:
             prev_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, parameters[UUID])
-            for i, doc_name in enumerate(DOCUMENT_LIST):
+            i = 0
+            while i < len(DOCUMENT_LIST):
+                doc_name = DOCUMENT_LIST[i]
                 if doc_name not in prev_job or STATUS not in prev_job[doc_name] \
-                    or prev_job[doc_name][STATUS] != SUCCEEDED or is_param_diff(prev_job[doc_name], parameters):
+                    or prev_job[doc_name][STATUS] != SUCCEEDED \
+                    or is_param_diff(prev_job[doc_name], doc_name, parameters):
                     if i > 0:  # if passed primary analysis
                         last_succ_job = prev_job[DOCUMENT_LIST[i-1]] # last succeeded job
                         self.uuid_container.append(last_succ_job[UUID])
 
                     exist_docs = DOCUMENT_LIST[:i] if i > 0 else []
                     self.workflow = self.workflow[i:]
-                    self.document = populate_document(self.document, prev_job, exist_docs)
                     break
+                i += 1
+            if i == len(DOCUMENT_LIST):
+                exist_docs = DOCUMENT_LIST
+                self.workflow = []
+
+            self.document = populate_document(self.document, prev_job, exist_docs)
 
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
 
@@ -86,7 +94,7 @@ class FullAnalysisWorkFlowCallable(object):
         update = {"$set": {STATUS: JOB_STATUS.running,
                            START_DATESTAMP: datetime.today()}}
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
-        self.run_analysis()
+        if self.workflow: self.run_analysis()
 
     def primary_analysis_job(self, _):
         """

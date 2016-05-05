@@ -40,7 +40,7 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              REQUIRED_DROPS:        GT_DOCUMENT}
 
 DEFAULTS = {OFFSETS:            30,
-            ID_TRAINING_FACTOR: 1000,
+            ID_TRAINING_FACTOR: 2000,
             PF_TRAINING_FACTOR: 100,
             UI_THRESHOLD:       4000,
             AC_TRAINING_FACTOR: 100,

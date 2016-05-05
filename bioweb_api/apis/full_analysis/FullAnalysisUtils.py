@@ -23,10 +23,16 @@ limitations under the License.
 from random import choice
 from string import ascii_letters
 
-from bioweb_api.apis.ApiConstants import ID, ERROR, PA_DOCUMENT, ID_DOCUMENT, \
+from bioweb_api.apis.ApiConstants import ID, PA_DOCUMENT, ID_DOCUMENT, \
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      PF_TRAINING_FACTOR, UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
-     REQUIRED_DROPS, ARCHIVE, DIFF_PARAMS, TRAINING_FACTOR
+     REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR
+from primary_analysis.dye_model import DEFAULT_OFFSETS
+from secondary_analysis.constants import PICOINJECTION_TRAINING_FACTOR as DEFAULT_PF_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
+from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
+from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 
 #=============================================================================
 # Local static variables
@@ -39,12 +45,12 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              CTRL_THRESH:           AC_DOCUMENT,
              REQUIRED_DROPS:        GT_DOCUMENT}
 
-DEFAULTS = {OFFSETS:            30,
-            ID_TRAINING_FACTOR: 2000,
-            PF_TRAINING_FACTOR: 100,
-            UI_THRESHOLD:       4000,
-            AC_TRAINING_FACTOR: 100,
-            CTRL_THRESH:        5,
+DEFAULTS = {OFFSETS:            DEFAULT_OFFSETS,
+            ID_TRAINING_FACTOR: DEFAULT_ID_TRAINING_FACTOR,
+            PF_TRAINING_FACTOR: DEFAULT_PF_TRAINING_FACTOR,
+            UI_THRESHOLD:       DEFAULT_UNINJECTED_THRESHOLD,
+            AC_TRAINING_FACTOR: DEFAULT_AC_TRAINING_FACTOR,
+            CTRL_THRESH:        DEFAULT_AC_CTRL_THRESHOLD,
             REQUIRED_DROPS:     0}
 
 def convert_param_name(param):

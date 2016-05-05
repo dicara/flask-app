@@ -182,3 +182,5 @@ GnuBio Flask API.
    * Identity training factor set to default max training factor
  * v3.4
    * Full analysis rerun function updated
+ * v3.5
+   * Full analysis input defaults updated

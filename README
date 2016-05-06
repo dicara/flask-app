@@ -184,3 +184,5 @@ GnuBio Flask API.
    * Full analysis rerun function updated
  * v3.5
    * Full analysis input defaults updated
+ * v3.5.1
+   * Fixed primary analysis offests default

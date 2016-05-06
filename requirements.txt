@@ -14,3 +14,4 @@ ncbi-utilities>=0.2
 probe-design>=0.3
 primary-analysis>=2.13
 secondary-analysis>=1.19
+experiment-database==0.3

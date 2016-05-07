@@ -186,3 +186,5 @@ GnuBio Flask API.
    * Full analysis input defaults updated
  * v3.5.1
    * Fixed primary analysis offests default
+ * v.3.5.2
+   * Added experiment database requirement

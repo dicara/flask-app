@@ -196,6 +196,8 @@ USE_IID          = "use_iid"
 VCF              = "vcf"
 RUN_REPORT       = "run_report"
 RUN_REPORT_FULL_ANALYSIS = "run_report/full_analysis"
+UNIFIED_PDF      = "unified_pdf"
+UNIFIED_PDF_URL  = "unified_pdf_url"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
 VALID_MON_IMAGE_EXTENSIONS = ["jpg"]

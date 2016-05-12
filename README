@@ -186,7 +186,9 @@ GnuBio Flask API.
    * Full analysis input defaults updated
  * v3.5.1
    * Fixed primary analysis offests default
- * v.3.5.2
+ * v3.5.2
    * Added experiment database requirement
- * v.3.6
+ * v3.6
    * Added a module to FullAnalysisAPI for creating unified PDF reports
+ * v3.6.1
+   * Updated install require, removed output files generated from full analysis unittest

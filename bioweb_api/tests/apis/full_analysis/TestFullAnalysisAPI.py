@@ -104,8 +104,8 @@ class TestFullAnalysisAPI(unittest.TestCase):
         make_pdf._merge_pdfs(_OUTPUT_PDF_PATH, _OUTPUT_SA_PATH, _GT_PDF_PATH)
         self.assertTrue(os.path.isfile(_OUTPUT_PDF_PATH))
 
-        # os.unlink(_OUTPUT_SA_PATH)
-        # os.unlink(_OUTPUT_PDF_PATH)
+        os.unlink(_OUTPUT_SA_PATH)
+        os.unlink(_OUTPUT_PDF_PATH)
 
 if __name__ == '__main__':
     unittest.main()

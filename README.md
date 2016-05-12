@@ -188,3 +188,5 @@ GnuBio Flask API.
    * Fixed primary analysis offests default
  * v.3.5.2
    * Added experiment database requirement
+ * v.3.6
+   * Added a module to FullAnalysisAPI for creating unified PDF reports

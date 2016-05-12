@@ -292,11 +292,11 @@ class FullAnalysisWorkFlowCallable(object):
         """
         Initialize a list of jobs that will be run in order
         """
-        job_map = {PROCESS:        self.primary_analysis_job,
-                   IDENTITY:       self.identity_job,
-                   ASSAY_CALLER:   self.assay_caller_job,
-                   GENOTYPER:      self.genotyper_job}
-        # run jobs in this order
+        job_map = {PROCESS:         self.primary_analysis_job,
+                   IDENTITY:        self.identity_job,
+                   ASSAY_CALLER:    self.assay_caller_job,
+                   GENOTYPER:       self.genotyper_job}
+        # run jobs in the order specified by self.workflow
         while self.workflow:
             job = job_map[self.workflow.pop(0)]
             job_uuid, status, name = job(self.uuid_container[-1])

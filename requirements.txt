@@ -15,3 +15,5 @@ probe-design>=0.3
 primary-analysis>=2.13
 secondary-analysis>=1.19
 experiment-database>=0.5.4
+PyPDF2>=1.25.1
+reportlab>=3.3.0

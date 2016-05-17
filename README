@@ -196,3 +196,5 @@ GnuBio Flask API.
    * Removed install require
  * v3.6.3
    * Updated install require
+ * v3.6.4
+   * Experiment-database requirement updated

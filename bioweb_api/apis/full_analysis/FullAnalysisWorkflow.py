@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+import time
 from uuid import uuid4
 
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
@@ -13,7 +14,8 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR
-from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str
+from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
+    add_unified_pdf
 
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
@@ -304,3 +306,10 @@ class FullAnalysisWorkFlowCallable(object):
                 raise Exception('failed at %s' % name)
 
             self.uuid_container.append(job_uuid)
+
+        # add unified pdf
+        fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
+        while STATUS not in fa_job[GT_DOCUMENT] or fa_job[GT_DOCUMENT][STATUS] == JOB_STATUS.running:
+            time.sleep(10)
+            fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
+        add_unified_pdf(fa_job)

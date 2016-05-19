@@ -97,7 +97,6 @@ def update_single_job(fa_job):
         raise Exception("Job with uuid %s is not found." % fa_uuid)
 
     add_diff_params(fa_job)
-    add_unified_pdf(fa_job)
 
 def add_diff_params(fa_job):
     if DIFF_PARAMS in fa_job:
@@ -118,8 +117,9 @@ def add_diff_params(fa_job):
 
 def add_unified_pdf(fa_job):
     if UNIFIED_PDF_URL in fa_job and fa_job[UNIFIED_PDF_URL] \
-            or fa_job[STATUS] != SUCCEEDED \
-            or any(indiv_doc not in fa_job for indiv_doc in set(PARAM_MAP.values())):
+            or any(indiv_doc not in fa_job or STATUS not in fa_job[indiv_doc]
+                   or fa_job[indiv_doc][STATUS] != SUCCEEDED
+                   for indiv_doc in set(PARAM_MAP.values())):
         return False
 
     make_pdf = MakeUnifiedPDF(fa_job)

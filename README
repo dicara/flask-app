@@ -198,3 +198,7 @@ GnuBio Flask API.
    * Updated install require
  * v3.6.4
    * Experiment-database requirement updated
+ * v3.6.5
+   * Added unittests for full analysis APIs
+ * v3.6.6
+   * Make unified pdf in full analysis post request

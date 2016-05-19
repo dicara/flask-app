@@ -1,0 +1,16 @@
+##fileformat=VCFv4.1
+##fileDate=2016-05-17 22:06:44.296035
+##source=GnuBio0.1
+##reference=.
+##run=None
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">
+##INFO=<ID=PC,Number=1,Type=Integer,Description="Positive coverage">
+##INFO=<ID=CO,Number=0,Type=String,Description="COSMIC ID">
+##INFO=<ID=GN,Number=0,Type=String,Description="Gene identifier">
+##INFO=<ID=EH,Number=0,Type=Integer,Description="high error band">
+##INFO=<ID=EL,Number=0,Type=Integer,Description="low error band"
+##FILTER=<ID=q10,Description="Quality below 10">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+#CHROM POS     ID        REF    ALT     QUAL FILTER INFO    FORMAT
+None	-135	.	C	T	.	.	DP=1968.0;AF=0.395177664975;PC=777.5;CO=.;GN=ABL16;EH=[ 0.41685913];EL=[ 0.37369779]

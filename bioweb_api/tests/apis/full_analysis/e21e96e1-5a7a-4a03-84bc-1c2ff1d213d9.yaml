@@ -1,0 +1,162 @@
+ID_RESULT:
+  FILTERS:
+    low_barcode: {filtered_count: 4018, percent_filtered: 1.9}
+    picoinjection_filter: {filtered_count: 144447, max: 10259, min: 4000, percent_filtered: 70.1}
+  IDENTITY:
+    identified: {identified_count: 53027, percent_identified: 25.7}
+    noise: {noise_count: 4689, percent_noise: 2.3}
+  total_count: 206181
+MODEL_METRICS:
+  CLUSTERS:
+    id_0000:
+    - {cluster_id: c01, confidence: 0.998, count: 518, id_count: 2566, max_svd: 1167,
+      status: valid, volume: 19145521264359}
+    id_0001:
+    - {cluster_id: c19, confidence: 0.999, count: 531, id_count: 2571, max_svd: 1855,
+      status: valid, volume: 51821795921799}
+    id_0010:
+    - {cluster_id: c02, confidence: 0.994, count: 466, id_count: 2214, max_svd: 1700,
+      status: valid, volume: 45731969441491}
+    id_0011:
+    - {cluster_id: c00, confidence: 0.988, count: 531, id_count: 2662, max_svd: 2001,
+      status: valid, volume: 88192845319035}
+    id_0100:
+    - {cluster_id: c15, confidence: 0.995, count: 486, id_count: 2482, max_svd: 1822,
+      status: valid, volume: 67783184865212}
+    id_0101:
+    - {cluster_id: c23, confidence: 0.992, count: 505, id_count: 2274, max_svd: 2324,
+      status: valid, volume: 164862532931514}
+    id_0110:
+    - {cluster_id: c06, confidence: 0.991, count: 425, id_count: 2014, max_svd: 2579,
+      status: valid, volume: 120805233612953}
+    id_0111:
+    - {cluster_id: c20, confidence: 0.987, count: 460, id_count: 2338, max_svd: 3009,
+      status: valid, volume: 160501296655101}
+    id_1000:
+    - {cluster_id: c11, confidence: 0.999, count: 446, id_count: 2107, max_svd: 2053,
+      status: valid, volume: 58625835967123}
+    id_1001:
+    - {cluster_id: c08, confidence: 0.998, count: 504, id_count: 2437, max_svd: 2376,
+      status: valid, volume: 98206836572757}
+    id_1010:
+    - {cluster_id: c14, confidence: 0.989, count: 366, id_count: 1568, max_svd: 2525,
+      status: valid, volume: 96199967143516}
+    id_1011:
+    - {cluster_id: c09, confidence: 0.995, count: 384, id_count: 1748, max_svd: 2664,
+      status: valid, volume: 155823765532203}
+    id_1100:
+    - {cluster_id: c05, confidence: 0.993, count: 501, id_count: 2670, max_svd: 2433,
+      status: valid, volume: 145428267314348}
+    id_1101:
+    - {cluster_id: c16, confidence: 0.995, count: 544, id_count: 2576, max_svd: 2799,
+      status: valid, volume: 148731818924497}
+    id_1110:
+    - {cluster_id: c21, confidence: 0.978, count: 376, id_count: 1795, max_svd: 3035,
+      status: valid, volume: 209705013401532}
+    id_1111:
+    - {cluster_id: c17, confidence: 0.986, count: 443, id_count: 2025, max_svd: 3396,
+      status: valid, volume: 253760233670298}
+    id_2000:
+    - {cluster_id: c04, confidence: 0.993, count: 450, id_count: 2120, max_svd: 2858,
+      status: valid, volume: 79887433214475}
+    id_2001:
+    - {cluster_id: c22, confidence: 0.99, count: 526, id_count: 2477, max_svd: 2861,
+      status: valid, volume: 110139334688039}
+    id_2010:
+    - {cluster_id: c12, confidence: 0.99, count: 425, id_count: 2035, max_svd: 3291,
+      status: valid, volume: 128373983625142}
+    id_2011:
+    - {cluster_id: c13, confidence: 0.996, count: 441, id_count: 2076, max_svd: 3972,
+      status: valid, volume: 269405872265859}
+    id_2100:
+    - {cluster_id: c18, confidence: 0.998, count: 392, id_count: 1808, max_svd: 3543,
+      status: valid, volume: 203254296521900}
+    id_2101:
+    - {cluster_id: c03, confidence: 0.997, count: 349, id_count: 1654, max_svd: 2998,
+      status: valid, volume: 166064882273863}
+    id_2110:
+    - {cluster_id: c10, confidence: 0.959, count: 428, id_count: 2193, max_svd: 3026,
+      status: valid, volume: 131875087102189}
+    id_2111:
+    - {cluster_id: c07, confidence: 0.997, count: 562, id_count: 2617, max_svd: 4420,
+      status: valid, volume: 654289856559028}
+  FILTERS:
+    RemoveBackground:
+      max_background_size: 20
+      size_cuttoffs: [20]
+      size_diff_ratios: [17.45]
+    RemoveNonpico:
+      failed: []
+      passed:
+      - {bc_pico_covar: 1247, cluster_id: c00, pico_intensity: 6583, pico_var: 1641,
+        size: 531}
+      - {bc_pico_covar: 1590, cluster_id: c01, pico_intensity: 6463, pico_var: 1622,
+        size: 518}
+      - {bc_pico_covar: 713, cluster_id: c02, pico_intensity: 5775, pico_var: 1519,
+        size: 466}
+      - {bc_pico_covar: 2326, cluster_id: c03, pico_intensity: 5316, pico_var: 1468,
+        size: 349}
+      - {bc_pico_covar: 1689, cluster_id: c04, pico_intensity: 6086, pico_var: 1468,
+        size: 450}
+      - {bc_pico_covar: 2228, cluster_id: c05, pico_intensity: 6335, pico_var: 1575,
+        size: 501}
+      - {bc_pico_covar: 2036, cluster_id: c06, pico_intensity: 5999, pico_var: 1427,
+        size: 425}
+      - {bc_pico_covar: 238, cluster_id: c07, pico_intensity: 6508, pico_var: 1632,
+        size: 562}
+      - {bc_pico_covar: 2356, cluster_id: c08, pico_intensity: 6395, pico_var: 1656,
+        size: 504}
+      - {bc_pico_covar: 1757, cluster_id: c09, pico_intensity: 5571, pico_var: 1412,
+        size: 384}
+      - {bc_pico_covar: 2113, cluster_id: c10, pico_intensity: 7863, pico_var: 1606,
+        size: 428}
+      - {bc_pico_covar: 1684, cluster_id: c11, pico_intensity: 5841, pico_var: 1547,
+        size: 446}
+      - {bc_pico_covar: 2229, cluster_id: c12, pico_intensity: 5881, pico_var: 1565,
+        size: 425}
+      - {bc_pico_covar: 2931, cluster_id: c13, pico_intensity: 6237, pico_var: 1664,
+        size: 441}
+      - {bc_pico_covar: 1658, cluster_id: c14, pico_intensity: 5335, pico_var: 1326,
+        size: 366}
+      - {bc_pico_covar: 1905, cluster_id: c15, pico_intensity: 6421, pico_var: 1636,
+        size: 486}
+      - {bc_pico_covar: 2941, cluster_id: c16, pico_intensity: 6409, pico_var: 1597,
+        size: 544}
+      - {bc_pico_covar: 3137, cluster_id: c17, pico_intensity: 5817, pico_var: 1476,
+        size: 443}
+      - {bc_pico_covar: 1885, cluster_id: c18, pico_intensity: 5593, pico_var: 1375,
+        size: 392}
+      - {bc_pico_covar: 2087, cluster_id: c19, pico_intensity: 6407, pico_var: 1686,
+        size: 531}
+      - {bc_pico_covar: 3164, cluster_id: c20, pico_intensity: 6478, pico_var: 1639,
+        size: 460}
+      - {bc_pico_covar: 2915, cluster_id: c21, pico_intensity: 5530, pico_var: 1456,
+        size: 376}
+      - {bc_pico_covar: 2189, cluster_id: c22, pico_intensity: 6334, pico_var: 1625,
+        size: 526}
+      - {bc_pico_covar: 2428, cluster_id: c23, pico_intensity: 6120, pico_var: 1581,
+        size: 505}
+    ResolveMerged:
+      base_eps: 2231.3
+      eps_mean: 696.6
+      eps_stdev: 767.3
+      resolution_data:
+      - {eps: 1847.6, incoming_nclusters: 0, new: 0, resolved: 0, unresolved: 0}
+      - {eps: 1272.1, incoming_nclusters: 0, new: 0, resolved: 0, unresolved: 0}
+      - {eps: 696.6, incoming_nclusters: 0, new: 0, resolved: 0, unresolved: 0}
+  INFO:
+    Average Centroid Nearest Neighbor: 10726
+    Average Cluster Volume: 151192369366176.38
+    Average ID Confidence: 0.992
+    Average Singular Values: [2696, 455, 328, 248]
+    Collisions: null
+    Min Centroid Nearest Neighbor: 9309
+    Min ID Confidence: 0.959
+    Missing: null
+    Percent Cluster Volume: 1.3317886818600848
+  PROBLEMS: {id_collisions: null, missing: null, potential_merged: null, resolved_merged: null}
+  STATUS:
+    below_min: {cluster_count: 728, drop_count: 941, perc_drops: 7.8}
+    valid: {cluster_count: 24, drop_count: 11059, perc_drops: 92.2}
+PICOINJECTION: {CV: 0.256, Dye name: joe, MAD: 1229, Mean: 6399, Median: 6125, Modality: 0.556,
+  Stddev: 1640}

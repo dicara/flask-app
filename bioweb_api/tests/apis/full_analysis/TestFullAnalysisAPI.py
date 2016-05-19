@@ -20,74 +20,259 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from datetime import datetime
 import json
 import os
+import time
 import unittest
 
-from bioweb_api import app, FA_PROCESS_COLLECTION
+from bioweb_api import app, HOME_DIR, TMP_PATH, FA_PROCESS_COLLECTION, \
+    PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION, SA_ASSAY_CALLER_COLLECTION, \
+    HOSTNAME, PORT
+from bioweb_api.DbConnector import DbConnector
+from bioweb_api.tests.test_utils import post_data, get_data, \
+    delete_data, add_url_argument
+from bioweb_api.utilities import io_utilities
+from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, \
+    EXP_DEF, ARCHIVE, PA_DOCUMENT, CONFIG_URL, OFFSETS, URL, ID_DOCUMENT, \
+    UI_THRESHOLD, REPORT_URL, PLOT_URL, TRAINING_FACTOR, PF_TRAINING_FACTOR, \
+    AC_DOCUMENT, KDE_PLOT_URL, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
+    PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
+    START_DATESTAMP, FINISH_DATESTAMP, RESULT, CONFIG, AC_TRAINING_FACTOR, \
+    UNIFIED_PDF, UNIFIED_PDF_URL
+
+from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
+
+#=============================================================================
+# Setup Logging
+#=============================================================================
+import tornado.options
+tornado.options.parse_command_line()
 
 #===============================================================================
 # Private Static Variables
 #===============================================================================
 _FA_JOB = {
-            "status" : "succeeded",
-            "uuid" : "188d1ed1-9a54-4643-ac5e-560faeb3a731",
-            "job_type" : "full_analysis",
-            "job_name" : "2016-04-14_1259.50-beta179e9ca932-0",
-            "exp_def" : "ABL_24_V1",
-            "archive" : "2016-04-14_1259.50-beta17",
-            "pa_document" : {
-                "status" : "succeeded",
-                "uuid" : "a053fb11-4f53-47dc-a6c7-5b7d7e69e32c",
-                "config_url" : "http://192.168.33.10/results/8020/a053fb11-4f53-47dc-a6c7-5b7d7e69e32c.cfg",
-                "offsets" : 30,
-                "url" : "http://192.168.33.10/results/8020/a053fb11-4f53-47dc-a6c7-5b7d7e69e32c",
-            },
-            "id_document" : {
-                "status" : "succeeded",
-                "uuid" : "55401115-684f-48cc-afb3-5a4801887bed",
-                "url" : "http://192.168.33.10/results/8020/55401115-684f-48cc-afb3-5a4801887bed",
-                "ui_threshold" : 4000,
-                "report_url" : "http://192.168.33.10/results/8020/55401115-684f-48cc-afb3-5a4801887bed.yaml",
-                "plot_url" : "http://192.168.33.10/results/8020/55401115-684f-48cc-afb3-5a4801887bed.png",
-                "training_factor" : 800,
-                "pf_training_factor" : 100
-            },
-            "ac_document" : {
-                "status" : "succeeded",
-                "kde_plot_url" : "http://192.168.33.10/results/8020/4c07f709-9cd1-444e-8eb1-b43f447bd397_kde.png",
-                "uuid" : "4c07f709-9cd1-444e-8eb1-b43f447bd397",
-                "url" : "http://192.168.33.10/results/8020/4c07f709-9cd1-444e-8eb1-b43f447bd397",
-                "scatter_plot_url" : "http://192.168.33.10/results/8020/4c07f709-9cd1-444e-8eb1-b43f447bd397_scatter.png",
-                "ctrl_thresh" : 5,
-                "training_factor" : 100
-            },
-            "gt_document" : {
-                "status" : "succeeded",
-                "png_sum_url" : "http://192.168.33.10/results/8020/e500ad84-8b2d-4978-a58f-b57dda95fd2c_sum.png",
-                "uuid" : "e500ad84-8b2d-4978-a58f-b57dda95fd2c",
-                "url" : "http://192.168.33.10/results/8020/e500ad84-8b2d-4978-a58f-b57dda95fd2c.vcf",
-                "required_drops" : 0,
-                "pdf_url" : "http://192.168.33.10/results/8020/e500ad84-8b2d-4978-a58f-b57dda95fd2c.pdf",
-                "png_url" : "http://192.168.33.10/results/8020/e500ad84-8b2d-4978-a58f-b57dda95fd2c.png"
-            }
+            STATUS : "succeeded",
+            JOB_TYPE_NAME : "full_analysis",
+            JOB_NAME : "2016-04-14_1259.50-beta179e9ca932-0",
+            EXP_DEF : "ABL_24_V1",
+            ARCHIVE : "2016-04-14_1259.50-beta17",
+            SUBMIT_DATESTAMP: datetime.today(),
+            START_DATESTAMP: datetime.today(),
+            FINISH_DATESTAMP: datetime.today(),
         }
 
-_TEST_DIR               = os.path.abspath(os.path.dirname(__file__))
-_ID_REPORT_PATH         = os.path.join(_TEST_DIR, 'id_report.yaml')
-_AC_SCATTER_PLOT_PATH   = os.path.join(_TEST_DIR, 'ac_scatter.png')
-_GT_PNG_PATH            = os.path.join(_TEST_DIR, 'gt.png')
-_GT_PDF_PATH            = os.path.join(_TEST_DIR, 'gt.pdf')
-_OUTPUT_SA_PATH         = os.path.join(_TEST_DIR, 'sa_combined.pdf')
-_OUTPUT_PDF_PATH        = os.path.join(_TEST_DIR, 'unified.pdf')
+_TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
+_DB_CONNECTOR             = DbConnector.Instance()
+_FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
+
+_FA_JOBNAME               = "test_full_analysis_job"
+_ARCHIVE_NAME             = "2016-04-14_1259.50-beta17"
+_EXP_DEF_NAME             = "ABL_24_V1"
+_OFFSETS                  = 30
+_PF_TRAINING_FACTOR       = 100
+_UI_THRESHOLD             = 4000
+_AC_TRAINING_FACTOR       = 100
+_CTRL_THRESH              = 5
+_REQUIRED_DROPS           = 0
+
+_ID_REPORT_PATH           = os.path.join(_TEST_DIR, 'e21e96e1-5a7a-4a03-84bc-1c2ff1d213d9.yaml')
+_AC_SCATTER_PLOT_PATH     = os.path.join(_TEST_DIR, '4d78456c-c1ca-4113-a501-afe7fbeee86d_scatter.png')
+_GT_PNG_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277.png')
+_GT_PDF_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277.pdf')
+_OUTPUT_SA_PATH           = os.path.join(_TEST_DIR, 'sa_combined.pdf')
+_OUTPUT_PDF_PATH          = os.path.join(_TEST_DIR, 'unified.pdf')
 
 #=============================================================================
 # TestCase
 #=============================================================================
 class TestFullAnalysisAPI(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._fa_uuid = "eff5f811-c069-46bd-968d-eda61028dbc5"
+        cls._fa_record = _FA_JOB
+        cls._fa_record[UUID] = cls._fa_uuid
+
+        cls._pa_uuid = "7837de22-9b54-463b-8491-9b7cef9fbd72"
+        pa_record = {
+            STATUS : "succeeded",
+            UUID : cls._pa_uuid,
+            CONFIG_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._pa_uuid + ".cfg"),
+            OFFSETS : 30,
+            URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._pa_uuid),
+            START_DATESTAMP: datetime.today(),
+            FINISH_DATESTAMP: datetime.today(),
+        }
+        cls._fa_record[PA_DOCUMENT] = pa_record
+
+        cls._id_uuid = "e21e96e1-5a7a-4a03-84bc-1c2ff1d213d9"
+        id_record = {
+            STATUS : "succeeded",
+            UUID : cls._id_uuid,
+            URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._id_uuid),
+            UI_THRESHOLD : 4000,
+            REPORT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._id_uuid + ".yaml"),
+            PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._id_uuid + ".png"),
+            TRAINING_FACTOR : 800,
+            PF_TRAINING_FACTOR : 100,
+            START_DATESTAMP: datetime.today(),
+            FINISH_DATESTAMP: datetime.today(),
+        }
+        cls._fa_record[ID_DOCUMENT] = id_record
+
+        cls._ac_uuid = "4d78456c-c1ca-4113-a501-afe7fbeee86d"
+        ac_record = {
+            STATUS : "succeeded",
+            KDE_PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid + "_kde.png"),
+            UUID : cls._ac_uuid,
+            URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid),
+            SCATTER_PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid + "_scatter.png"),
+            CTRL_THRESH : 5,
+            TRAINING_FACTOR : 100,
+            START_DATESTAMP: datetime.today(),
+            FINISH_DATESTAMP: datetime.today(),
+        }
+        cls._fa_record[AC_DOCUMENT] = ac_record
+
+        cls._gt_uuid = "b05801d0-0f75-4c64-8df4-b2e6151a9277"
+        gt_record = {
+            STATUS : "succeeded",
+            PNG_SUM_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_sum.png"),
+            UUID : cls._gt_uuid,
+            URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".vcf"),
+            REQUIRED_DROPS : 0,
+            PDF_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".pdf"),
+            PNG_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".png"),
+            START_DATESTAMP: datetime.today(),
+            FINISH_DATESTAMP: datetime.today(),
+        }
+        cls._fa_record[GT_DOCUMENT] = gt_record
+
+        _DB_CONNECTOR.insert(FA_PROCESS_COLLECTION, [cls._fa_record])
+
+    @classmethod
+    def tearDownClass(cls):
+        _DB_CONNECTOR.remove(FA_PROCESS_COLLECTION,
+                             {UUID: {'$in': [cls._fa_uuid]}})
+
     def setUp(self):
         self._client = app.test_client(self)
+
+    def test_results_exist(self):
+        """
+        This tests that setUp properly inserts the full analysis result in
+        the database and that the result files exist.
+        """
+        response = _DB_CONNECTOR.find_one(FA_PROCESS_COLLECTION, UUID,
+                                          self._fa_uuid)
+
+        msg = "No entries in the DB with UUID = %s" % self._fa_uuid
+        self.assertTrue(response, msg)
+
+        pa_result = os.path.join(_TEST_DIR, os.path.basename(response[PA_DOCUMENT][URL]))
+        msg = "Primary analysis result file cannot be found: %s" % pa_result
+        self.assertTrue(os.path.isfile(pa_result), msg)
+
+        pa_config = os.path.join(_TEST_DIR, os.path.basename(response[PA_DOCUMENT][CONFIG_URL]))
+        msg = "Primary analysis config file cannot be found: %s" % pa_config
+        self.assertTrue(os.path.isfile(pa_config), msg)
+
+        id_result = os.path.join(_TEST_DIR, os.path.basename(response[ID_DOCUMENT][URL]))
+        msg = "Identity result file cannot be found: %s" % id_result
+        self.assertTrue(os.path.isfile(id_result), msg)
+
+        id_report = os.path.join(_TEST_DIR, os.path.basename(response[ID_DOCUMENT][REPORT_URL]))
+        msg = "Identity report file cannot be found: %s" % id_report
+        self.assertTrue(os.path.isfile(id_report), msg)
+
+        id_plot = os.path.join(_TEST_DIR, os.path.basename(response[ID_DOCUMENT][PLOT_URL]))
+        msg = "Identity plot file cannot be found: %s" % id_plot
+        self.assertTrue(os.path.isfile(id_plot), msg)
+
+        ac_result = os.path.join(_TEST_DIR, os.path.basename(response[AC_DOCUMENT][URL]))
+        msg = "Assay caller result file cannot be found: %s" % ac_result
+        self.assertTrue(os.path.isfile(ac_result), msg)
+
+        ac_scatter = os.path.join(_TEST_DIR, os.path.basename(response[AC_DOCUMENT][SCATTER_PLOT_URL]))
+        msg = "Assay caller scatter plot file cannot be found: %s" % ac_scatter
+        self.assertTrue(os.path.isfile(ac_scatter), msg)
+
+        ac_kde = os.path.join(_TEST_DIR, os.path.basename(response[AC_DOCUMENT][KDE_PLOT_URL]))
+        msg = "Assay caller KDE plot file cannot be found: %s" % ac_kde
+        self.assertTrue(os.path.isfile(ac_kde), msg)
+
+        gt_result = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][URL]))
+        msg = "Genotyper result file cannot be found: %s" % gt_result
+        self.assertTrue(os.path.isfile(gt_result), msg)
+
+        gt_png = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PNG_URL]))
+        msg = "Genotyper PNG file cannot be found: %s" % gt_png
+        self.assertTrue(os.path.isfile(gt_png), msg)
+
+        gt_png_sum = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PNG_SUM_URL]))
+        msg = "Genotyper PNG sum file cannot be found: %s" % gt_png_sum
+        self.assertTrue(os.path.isfile(gt_png_sum), msg)
+
+        gt_pdf = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PDF_URL]))
+        msg = "Genotyper PDF file cannot be found: %s" % gt_pdf
+        self.assertTrue(os.path.isfile(gt_pdf), msg)
+
+    def test_full_analysis(self):
+        """
+        Test the POST, GET and DELETE full analysis APIs
+        """
+        # Construct url
+        url = _FULL_ANALYSIS_URL
+        url = add_url_argument(url, ARCHIVE, _ARCHIVE_NAME, True)
+        url = add_url_argument(url, JOB_NAME, _FA_JOBNAME)
+        url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
+        url = add_url_argument(url, OFFSETS, _OFFSETS)
+        url = add_url_argument(url, PF_TRAINING_FACTOR, _PF_TRAINING_FACTOR)
+        url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
+        url = add_url_argument(url, AC_TRAINING_FACTOR, _AC_TRAINING_FACTOR)
+        url = add_url_argument(url, CTRL_THRESH, _CTRL_THRESH)
+        url = add_url_argument(url, REQUIRED_DROPS, _REQUIRED_DROPS)
+
+        # Submit full analysis job
+        response    = post_data(self, url, 200)
+        fa_uuid     = response[FULL_ANALYSIS][0][UUID]
+
+        # Test that submitting two jobs with the same name fails and returns
+        # the appropriate error code.
+        post_data(self, url, 403)
+
+        running = True
+        while running:
+            time.sleep(10)
+            response = get_data(self, _FULL_ANALYSIS_URL, 200)
+            for job in response[FULL_ANALYSIS]:
+                if fa_uuid == job[UUID]:
+                    job_details = job
+                    running     = job_details[STATUS] == 'running'
+
+        msg = "%s doesn't exist in job_details." % PA_DOCUMENT
+        self.assertTrue(PA_DOCUMENT in job_details, msg)
+
+        msg = "%s doesn't exist in job_details." % ID_DOCUMENT
+        self.assertTrue(ID_DOCUMENT in job_details, msg)
+
+        msg = "%s doesn't exist in job_details." % AC_DOCUMENT
+        self.assertTrue(AC_DOCUMENT in job_details, msg)
+
+        msg = "%s doesn't exist in job_details." % GT_DOCUMENT
+        self.assertTrue(GT_DOCUMENT in job_details, msg)
+
+        # Delete full analysis job
+        delete_url = add_url_argument(_FULL_ANALYSIS_URL, UUID, fa_uuid, True)
+        delete_data(self, delete_url, 200)
+
+        # Ensure job no longer exists in the database
+        response = get_data(self, _FULL_ANALYSIS_URL, 200)
+        for job in response[FULL_ANALYSIS]:
+            msg = "Full analysis job %s still exists in database." % fa_uuid
+            self.assertNotEqual(fa_uuid, job[UUID], msg)
 
     def test_make_unified_pdf(self):
         """

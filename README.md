@@ -202,3 +202,12 @@ GnuBio Flask API.
    * Added unittests for full analysis APIs
  * v3.6.6
    * Make unified pdf in full analysis post request
+ * v3.7.0
+   * Update secondary-analysis from version 1.19 to version 1.22 that contains:
+     * v1.20
+       * cluster approximate range is calculated using singular value decomposition
+       * cluster identity confidence score calculated by considering nearest expectation components
+     * v1.21
+       * Fixed enum dependency bug and added new fields to VCF output
+     * v1.22
+       * Ensure a sufficient number of drops pass the negative controls threshold test before declaring the model valid and passing drops on to genotyper

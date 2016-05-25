@@ -211,3 +211,5 @@ GnuBio Flask API.
        * Fixed enum dependency bug and added new fields to VCF output
      * v1.22
        * Ensure a sufficient number of drops pass the negative controls threshold test before declaring the model valid and passing drops on to genotyper
+  * v3.7.1
+   * Fixed bug in adding full analysis select parameters

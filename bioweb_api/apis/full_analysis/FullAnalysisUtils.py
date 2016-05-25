@@ -99,9 +99,6 @@ def update_single_job(fa_job):
     add_diff_params(fa_job)
 
 def add_diff_params(fa_job):
-    if DIFF_PARAMS in fa_job:
-        return False
-
     diff_params = dict()
     for param, doc_name in PARAM_MAP.items():
         if doc_name not in fa_job: continue

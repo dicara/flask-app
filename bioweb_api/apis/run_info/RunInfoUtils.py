@@ -82,7 +82,8 @@ def read_report_file_txt(report_file, date_obj, utag):
         with open(report_file, 'r') as rf:
             lines = rf.readlines()
         if not lines:
-            raise Exception("The log file is empty.")
+            APP_LOGGER.error("The log file, %s, is empty." % report_file)
+            return
         data = {FILE_TYPE: 'txt', DATETIME: date_obj, UTAG: utag}
         for i, line in enumerate(lines):
             if line.strip():
@@ -108,8 +109,8 @@ def read_report_file_txt(report_file, date_obj, utag):
                     continue
         report_obj = RunReport(**data)
         return report_obj.to_dict
-    except IOError:
-        raise Exception("Could not open the run log file.")
+    except IOError as e:
+        APP_LOGGER.error("IOError raised: %s" % e)
 
 def read_report_file_yaml(report_file, date_obj, utag):
     """
@@ -120,15 +121,19 @@ def read_report_file_yaml(report_file, date_obj, utag):
             try:
                 data = yaml.load(rf)
             except yaml.YAMLError as exc:
-                raise Exception("YMALError %s received" % (exc, ))
+                APP_LOGGER.error("YMALError %s received" % exc)
+                return
+        if not data:
+            APP_LOGGER.debug("YAML file, %s, is empty." % report_file)
+            return
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
         data[USER] = [strip_str(user) for user in data[USER].split(',')]
         report_obj = RunReport(**data)
         return report_obj.to_dict
-    except IOError:
-        raise Exception("Could not open the run log file.")
+    except IOError as e:
+        APP_LOGGER.error("IOError raised: %s" % e)
 
 def read_report_file(report_file, date_obj, utag):
     """
@@ -139,7 +144,8 @@ def read_report_file(report_file, date_obj, utag):
     utag is 2016_04_05_Tue05_1424_beta17
     """
     if not report_file:
-        raise Exception("File pathname is an empty string.")
+        APP_LOGGER.debug("File pathname, %s, is an empty string." % report_file)
+        return
 
     basename = os.path.basename(report_file).lower()
     if basename.endswith('txt'):
@@ -147,7 +153,7 @@ def read_report_file(report_file, date_obj, utag):
     elif basename.endswith('yaml'):
         return read_report_file_yaml(report_file, date_obj, utag)
     else:
-        raise Exception("File extension must be txt or yaml.")
+        APP_LOGGER.debug("File extension must be txt or yaml.")
 
 def get_run_info_path(path, sub_folder):
     for f in [RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE]:
@@ -184,7 +190,9 @@ def update_run_reports():
                 utag = set_utag(date_obj, sf)
                 doc = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
                 if doc is None: # if not exist, need to insert to collection
-                    reports.append(read_report_file(report_file_path, date_obj, utag))
+                    log_data = read_report_file(report_file_path, date_obj, utag)
+                    if log_data:
+                        reports.append(log_data)
 
         reports = [r for r in reports if r is not None]
 

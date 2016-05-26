@@ -213,3 +213,5 @@ GnuBio Flask API.
        * Ensure a sufficient number of drops pass the negative controls threshold test before declaring the model valid and passing drops on to genotyper
   * v3.7.1
    * Fixed bug in adding full analysis select parameters
+  * v3.7.2
+   * Let RunInfo API handle empty yaml files

@@ -59,7 +59,7 @@ def get_run_reports():
     columns[EXP_DEF_NAME]       = 1
     columns[RUN_DESCRIPTION]    = 1
     columns[IMAGE_STACKS]       = 1
-    columns[FA_UUID_MAP]           = 1
+    columns[FA_UUID_MAP]        = 1
 
     column_names = columns.keys()
     column_names.remove(ID)
@@ -83,7 +83,7 @@ def read_report_file_txt(report_file, date_obj, utag):
             lines = rf.readlines()
         if not lines:
             APP_LOGGER.error("The log file, %s, is empty." % report_file)
-            return
+            return None
         data = {FILE_TYPE: 'txt', DATETIME: date_obj, UTAG: utag}
         for i, line in enumerate(lines):
             if line.strip():
@@ -111,6 +111,7 @@ def read_report_file_txt(report_file, date_obj, utag):
         return report_obj.to_dict
     except IOError as e:
         APP_LOGGER.error("IOError raised: %s" % e)
+        return None
 
 def read_report_file_yaml(report_file, date_obj, utag):
     """
@@ -122,10 +123,10 @@ def read_report_file_yaml(report_file, date_obj, utag):
                 data = yaml.load(rf)
             except yaml.YAMLError as exc:
                 APP_LOGGER.error("YMALError %s received" % exc)
-                return
+                return None
         if not data:
             APP_LOGGER.debug("YAML file, %s, is empty." % report_file)
-            return
+            return None
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
@@ -134,6 +135,7 @@ def read_report_file_yaml(report_file, date_obj, utag):
         return report_obj.to_dict
     except IOError as e:
         APP_LOGGER.error("IOError raised: %s" % e)
+        return None
 
 def read_report_file(report_file, date_obj, utag):
     """
@@ -145,7 +147,7 @@ def read_report_file(report_file, date_obj, utag):
     """
     if not report_file:
         APP_LOGGER.debug("File pathname, %s, is an empty string." % report_file)
-        return
+        return None
 
     basename = os.path.basename(report_file).lower()
     if basename.endswith('txt'):
@@ -154,6 +156,7 @@ def read_report_file(report_file, date_obj, utag):
         return read_report_file_yaml(report_file, date_obj, utag)
     else:
         APP_LOGGER.debug("File extension must be txt or yaml.")
+        return None
 
 def get_run_info_path(path, sub_folder):
     for f in [RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE]:
@@ -191,7 +194,7 @@ def update_run_reports():
                 doc = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
                 if doc is None: # if not exist, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)
-                    if log_data:
+                    if log_data is not None:
                         reports.append(log_data)
 
         reports = [r for r in reports if r is not None]

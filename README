@@ -227,3 +227,7 @@ GnuBio Flask API.
        * Added cDNA location to genotyper plot title
      * v1.27
        * Bugfix to include drops below confidence threshold in offline analysis results.
+  * v3.8.1
+    * Updated secondary-analysis dependency from v1.27 to v1.28
+      * v1.28
+       * Bugfix in handling new experiment definition files, new unittest added

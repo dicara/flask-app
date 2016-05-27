@@ -211,7 +211,19 @@ GnuBio Flask API.
        * Fixed enum dependency bug and added new fields to VCF output
      * v1.22
        * Ensure a sufficient number of drops pass the negative controls threshold test before declaring the model valid and passing drops on to genotyper
-  * v3.7.1
+ * v3.7.1
    * Fixed bug in adding full analysis select parameters
-  * v3.7.2
+ * v3.7.2
    * Let RunInfo API handle empty yaml files
+ * v3.8
+   * Update secondary-analysis dependency from v1.22 to v1.27
+     * v1.23
+       * Throw an exception if assay caller fails model validation
+     * v1.24
+       * Added genome position range to VCF output
+     * v1.25
+       * Discard drops with confidence below threshold
+     * v1.26
+       * Added cDNA location to genotyper plot title
+     * v1.27
+       * Bugfix to include drops below confidence threshold in offline analysis results.

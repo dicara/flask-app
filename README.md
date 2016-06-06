@@ -231,3 +231,5 @@ GnuBio Flask API.
    * Updated secondary-analysis dependency from v1.27 to v1.28
      * v1.28
       * Bugfix in handling new experiment definition files, new unittest added
+ * v3.8.2
+   * Bugfix in reading incomplete run reports

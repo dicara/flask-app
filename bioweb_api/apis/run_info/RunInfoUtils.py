@@ -133,6 +133,9 @@ def read_report_file_yaml(report_file, date_obj, utag):
         data[USER] = [strip_str(user) for user in data[USER].split(',')]
         report_obj = RunReport(**data)
         return report_obj.to_dict
+    except KeyError as e:
+        APP_LOGGER.error("KeyError raised: %s" % e)
+        return None
     except IOError as e:
         APP_LOGGER.error("IOError raised: %s" % e)
         return None

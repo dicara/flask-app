@@ -233,3 +233,5 @@ GnuBio Flask API.
       * Bugfix in handling new experiment definition files, new unittest added
  * v3.8.2
    * Bugfix in reading incomplete run reports
+ * v3.8.3
+   * Simplify full analysis job name

@@ -264,8 +264,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         fa_job_names = set(cls._DB_CONNECTOR.distinct(FA_PROCESS_COLLECTION, JOB_NAME))
 
         status_codes = list()
+        len_archives = len(archives)
         for idx, archive in enumerate(archives):
-            cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx)
+            cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx + 1) if len_archives > 1 \
+                           else parameters[JOB_NAME]
 
             status_code = 200
             if cur_job_name in fa_job_names:

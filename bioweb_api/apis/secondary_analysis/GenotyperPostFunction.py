@@ -38,7 +38,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
     STATUS, JOB_TYPE, JOB_TYPE_NAME, VCF, PDF, PDF_URL, PNG, PNG_URL, PNG_SUM, \
-    PNG_SUM_URL, REQ_DROPS_DESCRIPTION
+    PNG_SUM_URL, REQ_DROPS_DESCRIPTION, MASK
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -67,15 +67,15 @@ class GenotyperPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return GENOTYPER
-   
+
     @staticmethod
     def summary():
         return "Run the equivalent of sa genotyper."
-    
+
     @staticmethod
     def notes():
         return ""
@@ -83,20 +83,20 @@ class GenotyperPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(GenotyperPostFunction, self).response_messages()
         msgs.extend([
-                     { "code": 403, 
+                     { "code": 403,
                        "message": "Job name already exists. Delete the " \
                                   "existing job or pick a new name."},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         cls.job_uuid_param  = ParameterFactory.job_uuid(SA_ASSAY_CALLER_COLLECTION)
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, JOB_NAME_DESC)
         cls.exp_defs_param  = ParameterFactory.experiment_definition()
-        cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS, 
+        cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS,
                                                        REQ_DROPS_DESCRIPTION,
-                                                       required=True, default=0, 
+                                                       required=True, default=0,
                                                        minimum=0)
 
         parameters = [
@@ -106,14 +106,14 @@ class GenotyperPostFunction(AbstractPostFunction):
                       cls.req_drops_param,
                       ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
         exp_def_name    = params_dict[cls.exp_defs_param][0]
         required_drops  = params_dict[cls.req_drops_param][0]
-        
+
         json_response = {GENOTYPER: []}
         status_codes = list()
         for i, assay_caller_uuid in enumerate(job_uuids):
@@ -163,7 +163,7 @@ class GenotyperPostFunction(AbstractPostFunction):
         # If all jobs submitted successfully, then 200 should be returned.
         # Otherwise, the maximum status code seems good enough.
         return make_clean_response(json_response, max(status_codes))
-    
+
 #===============================================================================
 # Callable/Callback Functionality
 #===============================================================================
@@ -172,7 +172,7 @@ class SaGenotyperCallable(object):
     Callable that executes the genotyper command.
     """
     def __init__(self, assay_caller_uuid, exp_def_name,
-                 required_drops, db_connector, job_name):
+                 required_drops, db_connector, job_name, mask_code=None):
 
         assay_caller_doc = db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, assay_caller_uuid)
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, assay_caller_doc[SA_IDENTITY_UUID])
@@ -188,6 +188,7 @@ class SaGenotyperCallable(object):
         self.required_drops   = required_drops
         self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
+        self.mask_code        = mask_code
         self.tmp_path         = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path = os.path.join(self.tmp_path, self.uuid + ".%s" % VCF)
         self.document = {
@@ -199,6 +200,7 @@ class SaGenotyperCallable(object):
                         JOB_NAME: job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_genotyping, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
+                        MASK: self.mask_code,
                        }
 
         if job_name in self.db_connector.distinct(SA_GENOTYPER_COLLECTION, JOB_NAME):
@@ -213,22 +215,23 @@ class SaGenotyperCallable(object):
         self.db_connector.update(SA_GENOTYPER_COLLECTION, query, update)
         try:
             safe_make_dirs(self.tmp_path)
-            
+
             exp_def_fetcher = ExperimentDefinitions()
             exp_def_uuid = exp_def_fetcher.get_experiment_uuid(self.exp_def_name)
             exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
             experiment = HotspotExperiment.from_dict(exp_def)
-            GenotypeProcessor(experiment, None, self.tmp_outfile_path, 
-                              required_drops=self.required_drops, 
+            GenotypeProcessor(experiment, None, self.tmp_outfile_path,
+                              required_drops=self.required_drops,
                               in_file=self.ac_result_path,
-                              ignored_dyes=self.ignored_dyes)
-            
+                              ignored_dyes=self.ignored_dyes,
+                              mask_code=self.mask_code)
+
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis genotyper job " +
                                 "failed: VCF file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
-                
+
             if not os.path.isfile(self.tmp_outfile_path[:-3] + PDF):
                 raise Exception("Secondary analysis genotyper job " +
                                 "failed: PDF file not generated.")
@@ -238,13 +241,13 @@ class SaGenotyperCallable(object):
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
-def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes, 
+def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                           outfile_path, db_connector):
     """
-    Return a closure that is fired when the job finishes. This 
+    Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
-     
+
     @param uuid:         Unique job id in database
     @param exp_def_name: Experiment definition name
     @param ac_result_path: Path to assay caller result
@@ -256,8 +259,8 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
     def process_callback(future):
         try:
             _ = future.result()
-            
-            generate_plots(exp_def_name, ac_result_path, 
+
+            generate_plots(exp_def_name, ac_result_path,
                            outfile_path[:-3] + PNG, ignored_dyes)
 
             url_prefix = "http://%s/results/%s/" % (HOSTNAME, PORT)
@@ -267,8 +270,8 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             pdf_fn     = '%s.%s' % (basename, PDF)
             png_fn     = '%s.%s' % (basename, PNG)
             png_sum_fn = '%s_%s.%s' % (basename, 'sum', PNG)
-            
-            update = { "$set": { 
+
+            update = { "$set": {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  URL: url_prefix + vcf_fn,
@@ -307,7 +310,7 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                 silently_remove_file(os.path.join(dirname, pdf_fn))
                 silently_remove_file(os.path.join(dirname, png_fn))
                 silently_remove_file(os.path.join(dirname, png_sum_fn))
-         
+
     return process_callback
 
 #===============================================================================
@@ -315,4 +318,4 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
 #===============================================================================
 if __name__ == "__main__":
     function = GenotyperPostFunction()
-    print function      
+    print function

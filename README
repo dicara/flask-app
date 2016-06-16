@@ -253,3 +253,7 @@ GnuBio Flask API.
         * Added mask to variant call in genotyper
       * v1.36
         * Bugfix in bitstring conversion
+      * v1.37
+        * Fixed bug where zero barcode dye clusters effect identity confidence score
+        * Identity confidence score penalizes clusters claiming overclaimed expectation components
+        * Cluster filter uses average deviations instead of variance

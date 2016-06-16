@@ -56,7 +56,7 @@ setup(
                           'ncbi-utilities>=0.2',
                           'probe-design>=0.3',
                           'primary-analysis>=2.13',
-                          'secondary-analysis>=1.36',
+                          'secondary-analysis>=1.37',
                           'experiment-database>=0.6.1',
                           'PyPDF2>=1.25.1',
                           'reportlab>=3.3.0',

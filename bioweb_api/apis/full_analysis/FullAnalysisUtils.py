@@ -33,14 +33,15 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import utils
 
-from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, HOSTNAME, PORT
+from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, HOSTNAME, \
+     PORT, EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.io_utilities import safe_make_dirs
 from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUMENT, \
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      PF_TRAINING_FACTOR, UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
-     SUCCEEDED, REPORT_URL, SCATTER_PLOT_URL, PNG_URL, URL, PDF_URL
+     SUCCEEDED, REPORT_URL, SCATTER_PLOT_URL, PNG_URL, URL, PDF_URL, VARIANTS
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from secondary_analysis.constants import PICOINJECTION_TRAINING_FACTOR as DEFAULT_PF_TRAINING_FACTOR
@@ -50,6 +51,8 @@ from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJEC
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 from gbutils.vcf_pdf_writer import PDFWriter, FONT_NAME_STD, FONT_SIZE
 from expdb.defs import HotspotExperiment
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
+
 
 #=============================================================================
 # Local static variables
@@ -163,8 +166,15 @@ def get_variants(exp_def_name):
     """
     Return a list of variants in the experiment definition file.
     """
+    APP_LOGGER.info("Retrieving list of variants from %s" % exp_def_name)
+
     exp_def_fetcher = ExperimentDefinitions()
     exp_def_uuid = exp_def_fetcher.get_experiment_uuid(exp_def_name)
+
+    exp_def_doc = _DB_CONNECTOR.find_one(EXP_DEF_COLLECTION, UUID, exp_def_uuid)
+    if exp_def_doc is not None:
+        return exp_def_doc[VARIANTS]
+
     exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
     experiment = HotspotExperiment.from_dict(exp_def)
 
@@ -175,6 +185,8 @@ def get_variants(exp_def_name):
                                                        loc,
                                                        variant.expected,
                                                        variant.variation))
+    doc = {UUID: exp_def_uuid, VARIANTS: variant_strings}
+    _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, [doc])
     return variant_strings
 
 class MakeUnifiedPDF(PDFWriter):

@@ -257,3 +257,5 @@ GnuBio Flask API.
        * Fixed bug where zero barcode dye clusters effect identity confidence score
        * Identity confidence score penalizes clusters claiming overclaimed expectation components
        * Cluster filter uses average deviations instead of variance
+     * v3.9.1
+       * Add experiment definition collection to store variant information

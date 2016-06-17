@@ -13,7 +13,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, FA_JOB_START_DATESTAMP, URL, \
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
-    FINISH_DATESTAMP, TRAINING_FACTOR, MASK
+    FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 
@@ -255,7 +255,7 @@ class FullAnalysisWorkFlowCallable(object):
         @return:                    String, uuid of job, String, status of job
         """
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
-        mask_code = self.parameters[MASK] if MASK in self.parameters else None
+        mask_code = self.parameters[VARIANT_MASK] if VARIANT_MASK in self.parameters else None
         # create a callable and a callback
         callable = SaGenotyperCallable(assay_caller_uuid=assay_caller_uuid,
                                         exp_def_name=self.parameters[EXP_DEF],

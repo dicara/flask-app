@@ -33,7 +33,7 @@ from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     PF_TRAINING_FACTOR, UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, PF_TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
-    PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS
+    PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response, get_archive_dirs
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -89,6 +89,9 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         'Unique name for this job.',
                                                         required=True)
         cls.exp_def_param   = ParameterFactory.experiment_definition()
+        cls.mask_param     = ParameterFactory.cs_string(VARIANT_MASK,
+                                                        'Mask code for variant selection.',
+                                                        required=False)
 
         # primary analysis parameters
         cls.archives_param = ParameterFactory.cs_string(ARCHIVE,
@@ -196,7 +199,8 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ctrl_thresh,
                       cls.req_drops_param,
                       cls.exp_def_param,
-                      cls.fa_uuid_param
+                      cls.fa_uuid_param,
+                      cls.mask_param,
                      ]
         return parameters
 

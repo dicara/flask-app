@@ -23,6 +23,7 @@ limitations under the License.
 from datetime import datetime
 import json
 import os
+import re
 import time
 import unittest
 
@@ -43,6 +44,7 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
+from bioweb_api.apis.full_analysis.VariantsGetFunction import VARIANTS
 
 #=============================================================================
 # Setup Logging
@@ -71,6 +73,8 @@ _FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
 _FA_JOBNAME               = "test_full_analysis_job"
 _ARCHIVE_NAME             = "2016-04-14_1259.50-beta17"
 _EXP_DEF_NAME             = "ABL_24_V1"
+_BETA_EXP_DEF_NAME        = "Beta_24_V5"
+_ABL_EXP_DEF_NAME         = "ABL_24_V4"
 _OFFSETS                  = 30
 _PF_TRAINING_FACTOR       = 100
 _UI_THRESHOLD             = 4000
@@ -291,6 +295,38 @@ class TestFullAnalysisAPI(unittest.TestCase):
 
         os.unlink(_OUTPUT_SA_PATH)
         os.unlink(_OUTPUT_PDF_PATH)
+
+    def test_get_variants(self):
+        """
+        test VariantsGetFunction, get list of variants from an experiment definition
+        """
+        # Construct url for testing Beta definition
+        url = os.path.join("/api/v1/FullAnalysis", VARIANTS)
+        url = add_url_argument(url, EXP_DEF, _BETA_EXP_DEF_NAME, True)
+
+        response   = get_data(self, url, 200)
+        observed_variants = [ v['variant'] for v in response['Variants'] ]
+        self.assertEqual(len(observed_variants), 17)
+
+        c = re.compile('([A-Z\d\|]+).(c.[\d]+)([A-Z]+)>([A-Z]+)')
+        reference, location, expected, variation = c.match(observed_variants[0]).groups()
+        self.assertEqual(reference, 'NRAS|2|F')
+        self.assertEqual(location, 'c.34')
+        self.assertEqual(variation, 'A')
+
+        # Construct url for testing ABL definition
+        url = os.path.join("/api/v1/FullAnalysis", VARIANTS)
+        url = add_url_argument(url, EXP_DEF, _ABL_EXP_DEF_NAME, True)
+
+        response   = get_data(self, url, 200)
+        observed_variants = [ v['variant'] for v in response['Variants'] ]
+        self.assertEqual(len(observed_variants), 2)
+
+        c = re.compile('([A-Z\d\|]+).([\d]+)([A-Z]+)>([A-Z]+)')
+        reference, location, expected, variation = c.match(observed_variants[-1]).groups()
+        self.assertEqual(reference, 'ABL16')
+        self.assertEqual(location, '35')
+        self.assertEqual(variation, 'T')
 
 if __name__ == '__main__':
     unittest.main()

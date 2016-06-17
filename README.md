@@ -235,3 +235,25 @@ GnuBio Flask API.
    * Bugfix in reading incomplete run reports
  * v3.8.3
    * Simplify full analysis job name
+ * v3.9
+   * Allow analysis of a portion of hotspot panel
+   * Update secondary-analysis dependency from v1.28 to v1.33
+     * v1.29
+       * Treated cDNA and sequence location separately in assay caller plotting
+     * v1.31
+       * Density scan reachability distance calculation uses one standard deviation
+     * v1.32
+       * RemoveMin cluster filter value increased
+       * RemoveBackground filter removed
+     * v1.33
+       * Added plate count plot
+     * v1.34
+       * added first filter for for variant calls
+     * v1.35
+       * Added mask to variant call in genotyper
+     * v1.36
+       * Bugfix in bitstring conversion
+     * v1.37
+       * Fixed bug where zero barcode dye clusters effect identity confidence score
+       * Identity confidence score penalizes clusters claiming overclaimed expectation components
+       * Cluster filter uses average deviations instead of variance

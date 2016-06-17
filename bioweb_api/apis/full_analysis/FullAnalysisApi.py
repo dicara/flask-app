@@ -24,7 +24,7 @@ from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FullAnalysisPostFunction
 from bioweb_api.apis.full_analysis.FullAnalysisGetFunction import FullAnalysisGetFunction
 from bioweb_api.apis.full_analysis.FullAnalysisDeleteFunction import FullAnalysisDeleteFunction
-
+from bioweb_api.apis.full_analysis.VariantsGetFunction import VariantsGetFunction
 
 #=============================================================================
 # Class
@@ -35,28 +35,29 @@ class FullAnalysisApiV1(AbstractApiV1):
                   FullAnalysisPostFunction(),
                   FullAnalysisGetFunction(),
                   FullAnalysisDeleteFunction(),
+                  VariantsGetFunction(),
                  ]
 
     @staticmethod
     def name():
         return "FullAnalysis"
-   
+
     @staticmethod
     def description():
         return "Functions for running a full analysis of an image stack"
-    
+
     @staticmethod
     def preferred():
         return True
-    
+
     @staticmethod
     def consumes():
         return ["multipart/form-data"]
-    
+
     @property
     def functions(self):
         return self._FUNCTIONS
-    
+
 #===============================================================================
 # Run Main
 #===============================================================================

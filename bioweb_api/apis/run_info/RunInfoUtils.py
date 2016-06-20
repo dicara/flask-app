@@ -64,7 +64,10 @@ def get_run_reports():
     column_names = columns.keys()
     column_names.remove(ID)
 
-    reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {}, columns)
+    reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
+                                                         DEVICE_NAME: {'$ne': ''},
+                                                         EXP_DEF_NAME: {'$ne': None}},
+                                 columns)
 
     return (reports, column_names, None)
 
@@ -197,10 +200,9 @@ def update_run_reports():
                 doc = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
                 if doc is None: # if not exist, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)
-                    if log_data is not None:
-                        reports.append(log_data)
-
-        reports = [r for r in reports if r is not None]
+                    if log_data is None:
+                        log_data = {DATETIME: date_obj, UTAG: utag}
+                    reports.append(log_data)
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

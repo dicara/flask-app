@@ -51,7 +51,6 @@ class RunReport(object):
             self._exit_notes            = kwargs.get(EXIT_NOTES_TXT)
             self._tdi_stacks            = kwargs.get(TDI_STACKS_TXT)
         elif kwargs.get(FILE_TYPE) == 'yaml':
-
             self._run_id                = kwargs.get(RUN_ID)
             self._cartridge_sn          = kwargs.get(CARTRIDGE_SN)
             self._chip_sn               = kwargs.get(CHIP_SN)
@@ -155,5 +154,5 @@ class RunReport(object):
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
                 UTAG:               self._utag,
-                FA_UUID_MAP:           self._fa_uuid_map,
+                FA_UUID_MAP:        self._fa_uuid_map,
         }

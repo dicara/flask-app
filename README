@@ -237,7 +237,7 @@ GnuBio Flask API.
     * Simplify full analysis job name
   * v3.9
     * Allow analysis of a portion of hotspot panel
-    * Update secondary-analysis dependency from v1.28 to v1.33
+    * Update secondary-analysis dependency from v1.28 to v1.37
       * v1.29
         * Treated cDNA and sequence location separately in assay caller plotting
       * v1.31
@@ -257,5 +257,25 @@ GnuBio Flask API.
         * Fixed bug where zero barcode dye clusters effect identity confidence score
         * Identity confidence score penalizes clusters claiming overclaimed expectation components
         * Cluster filter uses average deviations instead of variance
-    * v3.9.1
-      * Add experiment definition collection to store variant information
+  * v3.9.1
+    * Add experiment definition collection to store variant information
+  * v3.10
+    * Update secondary-analysis dependency from v1.37 to v1.43
+      * v1.38
+        * added first filter for for variant calls
+        * util version bump
+      * v1.39
+        * Fixed bug where cluster plot was not saved
+        * Added drop filter that removes drops that are on the concatenated region
+        * RemoveBackground filter added
+        * Cluster filters work on messages only, filter_decomp methods are removed
+      * v1.40
+        * Update experiment-database and gbutils version
+      * v1.41
+        * Merge resolution minimum size threshold will not go below min_size global constant
+        * Cluster filter messages are more descriptive
+        * Valid potential merged renamed to valid populous
+      * v1.42
+        * vcf position to conform with standard
+      * v1.43
+        * Fix genotyper unittest

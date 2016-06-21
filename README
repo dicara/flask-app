@@ -283,3 +283,5 @@ GnuBio Flask API.
    * Avoid redundancy in reading run reports by adding invalid run reports to database
  * v3.11
    * Profile database constants are obtained from profile-db package
+ * v3.11.1
+   * Profile database requirement added to setup.py

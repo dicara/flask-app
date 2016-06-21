@@ -31,6 +31,7 @@ from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DATETIME, DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, \
     RUN_DESCRIPTION, RUN_REPORT_PATH, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS
+from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.apis.run_info.RunInfoUtils import read_report_file, \
         get_run_reports, update_run_reports
 
@@ -87,7 +88,9 @@ class TestRunReportAPI(unittest.TestCase):
         test RunInfoGetFunction
         """
         response = get_data(self, _RUN_INFO_GET_URL + '?refresh=true&format=json', 200)
-        len_expected_reports = len(_DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {}))
+        len_expected_reports = len(_DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
+                                                                              DEVICE_NAME: {'$ne': ''},
+                                                                              EXP_DEF_NAME: {'$ne': None}}))
         len_observed_reports = len(response['run_report'])
 
         msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \

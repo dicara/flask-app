@@ -279,5 +279,7 @@ GnuBio Flask API.
        * vcf position to conform with standard
      * v1.43
        * Fix genotyper unittest
-   * v3.10.1
-     * Avoid redundancy in reading run reports by adding invalid run reports to database
+ * v3.10.1
+   * Avoid redundancy in reading run reports by adding invalid run reports to database
+ * v3.11
+   * Profile database constants are obtained from profile-db package

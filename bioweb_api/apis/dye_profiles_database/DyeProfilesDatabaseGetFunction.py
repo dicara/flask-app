@@ -5,9 +5,8 @@ from collections import OrderedDict
 
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.dye_profiles_database.constants import DYE_STOCKS_COLLECTION, \
-    DYE_STOCK_UUID, CONCENTRATION_UGML, PEAK_INTENSITY, DETECTION_UUID, \
-    DETECTIONS_COLLECTION, PROFILES_COLLECTION
+from profile_database.constants import DYE_STOCKS_COLLECTION, DYE_DETECTIONS_COLLECTION, \
+    DYE_STOCK_UUID, DETECTION_UUID, DYE_PROFILES_COLLECTION, INTENSITY_CONC_RATIO
 from bioweb_api.apis.ApiConstants import ID, ERROR
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
@@ -43,7 +42,7 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
     @classmethod
     def process_request(cls, params_dict):
         dye_stock_data = cls._DB_CONNECTOR.find(DYE_STOCKS_COLLECTION, {})
-        detection_data = cls._DB_CONNECTOR.find(DETECTIONS_COLLECTION, {})
+        detection_data = cls._DB_CONNECTOR.find(DYE_DETECTIONS_COLLECTION, {})
 
         if not dye_stock_data:
             error_msg = 'Unable to retrieve dye stock data.'
@@ -55,14 +54,12 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
             APP_LOGGER.error(error_msg)
             return ([{ERROR: error_msg}], [ERROR], None)
 
-        columns                     = OrderedDict()
-        columns[PEAK_INTENSITY]     = 1
-        columns[CONCENTRATION_UGML] = 1
-        columns[DYE_STOCK_UUID]     = 1
-        columns[DETECTION_UUID]     = 1
+        columns                       = OrderedDict()
+        columns[INTENSITY_CONC_RATIO] = 1
+        columns[DYE_STOCK_UUID]       = 1
+        columns[DETECTION_UUID]       = 1
 
-
-        data = cls._DB_CONNECTOR.find(PROFILES_COLLECTION, {}, columns)
+        data = cls._DB_CONNECTOR.find(DYE_PROFILES_COLLECTION, {}, columns)
         if not data:
             error_msg = 'Unable to retrieve profiles data.'
             APP_LOGGER.error(error_msg)

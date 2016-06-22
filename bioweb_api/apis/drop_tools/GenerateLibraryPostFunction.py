@@ -61,13 +61,13 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
     
     @classmethod
     def parameters(cls):
-        cls._dyes_param      = ParameterFactory.dyes()
+        cls._dyes_lots_param = ParameterFactory.dyes_lots()
         cls._nbarcodes_param = ParameterFactory.integer(NBARCODES,
                                                 'Integer specifying the number of barcodes to generate',
                                                 required=True)
 
         parameters = [
-                      cls._dyes_param,
+                      cls._dyes_lots_param,
                       cls._nbarcodes_param,
                      ]
         return parameters

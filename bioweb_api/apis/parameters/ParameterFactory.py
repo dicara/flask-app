@@ -24,8 +24,6 @@ from bioweb_api.apis.parameters.DateParameter import DateParameter
 from bioweb_api.apis.parameters.BooleanParameter import BooleanParameter
 from bioweb_api.apis.parameters.IntegerParameter import IntegerParameter
 from bioweb_api.apis.parameters.FloatParameter import FloatParameter
-from bioweb_api.apis.parameters.SortParameter import SortParameter
-from bioweb_api.apis.parameters.UnmodifiedStringParameter import UnmodifiedStringParameter
 from bioweb_api.apis.parameters.LowerCaseStringParameter import LowerCaseStringParameter
 from bioweb_api.apis.parameters.UpperCaseStringParameter import UpperCaseStringParameter
 from bioweb_api.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
@@ -35,7 +33,7 @@ from bioweb_api.apis.parameters.MultipleValueParameter import MultipleValueParam
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
-    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES
+    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices
@@ -251,6 +249,15 @@ class ParameterFactory(object):
         description      = "Comma separated list of dye:level pairs " \
                            "(e.g. pe:5,cy5.5:4)."
         return KeyValueParameter(DYE_LEVELS, description, keys_parameter,
+                                 values_parameter, required=required)
+
+    @classmethod
+    def dyes_lots(cls, required=True):
+        keys_parameter   = cls.dyes()
+        values_parameter = cls.cs_string("name", "description")
+        description      = "Comma separated list of dye:lot# pairs " \
+                           "(e.g. pe:RPE000-15-026,cy5.5:CY5.5RP000-16-011)."
+        return KeyValueParameter(DYES_LOTS, description, keys_parameter,
                                  values_parameter, required=required)
 
     @classmethod

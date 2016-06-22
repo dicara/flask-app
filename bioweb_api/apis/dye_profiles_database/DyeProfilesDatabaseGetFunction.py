@@ -6,7 +6,7 @@ from collections import OrderedDict
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from profile_database.constants import DYE_STOCKS_COLLECTION, DYE_DETECTIONS_COLLECTION, \
-    DYE_STOCK_UUID, DETECTION_UUID, DYE_PROFILES_COLLECTION, INTENSITY_CONC_RATIO
+    DYE_STOCK_UUID, DETECTION_UUID, DYE_PROFILES_COLLECTION, INTENSITY_CONC_RATIO, UUID
 from bioweb_api.apis.ApiConstants import ID, ERROR
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
@@ -69,12 +69,12 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
         for profile in data:
             # append detection data
             for detection in detection_data:
-                if profile[DETECTION_UUID] == detection[DETECTION_UUID]:
+                if profile[DETECTION_UUID] == detection[UUID]:
                     profile.update(detection)
                     break
             # append dye stock data
             for dye_stock in dye_stock_data:
-                if profile[DYE_STOCK_UUID] == dye_stock[DYE_STOCK_UUID]:
+                if profile[DYE_STOCK_UUID] == dye_stock[UUID]:
                     profile.update(dye_stock)
                     break
 

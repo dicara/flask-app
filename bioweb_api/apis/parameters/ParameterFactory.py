@@ -253,7 +253,7 @@ class ParameterFactory(object):
 
     @classmethod
     def dyes_lots(cls, required=True):
-        keys_parameter   = cls.dyes()
+        keys_parameter   = cls.cs_string("name", "description")
         values_parameter = cls.cs_string("name", "description")
         description      = "Comma separated list of dye:lot# pairs " \
                            "(e.g. pe:RPE000-15-026,cy5.5:CY5.5RP000-16-011)."

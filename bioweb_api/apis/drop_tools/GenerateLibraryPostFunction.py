@@ -75,19 +75,19 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
     @classmethod
     def process_request(cls, params_dict):
 
-        dyes             = params_dict[cls._dyes_param]
+        dyes_lots        = params_dict[cls._dyes_lots_param]
         nbarcodes        = params_dict[cls._nbarcodes_param][0]
         http_status_code = 200
         json_response    = {
                             DATESTAMP: datetime.today(),
                            }
         try:
-            ld = LibraryDesign(dyes, nbarcodes)
-            design, dyes, levels = ld.generate()
+            ld = LibraryDesign(dyes_lots, nbarcodes)
+            design, dye_names, levels = ld.generate()
 
             json_response[NBARCODES]    = nbarcodes
             json_response['design']     = design
-            json_response['dyes']       = dyes
+            json_response['dyes']       = dye_names
             json_response['levels']     = levels
 
         except IOError:

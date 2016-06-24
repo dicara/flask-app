@@ -21,13 +21,14 @@ limitations under the License.
 # Imports
 #=============================================================================
 
+import os
 import sys
 import tempfile
 import traceback
 
 from datetime import datetime
 
-from bioweb_api import TMP_PATH
+from bioweb_api import TMP_PATH, HOSTNAME, PORT
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES, MIX_VOL, TOTAL_VOL
@@ -120,7 +121,8 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                 cg = CsvGenerator(ds_lib, pplates)
                 output_dir_path = tempfile.mkdtemp(dir=TMP_PATH, prefix='predator_files')
                 output_zip_path = cg.generate(output_path=output_dir_path)
-                json_response['zip_file'] = output_zip_path
+                json_response['predator_files_url'] = "http://%s/tmp/%s" % \
+                    (HOSTNAME, os.path.basename(output_zip_path))
 
             json_response[NBARCODES] = nbarcodes
             json_response['design']  = design

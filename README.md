@@ -285,3 +285,5 @@ GnuBio Flask API.
    * Profile database constants are obtained from profile-db package
  * v3.11.1
    * Profile database requirement added to setup.py
+ * v3.12
+   * Library design generator can create predator csv files

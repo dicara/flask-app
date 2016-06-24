@@ -174,7 +174,7 @@ class LibraryDesign(object):
         @param resolution:  Integer, the number of intensities to test per dye
         """
         # make a group of scalars for each dye (dimension)
-        scalars = [numpy.linspace(20000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
+        scalars = [numpy.linspace(10000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
 
         # create barcode profiles by summing each combination of dyes profiles
         # to find an optimal max barcode profile
@@ -184,9 +184,11 @@ class LibraryDesign(object):
                 numpy.repeat(scalar_combos, resolution, axis=0),
                 numpy.tile(scalars.pop(0), (len(scalar_combos), 1))
             ))
-
             scalar_combos = self._rm_saturated(scalar_combos)
             scalar_combos = self._rm_most_variable(scalar_combos)
+
+        if len(scalar_combos) <= 0:
+            raise Exception('A library cannot be generated from this combination of dyes.')
 
         midx = numpy.argmax(numpy.sum(scalar_combos, axis=1))
         # self.plot(scalar_combos[midx])

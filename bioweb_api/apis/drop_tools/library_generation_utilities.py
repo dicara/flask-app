@@ -103,7 +103,7 @@ class LibraryDesign(object):
                                     containing information on each dye in the design), and
                                     the input dyes and levels for each dye.
         """
-        design = list()
+        design = dict()
         for dye, nlvls in reversed(zip(self.dye_names, self.nlvls)):
             # scales are how the intensity gap between each level will scale
             # scales [1.0, 1.125, 1.25] means that the gap between the highest two
@@ -124,7 +124,7 @@ class LibraryDesign(object):
 
             # convert to ug/ml
             lvls_scaled_ug_ml = lvls_scaled_intensity / self.profiles[dye][INTENSITY_CONC_RATIO]
-            design.append({'name': dye, 'levels': ', '.join([str(round(lvl, 2)) for lvl in lvls_scaled_ug_ml])})
+            design[dye] = [lvl for lvl in lvls_scaled_ug_ml]
 
         return design, self.dye_names, map(int, self.nlvls)
 
@@ -279,11 +279,11 @@ class LibraryDesign(object):
 
 if __name__ == '__main__':
     input_requested_nbarcodes = 1024
-    input_dyes = ['cy5.5', '594', '633', 'pe-cy7', 'pe', 'alexa700']
-    input_lots = ['CY5.5000-16-009', '594000-16-009', '633000-16-009', 'PE-CY7000-16-009', 'PE000-16-009', 'AF700000-16-009']
+    input_dyes = [DYE_CY5_5, DYE_594, DYE_633, DYE_CY7, DYE_PE, DYE_ALEXA700]
+    input_lots = ['CY5.5RP000-16-011', 'DY594RPE000-15-006', 'DY633RPE000-13-007', 'CY7RPE000-16-010', 'RPE000-15-026', 'DYAF7RPE000-15-002']
 
     ld = LibraryDesign(list(zip(input_dyes, input_lots)), input_requested_nbarcodes)
     design, dyes, levels = ld.generate()
 
-    for dye in design:
-        print '%s: [%s]' % (dye['name'], dye['levels'],)
+    for dye, lvls in design.items():
+        print '%s: %s' % (dye, [round(l, 2) for l in lvls],)

@@ -3,56 +3,92 @@ import itertools
 from matplotlib import pyplot as plt
 import numpy
 
-from primary_analysis.dye_datastore import Datastore
+from profile_database.datastore import Datastore
+from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
+    DETECTION_UUID, INTENSITY_CONC_RATIO, DYE_594, DYE_CY5_5, DYE_PE, \
+    DYE_ALEXA700, DYE_633, DYE_CY7, DYE_FAM, DYE_JOE
 
 # the minimum and maximum number of dyes
 MIN_NDYES  = 1
-MAX_NDYES  = 5
+MAX_NDYES  = 6
 SATURATION_CAP = 65535
 MAX_INTEN = {
-    'pe-cy7': 30000,
-    'cy5.5':  SATURATION_CAP,
-    '633':    SATURATION_CAP,
-    '594':    SATURATION_CAP,
-    'pe':     30000,
+    DYE_CY7: 30000,
+    DYE_CY5_5: SATURATION_CAP,
+    DYE_633: SATURATION_CAP,
+    DYE_594: SATURATION_CAP,
+    DYE_PE: 30000,
+    DYE_ALEXA700: SATURATION_CAP,
 }
+
 MIN_INTEN = 3000
 # the minimum number of levels per barcode dye, must be at least two
 MIN_NLEVELS = 2
 
 # based on pdms chip data, 40 mW laser power, Gain 0
-BARCODE_DYES = {
-    'pe-cy7': {'max_nlvls': 3, 'intensity_ugml': 1550.0},
-    'cy5.5':  {'max_nlvls': 4, 'intensity_ugml': 3646.7},
-    '633':    {'max_nlvls': 3, 'intensity_ugml': 1666.0},
-    '594':    {'max_nlvls': 4, 'intensity_ugml': 3500.7},
-    'pe':     {'max_nlvls': 2, 'intensity_ugml': 8333.3},
+MAX_NLEVELS = {
+    DYE_CY7: 4,
+    DYE_CY5_5: 4,
+    DYE_633: 4,
+    DYE_594: 4,
+    DYE_PE: 2,
+    DYE_ALEXA700: 2,
 }
 
 # Define a preferred order from the dyes that you would prefer to have the
 # least levels and those that you would prefer to have the most levels.
 # In this case 594 is at the end indicating that it is preferred to have
 # the most levels (if needed).
-PREFERED_ORDER = ['pe', 'pe-cy7', '633', 'cy5.5', '594']
+PREFERED_ORDER = [DYE_ALEXA700, DYE_PE, DYE_CY7, DYE_633, DYE_CY5_5, DYE_594]
 
 
 class LibraryDesign(object):
-    def __init__(self, dyes, requested_nbarcodes):
+    def __init__(self, dyes_lots, requested_nbarcodes):
         # change the order based on preferred order
-        self.dyes = [dye for dye in PREFERED_ORDER if dye in dyes]
-        self._validate_dyes()
+        self.dyes_lots = dyes_lots
+        self._validate_dyes_lots()
+
+        # sort dyes by preferred order
+        self.dyes_lots.sort(key=lambda x: dict(zip(PREFERED_ORDER, range(len(PREFERED_ORDER))))[x[0]])
+        self.dye_names = [dname for dname, _ in self.dyes_lots]
+        self.lot_numbers = [lot_number for _, lot_number in self.dyes_lots]
 
         self.requested_nbarcodes = requested_nbarcodes
-        self.profiles = Datastore().dye_map()
+        self.profiles = self.get_profiles()
+
         # fam and joe usually emit a maximum of 15000 intensity units
-        self.fam_profile = numpy.array(self.profiles['fam']) * 15000
-        self.joe_profile = numpy.array(self.profiles['joe']) * 15000
+        self.fam_profile = numpy.array(self.profiles[DYE_FAM][PROFILE]) * 15000
+        self.joe_profile = numpy.array(self.profiles[DYE_JOE][PROFILE]) * 15000
 
         self.nlvls = None
         self.dye_max_intensities = None
 
         self._get_nlevels()
         self._get_max_intensities()
+
+    def get_profiles(self):
+        """
+        @return:    Dictionary, key is dye name, value is array of normalized
+                    drop profile.
+        """
+        profiles = dict()
+        detection_uuids = set([])
+        db_profiles = Datastore().get_profiles()
+        db_profiles.sort(key=lambda  x:x[DETECTION_UUID])
+        for profile in db_profiles:
+            if (profile[DYE_NAME], profile[LOT_NUMBER],) in self.dyes_lots:
+                detection_uuids.add(profile[DETECTION_UUID])
+                profiles[profile[DYE_NAME]] = {PROFILE: profile[PROFILE],
+                                               INTENSITY_CONC_RATIO: profile[INTENSITY_CONC_RATIO]}
+            elif profile[DYE_NAME] in [DYE_JOE, DYE_FAM]:
+                profiles[profile[DYE_NAME]] = {PROFILE: profile[PROFILE],
+                                               INTENSITY_CONC_RATIO: profile[INTENSITY_CONC_RATIO]}
+
+        # all profiles for a library design must come from a single detection
+        if len(detection_uuids) > 1:
+            raise Exception('All dye profiles must come from a single detection.')
+
+        return profiles
 
     def generate(self, intensity_scaler=1.25):
         """
@@ -67,8 +103,8 @@ class LibraryDesign(object):
                                     containing information on each dye in the design), and
                                     the input dyes and levels for each dye.
         """
-        design = list()
-        for dye, nlvls in reversed(zip(self.dyes, self.nlvls)):
+        design = dict()
+        for dye, nlvls in reversed(zip(self.dye_names, self.nlvls)):
             # scales are how the intensity gap between each level will scale
             # scales [1.0, 1.125, 1.25] means that the gap between the highest two
             # levels is 1.25 times greater than the gap between the lowest two levels
@@ -87,10 +123,10 @@ class LibraryDesign(object):
             lvls_scaled_intensity = numpy.cumsum(numpy.concatenate(([MIN_INTEN], scaled_intensity_spaces)))
 
             # convert to ug/ml
-            lvls_scaled_ug_ml = lvls_scaled_intensity / BARCODE_DYES[dye]['intensity_ugml']
-            design.append({'name': dye, 'levels': ', '.join([str(round(lvl, 2)) for lvl in lvls_scaled_ug_ml])})
+            lvls_scaled_ug_ml = lvls_scaled_intensity / self.profiles[dye][INTENSITY_CONC_RATIO]
+            design[dye] = [lvl for lvl in lvls_scaled_ug_ml]
 
-        return design, self.dyes, map(int, self.nlvls)
+        return design, self.dye_names, map(int, self.nlvls)
 
     def _rm_saturated(self, scalar_combos):
         """
@@ -101,7 +137,7 @@ class LibraryDesign(object):
         """
         # use default dye map, it should have all barcode dyes by default
         ndims = scalar_combos.shape[1]
-        dye_profs = numpy.array([self.profiles[dye] for dye in self.dyes[:ndims]])
+        dye_profs = numpy.array([self.profiles[dye][PROFILE] for dye in self.dye_names[:ndims]])
 
         barcode_profs = numpy.sum(scalar_combos.reshape(-1, ndims, 1) * dye_profs, axis=1)
         barcode_profs += self.fam_profile
@@ -138,7 +174,7 @@ class LibraryDesign(object):
         @param resolution:  Integer, the number of intensities to test per dye
         """
         # make a group of scalars for each dye (dimension)
-        scalars = [numpy.linspace(20000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dyes]
+        scalars = [numpy.linspace(10000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
 
         # create barcode profiles by summing each combination of dyes profiles
         # to find an optimal max barcode profile
@@ -148,32 +184,39 @@ class LibraryDesign(object):
                 numpy.repeat(scalar_combos, resolution, axis=0),
                 numpy.tile(scalars.pop(0), (len(scalar_combos), 1))
             ))
-
             scalar_combos = self._rm_saturated(scalar_combos)
             scalar_combos = self._rm_most_variable(scalar_combos)
+
+        if len(scalar_combos) <= 0:
+            raise Exception('A library cannot be generated from this combination of dyes.')
 
         midx = numpy.argmax(numpy.sum(scalar_combos, axis=1))
         # self.plot(scalar_combos[midx])
 
-        self.dye_max_intensities = dict(zip(self.dyes, scalar_combos[midx]))
+        self.dye_max_intensities = dict(zip(self.dye_names, scalar_combos[midx]))
 
-    def _validate_dyes(self):
+    def _validate_dyes_lots(self):
         """
         Check the users input for invalid dyes
         """
-        if not self.dyes:
+        if not self.dyes_lots:
             raise Exception('No dyes were entered.')
 
-        if len(set(self.dyes)) != len(self.dyes):
-            raise Exception('Duplicate dye entries found.')
+        dye_names = [dname for dname, _ in self.dyes_lots]
+        lot_numbers = [lot_number for _, lot_number in self.dyes_lots]
+        if len(set(dye_names)) != len(dye_names):
+            raise Exception('Duplicate dye names were found.')
 
-        if not (MIN_NDYES <= len(self.dyes) <= MAX_NDYES):
+        if len(set(lot_numbers)) != len(lot_numbers):
+            raise Exception('Duplicate lot numbers were found.')
+
+        if not (MIN_NDYES <= len(dye_names) <= MAX_NDYES):
             raise Exception('The number of dyes must be between %d and %d.' %
                             (MIN_NDYES, MAX_NDYES))
 
-        for dye in self.dyes:
-            if dye not in BARCODE_DYES:
-                raise Exception('%s is not a valid dye.' % str(dye))
+        for dname in dye_names:
+            if dname not in MAX_NLEVELS:
+                raise Exception('%s is not a valid dye.' % str(dname))
 
     def _get_nlevels(self):
         """
@@ -185,7 +228,7 @@ class LibraryDesign(object):
                     levels of each dye, order corresponds to
                     the order of the dyes entered by the user.
         """
-        dye_lvls = [range(MIN_NLEVELS, BARCODE_DYES[dye]['max_nlvls'] + 1) for dye in self.dyes]
+        dye_lvls = [range(MIN_NLEVELS, MAX_NLEVELS[dye] + 1) for dye in self.dye_names]
         dye_lvl_combinations = numpy.array(list(itertools.product(*dye_lvls)))
 
         nbarcodes = numpy.product(dye_lvl_combinations, axis=1)
@@ -203,15 +246,15 @@ class LibraryDesign(object):
 
         @param scalers: A list of integers used to scale each dye
         """
-        dye_profiles = numpy.array([self.profiles[dye] for dye in self.dyes])
+        dye_profiles = numpy.array([self.profiles[dye][PROFILE] for dye in self.dye_names])
         max_profile = list()
-        for dye, prof, lvls, scalar in zip(self.dyes, dye_profiles, self.nlvls, scalers):
+        for dye, prof, lvls, scalar in zip(self.dye_names, dye_profiles, self.nlvls, scalers):
             dye_profile_scaled = numpy.array(prof) * scalar
             label = '%s (%d levels)' % (dye, lvls)
             plt.plot(range(len(prof)), dye_profile_scaled, label=label)
             max_profile.append(dye_profile_scaled)
-        plt.plot(range(len(self.fam_profile)), self.fam_profile, label='fam')
-        plt.plot(range(len(self.joe_profile)), self.joe_profile, label='joe')
+        plt.plot(range(len(self.fam_profile)), self.fam_profile, label=DYE_FAM)
+        plt.plot(range(len(self.joe_profile)), self.joe_profile, label=DYE_JOE)
         max_profile.append(self.joe_profile)
         max_profile.append(self.fam_profile)
 
@@ -228,7 +271,7 @@ class LibraryDesign(object):
         @return:        A csv string.
         """
         delimiter = ','
-        header = delimiter.join(self.dyes)
+        header = delimiter.join(self.dye_names)
         rows = [header]
         for row in itertools.product(*[range(l) for l in self.nlvls]):
             rows.append(delimiter.join(map(str, row)))
@@ -237,13 +280,12 @@ class LibraryDesign(object):
 
 
 if __name__ == '__main__':
-    # input_requested_nbarcodes = 24
-    # input_dyes = ['cy5.5', '594', '633']
-    input_requested_nbarcodes = 288
-    input_dyes = ['cy5.5', '594', '633', 'pe-cy7', 'pe']
+    input_requested_nbarcodes = 1024
+    input_dyes = [DYE_CY5_5, DYE_594, DYE_633, DYE_CY7, DYE_PE, DYE_ALEXA700]
+    input_lots = ['CY5.5RP000-16-011', 'DY594RPE000-15-006', 'DY633RPE000-13-007', 'CY7RPE000-16-010', 'RPE000-15-026', 'DYAF7RPE000-15-002']
 
-    ld = LibraryDesign(input_dyes, input_requested_nbarcodes)
+    ld = LibraryDesign(list(zip(input_dyes, input_lots)), input_requested_nbarcodes)
     design, dyes, levels = ld.generate()
 
-    for dye in design:
-        print '%s: [%s]' % (dye['name'], dye['levels'],)
+    for dye, lvls in design.items():
+        print '%s: %s' % (dye, [round(l, 2) for l in lvls],)

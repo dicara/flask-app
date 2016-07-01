@@ -287,3 +287,22 @@ GnuBio Flask API.
    * Profile database requirement added to setup.py
  * v3.12
    * Library design generator can create predator csv files
+ * v3.13
+   * Update secondary-analysis to v1.47
+     * v1.44
+       * Removed random sampling of drops for training decomposition filters in identity
+     * v1.45
+       * VCF symbol for deletion and insertion
+     * v1.46
+       * Added picoinjection GMM filter
+       * Picoinjection KDE filter improvements
+       * Picoinjection filters use training size instead of training factor
+       * Identity output plot randomly samples data
+     * v1.47
+       * identity assigns ids and confidence scores using standard euclidean distance
+       * bug fix where resolved merged clusters were not given a cluster id
+       * remove nonpico cluster filter removes clusters with greater than 4.0 standard euclidean distance
+       * bug fix were dyes used to make cluster plate plots were not sorted in alphabetical order
+       * average intensities of levels added to run report
+       * bug fix in secondary analysis command line
+       * id confidence added to output text file

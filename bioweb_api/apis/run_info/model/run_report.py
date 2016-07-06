@@ -38,7 +38,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
 # Classes
 #=============================================================================
 
-class RunReport(object):
+class RunReportWebUI(object):
     def __init__(self, datetime, utag, run_id, cartridge_sn, chip_sn, run_description,
                  user_list, reagent_info, chip_rev, exp_def_name, device_name,
                  exit_notes, tdi_stacks):

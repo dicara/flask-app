@@ -306,3 +306,5 @@ GnuBio Flask API.
        * average intensities of levels added to run report
        * bug fix in secondary analysis command line
        * id confidence added to output text file
+  * v3.14
+    * Let RunInfoAPI handle run_info.yaml generated from ClientUI

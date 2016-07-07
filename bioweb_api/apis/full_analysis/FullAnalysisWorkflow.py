@@ -262,7 +262,8 @@ class FullAnalysisWorkFlowCallable(object):
                                         required_drops=self.parameters[REQUIRED_DROPS],
                                         db_connector=self.db_connector,
                                         job_name=job_name,
-                                        mask_code=mask_code)
+                                        mask_code=mask_code,
+                                        combine_alleles=True)
         callback = gt_make_process_callback(uuid=callable.uuid,
                                             exp_def_name=self.parameters[EXP_DEF],
                                             ac_result_path=callable.ac_result_path,

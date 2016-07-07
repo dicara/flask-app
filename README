@@ -306,5 +306,39 @@ GnuBio Flask API.
        * average intensities of levels added to run report
        * bug fix in secondary analysis command line
        * id confidence added to output text file
-  * v3.14
-    * Let RunInfoAPI handle run_info.yaml generated from ClientUI
+ * v3.14
+   * Let RunInfoAPI handle run_info.yaml generated from ClientUI
+   * Update secondary-analysis to v1.50
+     * v1.48
+       * Restrict identity to using only a single subprocess
+     * v1.49
+       * Predator plate map plot refactored into separate module
+       * Cluster size plot refactored into separate module
+       * drops are assigned base on standardized euclidean
+     * v1.50
+       * Combine alleles in VCF
+   * Update experiment-database to v0.8.2
+     * v0.7
+       * Added validator for HotspotExperiment object
+     * v0.7.1
+       * Minor bugfix on genomic locations
+       * Enable checking if variants refer to the same mutation
+     * v0.8
+       * Added uuid, reference name, chromosome, and genome locations to Variant object
+       * Implemented functions for grouping variants based on mutation region and type
+     * v0.8.1
+       * Added strand to Variant object
+     * v0.8.2
+       * Minor change in get_variants
+   * Update gbutils to v1.5
+     * v1.4
+       * write real filter information
+     * v1.4.1
+       * update test
+     * v1.4.2
+       * update test
+     * v1.5
+       * Update VCF writer
+         * Limit digits of float numbers
+         * Convert depth to integer
+         * Remove PC and CO fields

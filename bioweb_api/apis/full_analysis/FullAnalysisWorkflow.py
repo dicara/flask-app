@@ -6,7 +6,7 @@ from uuid import uuid4
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
-    MAJOR, MINOR, USE_IID, DYES, DEVICE, ARCHIVE, UUID, JOB_NAME, PF_TRAINING_FACTOR, \
+    MAJOR, MINOR, USE_IID, DYES, DEVICE, ARCHIVE, UUID, JOB_NAME, \
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, AC_TRAINING_FACTOR, REQUIRED_DROPS, EXP_DEF, JOB_TYPE_NAME, JOB_TYPE, \
     STATUS, JOB_STATUS, START_DATESTAMP, SUCCEEDED, PA_PROCESS_UUID, CTRL_THRESH, \
@@ -164,7 +164,6 @@ class FullAnalysisWorkFlowCallable(object):
                                     dye_levels=self.parameters[DYE_LEVELS],
                                     ignored_dyes=self.parameters[IGNORED_DYES],
                                     filtered_dyes=self.parameters[FILTERED_DYES],
-                                    prefilter_tf=self.parameters[PF_TRAINING_FACTOR],
                                     ui_threshold=self.parameters[UI_THRESHOLD],
                                     db_connector=self.db_connector,
                                     job_name=job_name)
@@ -179,7 +178,6 @@ class FullAnalysisWorkFlowCallable(object):
                                  {"$set": {ID_DOCUMENT: {START_DATESTAMP: datetime.today(),
                                                          SA_IDENTITY_UUID: callable.uuid,
                                                          TRAINING_FACTOR: self.parameters[ID_TRAINING_FACTOR],
-                                                         PF_TRAINING_FACTOR: self.parameters[PF_TRAINING_FACTOR],
                                                          UI_THRESHOLD: self.parameters[UI_THRESHOLD]}}})
 
         # run identity job
@@ -190,7 +188,7 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from identity
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, PF_TRAINING_FACTOR, UI_THRESHOLD]
+                FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

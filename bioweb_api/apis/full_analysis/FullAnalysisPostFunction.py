@@ -30,8 +30,8 @@ from bioweb_api import FA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, FIDUCIAL_DYE, STATUS, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
-    PF_TRAINING_FACTOR, UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, \
-    NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, PF_TRAINING_FACTOR_DESCRIPTION, \
+    UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, \
+    NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
     PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
@@ -41,7 +41,7 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from primary_analysis.dye_model import DEFAULT_OFFSETS
-from secondary_analysis.constants import PICOINJECTION_TRAINING_FACTOR
+
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import ASSAY_DYE as DEFAULT_ASSAY_DYE
@@ -143,11 +143,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                    minimum=1,
                                                    required=False,
                                                    default=DEFAULT_ID_TRAINING_FACTOR,)
-        cls.prefilter_tf_param  = ParameterFactory.integer(PF_TRAINING_FACTOR,
-                                                PF_TRAINING_FACTOR_DESCRIPTION,
-                                                minimum=0,
-                                                required=False,
-                                                default=PICOINJECTION_TRAINING_FACTOR,)
         cls.ui_threshold_param  = ParameterFactory.float(UI_THRESHOLD,
                                                       UI_THRESHOLD_DESCRIPTION,
                                                       minimum=0.0,
@@ -193,7 +188,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
                       cls.filtered_dyes_param,
-                      cls.prefilter_tf_param,
                       cls.ui_threshold_param,
                       cls.ac_training_param,
                       cls.ctrl_thresh,

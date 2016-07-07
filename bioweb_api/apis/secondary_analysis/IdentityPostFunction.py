@@ -42,13 +42,13 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, REPORT, \
+    IGNORED_DYES, UI_THRESHOLD, REPORT, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
-    PF_TRAINING_FACTOR_DESCRIPTION, UI_THRESHOLD_DESCRIPTION
+    UI_THRESHOLD_DESCRIPTION
 
 
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
-    UNINJECTED_THRESHOLD, PICOINJECTION_TRAINING_FACTOR
+    UNINJECTED_THRESHOLD
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
 
@@ -117,10 +117,6 @@ class IdentityPostFunction(AbstractPostFunction):
                                                        required=False)
         cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
                                                         required=False)
-        cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
-                                                PF_TRAINING_FACTOR_DESCRIPTION,
-                                                default=PICOINJECTION_TRAINING_FACTOR, 
-                                                minimum=0)
         cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
                                                       UI_THRESHOLD_DESCRIPTION,
                                                       default=UNINJECTED_THRESHOLD,
@@ -136,7 +132,6 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
                       cls.filtered_dyes_param,
-                      cls.prefilter_tf_param,
                       cls.ui_threshold_param,
                      ]
         return parameters
@@ -164,7 +159,6 @@ class IdentityPostFunction(AbstractPostFunction):
         if cls.ignored_dyes_param in params_dict:
             ignored_dyes = params_dict[cls.ignored_dyes_param]
 
-        prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
 
         json_response = {IDENTITY: []}
@@ -210,7 +204,6 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       dye_levels,
                                                       ignored_dyes,
                                                       filtered_dyes,
-                                                      prefilter_tf,
                                                       ui_threshold,
                                                       cls._DB_CONNECTOR,
                                                       job_name)
@@ -249,7 +242,7 @@ class SaIdentityCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
-                 fiducial_dye, dye_levels, ignored_dyes, filtered_dyes, prefilter_tf,
+                 fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, db_connector, job_name):
 
 
@@ -287,7 +280,6 @@ class SaIdentityCallable(object):
         self.fiducial_dye          = fiducial_dye
         self.ignored_dyes          = ignored_dyes
         self.filtered_dyes         = filtered_dyes
-        self.prefilter_tf          = prefilter_tf
         self.ui_threshold          = ui_threshold
         self.db_connector          = db_connector
         self.job_name              = job_name
@@ -305,7 +297,6 @@ class SaIdentityCallable(object):
                         DYE_LEVELS: self.dye_levels,
                         IGNORED_DYES: ignored_dyes,
                         FILTERED_DYES: filtered_dyes,
-                        PF_TRAINING_FACTOR: prefilter_tf,
                         UI_THRESHOLD: ui_threshold,
                         UUID: self.uuid,
                         PA_PROCESS_UUID: primary_analysis_doc[UUID],
@@ -339,7 +330,6 @@ class SaIdentityCallable(object):
                                            show_figure=False, 
                                            ignored_dyes=self.ignored_dyes,
                                            filtered_dyes=self.filtered_dyes,
-                                           picoinjection_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
                                            require_perfect_id=False)
             if not os.path.isfile(self.tmp_outfile_path):

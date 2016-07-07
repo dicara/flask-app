@@ -308,7 +308,7 @@ GnuBio Flask API.
        * id confidence added to output text file
  * v3.14
    * Let RunInfoAPI handle run_info.yaml generated from ClientUI
-   * Update secondary-analysis to v1.50
+   * Update secondary-analysis to v1.51
      * v1.48
        * Restrict identity to using only a single subprocess
      * v1.49
@@ -317,6 +317,8 @@ GnuBio Flask API.
        * drops are assigned base on standardized euclidean
      * v1.50
        * Combine alleles in VCF
+     * v1.51
+       * Bug fix: Cluster is assigned based on standardized euclidean, drop reachability is determined using euclidean
    * Update experiment-database to v0.8.2
      * v0.7
        * Added validator for HotspotExperiment object

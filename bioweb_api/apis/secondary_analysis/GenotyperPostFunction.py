@@ -172,7 +172,8 @@ class SaGenotyperCallable(object):
     Callable that executes the genotyper command.
     """
     def __init__(self, assay_caller_uuid, exp_def_name,
-                 required_drops, db_connector, job_name, mask_code=None):
+                 required_drops, db_connector, job_name, mask_code=None,
+                 combine_alleles=False):
 
         assay_caller_doc = db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, assay_caller_uuid)
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, assay_caller_doc[SA_IDENTITY_UUID])
@@ -189,6 +190,7 @@ class SaGenotyperCallable(object):
         self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
         self.mask_code        = mask_code
+        self.combine_alleles  = combine_alleles
         self.tmp_path         = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path = os.path.join(self.tmp_path, self.uuid + ".%s" % VCF)
         self.document = {
@@ -224,7 +226,8 @@ class SaGenotyperCallable(object):
                               required_drops=self.required_drops,
                               in_file=self.ac_result_path,
                               ignored_dyes=self.ignored_dyes,
-                              mask_code=self.mask_code)
+                              mask_code=self.mask_code,
+                              combine_alleles=self.combine_alleles)
 
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis genotyper job " +

@@ -1,0 +1,41 @@
+cartridge_bc:
+  app_type: 1-xxx
+  catalog_num: 000-0000
+  exp_date: '20160627'
+  gnubio_part_type: C
+  internal_part_num: P00000000r0
+  lot_num: 20MAY2016
+  mfg_date: '20160527'
+  serial_num: S0032488
+chip_rev: R6
+device_name: pilot3
+exit_notes: exit notes
+exp_def: Beta_24_V5
+exp_def_uuid: cdeb1d6d-6a1e-40aa-8653-e6b04997b7aa
+kit_bc:
+  app_type: 1-2
+  catalog_num: 000-0000
+  cust_app_name: Beta kit 2016 May
+  exp_date: '20161209'
+  exp_def: y63
+  gnubio_part_type: K
+  internal_part_num: P0010087r1
+  lot_num: '003'
+  mfg_date: '20160609'
+  serial_num: S0000000
+mcp_mode: FullManual
+run_id: id1467380735
+sample_name: testname
+sample_type: test type
+syringe_bc:
+  app_type: 1-2
+  catalog_num: 000-0000
+  cust_app_name: Beta kit 2016 May
+  exp_date: '20160707'
+  exp_def: IuA
+  gnubio_part_type: S
+  internal_part_num: P0000000r0
+  lot_num: 07JUNNoQC
+  mfg_date: '20160607'
+  serial_num: S0032128
+tdi_stacks: []

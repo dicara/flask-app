@@ -33,8 +33,8 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
-    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP
-from bioweb_api.apis.run_info.model.run_report import RunReport
+    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME
+from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
 
@@ -58,6 +58,7 @@ def get_run_reports():
     columns[DEVICE_NAME]        = 1
     columns[EXP_DEF_NAME]       = 1
     columns[RUN_DESCRIPTION]    = 1
+    columns[SAMPLE_NAME]        = 1
     columns[IMAGE_STACKS]       = 1
     columns[FA_UUID_MAP]        = 1
 
@@ -110,8 +111,8 @@ def read_report_file_txt(report_file, date_obj, utag):
                         data[key] = value
                 except:
                     continue
-        report_obj = RunReport(**data)
-        return report_obj.to_dict
+        report_obj = RunReportWebUI.from_dict(**data)
+        return report_obj.as_dict()
     except IOError as e:
         APP_LOGGER.error("IOError raised: %s" % e)
         return None
@@ -134,11 +135,16 @@ def read_report_file_yaml(report_file, date_obj, utag):
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
         data[USER] = [strip_str(user) for user in data[USER].split(',')]
-        report_obj = RunReport(**data)
-        return report_obj.to_dict
+        report_obj = RunReportWebUI.from_dict(**data)
+        return report_obj.as_dict()
     except KeyError as e:
-        APP_LOGGER.error("KeyError raised: %s" % e)
-        return None
+        APP_LOGGER.info("Try making RunReportClientUI object from YAML file, %s"
+                        % report_file)
+        try:
+            report_obj = RunReportClientUI.from_dict(**data)
+            return report_obj.as_dict()
+        except:
+            return None
     except IOError as e:
         APP_LOGGER.error("IOError raised: %s" % e)
         return None

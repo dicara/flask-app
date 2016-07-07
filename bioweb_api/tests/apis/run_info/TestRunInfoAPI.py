@@ -30,7 +30,10 @@ from bioweb_api.tests.test_utils import get_data
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DATETIME, DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, \
-    RUN_DESCRIPTION, RUN_REPORT_PATH, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS
+    RUN_DESCRIPTION, RUN_REPORT_PATH, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
+    CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
+    APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
+    CUSTOMER_APP_NAME
 from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.apis.run_info.RunInfoUtils import read_report_file, \
         get_run_reports, update_run_reports
@@ -42,6 +45,7 @@ _TEST_DIR                   = os.path.abspath(os.path.dirname(__file__))
 _DB_CONNECTOR               = DbConnector.Instance()
 _RUN_REPORT_TXTFILE         = 'run_info.txt'
 _RUN_REPORT_YAMLFILE        = 'run_info.yaml'
+_RUN_REPORT_CLIENTUI        = 'run_info_clientUI.yaml'
 _RUN_INFO_URL               = '/api/v1/RunInfo'
 _RUN_INFO_GET_URL           = os.path.join(_RUN_INFO_URL, 'run_report')
 
@@ -82,6 +86,27 @@ class TestRunReportAPI(unittest.TestCase):
         self.assertEqual(report_doc[CARTRIDGE_SN], 'S0029859')
         self.assertEqual(report_doc[REAGENT_INFO], 'abl24')
         self.assertEqual(report_doc[RUN_DESCRIPTION], 'software')
+
+    def test_read_yaml_clientui(self):
+        """
+        test reading a yaml file generated from Client UI
+        """
+        datetime_obj = datetime.datetime.today()
+        report_file = os.path.join(_TEST_DIR, _RUN_REPORT_CLIENTUI)
+        report_doc = read_report_file(report_file, datetime_obj, 'test')
+
+        self.assertIn(CARTRIDGE_BC, report_doc)
+        self.assertIn(KIT_BC, report_doc)
+        self.assertIn(SYRINGE_BC, report_doc)
+        self.assertIn(MCP_MODE, report_doc)
+        self.assertIn(SAMPLE_NAME, report_doc)
+        self.assertIn(SAMPLE_TYPE, report_doc)
+        self.assertEqual(report_doc[CARTRIDGE_BC][APP_TYPE], '1-xxx')
+        self.assertEqual(report_doc[CARTRIDGE_BC][LOT_NUM], '20MAY2016')
+        self.assertEqual(report_doc[KIT_BC][CUSTOMER_APP_NAME], 'Beta kit 2016 May')
+        self.assertEqual(report_doc[KIT_BC][MANUFACTURE_DATE], '20160609')
+        self.assertEqual(report_doc[SYRINGE_BC][INTERNAL_PART_NUM], 'P0000000r0')
+        self.assertEqual(report_doc[SYRINGE_BC][SERIAL_NUM], 'S0032128')
 
     def test_get_run_info(self):
         """

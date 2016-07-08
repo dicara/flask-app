@@ -6,7 +6,8 @@ import numpy
 from profile_database.datastore import Datastore
 from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
     DETECTION_UUID, INTENSITY_CONC_RATIO, DYE_594, DYE_CY5_5, DYE_PE, \
-    DYE_ALEXA700, DYE_633, DYE_CY7, DYE_FAM, DYE_JOE
+    DYE_ALEXA700, DYE_633, DYE_CY7, DYE_FAM, DYE_JOE, DYE_ALEXA660, \
+    DYE_DYLIGHT594, DYE_DYLIGHT633
 
 # the minimum and maximum number of dyes
 MIN_NDYES  = 1
@@ -19,6 +20,9 @@ MAX_INTEN = {
     DYE_594: SATURATION_CAP,
     DYE_PE: 30000,
     DYE_ALEXA700: SATURATION_CAP,
+    DYE_DYLIGHT594: SATURATION_CAP,
+    DYE_ALEXA660: SATURATION_CAP,
+    DYE_DYLIGHT633: SATURATION_CAP,
 }
 
 MIN_INTEN = 3000
@@ -33,13 +37,26 @@ MAX_NLEVELS = {
     DYE_594: 4,
     DYE_PE: 2,
     DYE_ALEXA700: 2,
+    DYE_DYLIGHT594: 4,
+    DYE_ALEXA660: 4,
+    DYE_DYLIGHT633: 4,
 }
 
 # Define a preferred order from the dyes that you would prefer to have the
 # least levels and those that you would prefer to have the most levels.
 # In this case 594 is at the end indicating that it is preferred to have
 # the most levels (if needed).
-PREFERED_ORDER = [DYE_ALEXA700, DYE_PE, DYE_CY7, DYE_633, DYE_CY5_5, DYE_594]
+PREFERED_ORDER = [
+    DYE_ALEXA700,
+    DYE_PE,
+    DYE_CY7,
+    DYE_DYLIGHT633,
+    DYE_633,
+    DYE_ALEXA660,
+    DYE_CY5_5,
+    DYE_DYLIGHT594,
+    DYE_594,
+]
 
 
 class LibraryDesign(object):

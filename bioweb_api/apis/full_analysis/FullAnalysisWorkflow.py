@@ -172,6 +172,7 @@ class FullAnalysisWorkFlowCallable(object):
                                             outfile_path=callable.outfile_path,
                                             plot_path=callable.plot_path,
                                             report_path=callable.report_path,
+                                            plate_plot_path=callable.plate_plot_path,
                                             db_connector=self.db_connector)
 
         # enter identity uuid into full analysis database entry

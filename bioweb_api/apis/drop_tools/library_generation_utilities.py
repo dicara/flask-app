@@ -3,6 +3,7 @@ import itertools
 from matplotlib import pyplot as plt
 import numpy
 
+from bioweb_api import HOSTNAME
 from profile_database.datastore import Datastore
 from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
     DETECTION_UUID, INTENSITY_CONC_RATIO, DYE_594, DYE_CY5_5, DYE_PE, \
@@ -90,7 +91,7 @@ class LibraryDesign(object):
         """
         profiles = dict()
         detection_uuids = set([])
-        db_profiles = Datastore().get_profiles()
+        db_profiles = Datastore(url=HOSTNAME).get_profiles()
         db_profiles.sort(key=lambda  x:x[DETECTION_UUID])
         for profile in db_profiles:
             if (profile[DYE_NAME], profile[LOT_NUMBER],) in self.dyes_lots:

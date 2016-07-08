@@ -344,3 +344,6 @@ GnuBio Flask API.
          * Limit digits of float numbers
          * Convert depth to integer
          * Remove PC and CO fields
+  * v3.15
+    * Update experiment-database to v0.8.5
+    * Update secondary-analysis to v1.53

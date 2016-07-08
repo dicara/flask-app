@@ -1,8 +1,7 @@
 #=============================================================================
 # Imports
 #=============================================================================
-from collections import OrderedDict
-
+from bioweb_api import HOSTNAME
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from profile_database.constants import DYE_STOCK_UUID, DETECTION_UUID, \
@@ -42,7 +41,7 @@ class DyeProfilesDatabaseGetFunction(AbstractGetFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        data = Datastore().get_profiles()
+        data = Datastore(url=HOSTNAME).get_profiles()
 
         # remove uuids and mongo ids
         unneeded_ids = [DETECTION_UUID, DYE_STOCK_UUID]

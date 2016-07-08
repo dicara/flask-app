@@ -101,6 +101,7 @@ CHR_STOP         = "chr_stop"
 CTRL_THRESH      = "ctrl_thresh"
 CONFIG           = "config"
 CONFIG_URL       = "config_url"
+CONTINUOUS_PHASE = 'continuous_phase'
 DATE             = "date"
 DATESTAMP        = "datestamp"
 DEVICE           = "device"
@@ -160,6 +161,7 @@ PAGE             = "page"
 PASS             = "pass"
 PDF              = "pdf"
 PDF_URL          = "pdf_url"
+PLATE_PLOT_URL   = "plate_plot_url"
 PLOT             = "plot"
 PLOT_URL         = "plot_url"
 PNG              = "png"
@@ -218,7 +220,6 @@ FIDUCIAL_DYE       = "fiducial_dye"
 ID_TRAINING_FACTOR = "id_training_factor"
 NUM_PROBES         = "num_probes"
 OUTLIERS           = "outliers"
-PF_TRAINING_FACTOR = "pf_training_factor"
 THRESHOLD          = "threshold"
 UI_THRESHOLD       = "ui_threshold"
 TRAINING_FACTOR    = "training_factor"
@@ -231,14 +232,14 @@ NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "the required training set."
 TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
     "set: size = num_probes*training_factor."
-PF_TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
-    "set used for fiducial pre-filtering: size = num_probes*pf_training_factor."
 UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
     "below which a drop decomposition will be excluded from fiducial " \
     "pre-filter training."
 REQ_DROPS_DESCRIPTION = "Number of drops to use in genotyping (0 to use all available)."
 CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
+CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \
+                              "continuous phase instead of slugs."
 
 #=============================================================================
 # Probe Experiment Constants

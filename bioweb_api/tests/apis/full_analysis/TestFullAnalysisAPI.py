@@ -36,7 +36,7 @@ from bioweb_api.tests.test_utils import post_data, get_data, \
 from bioweb_api.utilities import io_utilities
 from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, \
     EXP_DEF, ARCHIVE, PA_DOCUMENT, CONFIG_URL, OFFSETS, URL, ID_DOCUMENT, \
-    UI_THRESHOLD, REPORT_URL, PLOT_URL, TRAINING_FACTOR, PF_TRAINING_FACTOR, \
+    UI_THRESHOLD, REPORT_URL, PLOT_URL, TRAINING_FACTOR, \
     AC_DOCUMENT, KDE_PLOT_URL, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, RESULT, CONFIG, AC_TRAINING_FACTOR, \
@@ -76,7 +76,6 @@ _EXP_DEF_NAME             = "ABL_24_V1"
 _BETA_EXP_DEF_NAME        = "Beta_24_V5"
 _ABL_EXP_DEF_NAME         = "ABL_24_V4"
 _OFFSETS                  = 30
-_PF_TRAINING_FACTOR       = 100
 _UI_THRESHOLD             = 4000
 _AC_TRAINING_FACTOR       = 100
 _CTRL_THRESH              = 5
@@ -120,7 +119,6 @@ class TestFullAnalysisAPI(unittest.TestCase):
             REPORT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._id_uuid + ".yaml"),
             PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._id_uuid + ".png"),
             TRAINING_FACTOR : 800,
-            PF_TRAINING_FACTOR : 100,
             START_DATESTAMP: datetime.today(),
             FINISH_DATESTAMP: datetime.today(),
         }
@@ -233,7 +231,6 @@ class TestFullAnalysisAPI(unittest.TestCase):
         url = add_url_argument(url, JOB_NAME, _FA_JOBNAME)
         url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
         url = add_url_argument(url, OFFSETS, _OFFSETS)
-        url = add_url_argument(url, PF_TRAINING_FACTOR, _PF_TRAINING_FACTOR)
         url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
         url = add_url_argument(url, AC_TRAINING_FACTOR, _AC_TRAINING_FACTOR)
         url = add_url_argument(url, CTRL_THRESH, _CTRL_THRESH)

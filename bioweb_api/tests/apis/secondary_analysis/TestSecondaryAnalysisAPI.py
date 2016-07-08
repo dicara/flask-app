@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import UUID, FIDUCIAL_DYE, ASSAY_DYE,\
     JOB_NAME, JOB_TYPE_NAME, JOB_TYPE, ARCHIVE, DEVICE, DYES, \
     STATUS, SUBMIT_DATESTAMP, START_DATESTAMP, FINISH_DATESTAMP, \
     URL, CONFIG_URL, REPORT, RESULT, CONFIG, \
-    FILTERED_DYES, IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD,\
+    FILTERED_DYES, IGNORED_DYES, UI_THRESHOLD,\
     PA_PROCESS_UUID, PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, \
     JOE, FAM, JOB_STATUS, KDE_PLOT, KDE_PLOT_URL, SCATTER_PLOT, \
     SCATTER_PLOT_URL, REQUIRED_DROPS, EXP_DEF, PDF, PNG, PNG_SUM, VCF
@@ -167,7 +167,6 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                                  ],
                           IGNORED_DYES: [],
                           FILTERED_DYES: ['pe'],
-                          PF_TRAINING_FACTOR: 10,
                           UI_THRESHOLD: 4000,
                           UUID : cls._identity_uuid,
                           PA_PROCESS_UUID: cls._abl_pa_uuid,

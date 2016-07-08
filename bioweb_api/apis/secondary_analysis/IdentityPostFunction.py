@@ -42,13 +42,13 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, PF_TRAINING_FACTOR, UI_THRESHOLD, REPORT, \
+    IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
-    PF_TRAINING_FACTOR_DESCRIPTION, UI_THRESHOLD_DESCRIPTION
+    UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL
 
 
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
-    UNINJECTED_THRESHOLD, PICOINJECTION_TRAINING_FACTOR
+    UNINJECTED_THRESHOLD
 from secondary_analysis.identity.identity import Identity
 from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
 
@@ -117,14 +117,14 @@ class IdentityPostFunction(AbstractPostFunction):
                                                        required=False)
         cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
                                                         required=False)
-        cls.prefilter_tf_param = ParameterFactory.integer(PF_TRAINING_FACTOR,
-                                                PF_TRAINING_FACTOR_DESCRIPTION,
-                                                default=PICOINJECTION_TRAINING_FACTOR, 
-                                                minimum=0)
         cls.ui_threshold_param = ParameterFactory.float(UI_THRESHOLD,
                                                       UI_THRESHOLD_DESCRIPTION,
                                                       default=UNINJECTED_THRESHOLD,
                                                       minimum=0.0)
+        cls.continuous_phase_param   = ParameterFactory.boolean(CONTINUOUS_PHASE,
+                                                          CONTINUOUS_PHASE_DESCRIPTION,
+                                                          default_value=False,
+                                                          required=False)
 
         parameters = [
                       cls.job_uuid_param,
@@ -136,8 +136,8 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
                       cls.filtered_dyes_param,
-                      cls.prefilter_tf_param,
                       cls.ui_threshold_param,
+                      cls.continuous_phase_param,
                      ]
         return parameters
 
@@ -164,8 +164,13 @@ class IdentityPostFunction(AbstractPostFunction):
         if cls.ignored_dyes_param in params_dict:
             ignored_dyes = params_dict[cls.ignored_dyes_param]
 
-        prefilter_tf    = params_dict[cls.prefilter_tf_param][0]
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
+
+        if cls.continuous_phase_param in params_dict and \
+           params_dict[cls.continuous_phase_param][0]:
+            use_pico_thresh = True
+        else:
+            use_pico_thresh = False
 
         json_response = {IDENTITY: []}
 
@@ -210,15 +215,16 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       dye_levels,
                                                       ignored_dyes,
                                                       filtered_dyes,
-                                                      prefilter_tf,
                                                       ui_threshold,
                                                       cls._DB_CONNECTOR,
-                                                      job_name)
+                                                      job_name,
+                                                      use_pico_thresh)
                     response = copy.deepcopy(sai_callable.document)
                     callback = make_process_callback(sai_callable.uuid,
                                                      sai_callable.outfile_path,
                                                      sai_callable.plot_path,
                                                      sai_callable.report_path,
+                                                     sai_callable.plate_plot_path,
                                                      cls._DB_CONNECTOR)
 
                     # Add to queue
@@ -249,8 +255,8 @@ class SaIdentityCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
-                 fiducial_dye, dye_levels, ignored_dyes, filtered_dyes, prefilter_tf,
-                 ui_threshold, db_connector, job_name):
+                 fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
+                 ui_threshold, db_connector, job_name, use_pico_thresh):
 
 
 
@@ -281,21 +287,23 @@ class SaIdentityCallable(object):
         self.num_probes            = num_probes
         self.training_factor       = training_factor
         self.plot_path             = os.path.join(RESULTS_PATH, self.uuid + '.png')
+        self.plate_plot_path       = os.path.join(RESULTS_PATH, self.uuid + '_plate.png')
         self.outfile_path          = os.path.join(RESULTS_PATH, self.uuid)
         self.report_path           = os.path.join(RESULTS_PATH, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.ignored_dyes          = ignored_dyes
         self.filtered_dyes         = filtered_dyes
-        self.prefilter_tf          = prefilter_tf
         self.ui_threshold          = ui_threshold
         self.db_connector          = db_connector
         self.job_name              = job_name
+        self.use_pico_thresh       = use_pico_thresh
 
         self.identity              = Identity()
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
         self.tmp_plot_path         = os.path.join(self.tmp_path, "plot.png")
+        self.tmp_plate_plot_path   = os.path.join(self.tmp_path, "plate_plot.png")
         self.tmp_report_path       = os.path.join(self.tmp_path, "report.yaml")
         self.document              = {
                         FIDUCIAL_DYE: fiducial_dye,
@@ -305,7 +313,6 @@ class SaIdentityCallable(object):
                         DYE_LEVELS: self.dye_levels,
                         IGNORED_DYES: ignored_dyes,
                         FILTERED_DYES: filtered_dyes,
-                        PF_TRAINING_FACTOR: prefilter_tf,
                         UI_THRESHOLD: ui_threshold,
                         UUID: self.uuid,
                         PA_PROCESS_UUID: primary_analysis_doc[UUID],
@@ -313,6 +320,7 @@ class SaIdentityCallable(object):
                         JOB_NAME: self.job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
+                        CONTINUOUS_PHASE: use_pico_thresh,
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)
@@ -331,7 +339,8 @@ class SaIdentityCallable(object):
             self.identity.execute_identity(self.primary_analysis_data,
                                            self.num_probes, FACTORY_ORGANIC,
                                            plot_path=self.tmp_plot_path, 
-                                           out_file=self.tmp_outfile_path, 
+                                           plate_plot_path=self.tmp_plate_plot_path,
+                                           out_file=self.tmp_outfile_path,
                                            report_path=self.tmp_report_path,
                                            assay_dye=self.assay_dye,
                                            picoinjection_dye=self.fiducial_dye,
@@ -339,15 +348,17 @@ class SaIdentityCallable(object):
                                            show_figure=False, 
                                            ignored_dyes=self.ignored_dyes,
                                            filtered_dyes=self.filtered_dyes,
-                                           picoinjection_tf=self.prefilter_tf,
                                            uninjected_threshold=self.ui_threshold,
-                                           require_perfect_id=False)
+                                           require_perfect_id=False,
+                                           use_pico_thresh=self.use_pico_thresh)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
             if os.path.isfile(self.tmp_plot_path):
                 shutil.copy(self.tmp_plot_path, self.plot_path)
+            if os.path.isfile(self.tmp_plate_plot_path):
+                shutil.copy(self.tmp_plate_plot_path, self.plate_plot_path)
             if os.path.isfile(self.tmp_report_path):
                 shutil.copy(self.tmp_report_path, self.report_path)
         finally:
@@ -355,7 +366,8 @@ class SaIdentityCallable(object):
             shutil.rmtree(self.tmp_path, ignore_errors=True)
         
          
-def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connector):
+def make_process_callback(uuid, outfile_path, plot_path, report_path,
+                          plate_plot_path, db_connector):
     """
     Return a closure that is fired when the job finishes. This 
     callback updates the DB with completion status, result file location, and
@@ -365,6 +377,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
     @param outfile_path: Path where the final identity results will live.
     @param plot_path:    Path where the final PNG plot should live.
     @param report_path:    Path where the report should live.
+    @param plate_plot_path:    Path where the plate plot should live.
     @param db_connector: Object that handles communication with the DB
     """
     query = {UUID: uuid}
@@ -386,6 +399,9 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path, db_connect
                             REPORT_URL: "http://%s/results/%s/%s" %
                                         (HOSTNAME, PORT,
                                          os.path.basename(report_path)),
+                            PLATE_PLOT_URL: "http://%s/results/%s/%s" %
+                                        (HOSTNAME, PORT,
+                                         os.path.basename(plate_plot_path)),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
                 update_data[ERROR] = report_errors

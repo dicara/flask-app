@@ -347,3 +347,14 @@ GnuBio Flask API.
  * v3.15
    * Update experiment-database to v0.8.5
    * Update secondary-analysis to v1.53
+ * v3.16
+   * Updated secondary-analysis from v1.53 to v1.54
+       * v1.54
+           * User can select type of picoinjection training filter
+           * Removed picoinjection training factor
+   * Updated profile-db from v0.3 to v0.4
+       * v0.4
+           * Dylight and Alexa dyes added as valid dyes
+   * Identity jobs generate predator plate plots
+   * Continuous phase picoinjection option available for identity
+   * Removed picoinjection training factor from identity

@@ -101,6 +101,7 @@ CHR_STOP         = "chr_stop"
 CTRL_THRESH      = "ctrl_thresh"
 CONFIG           = "config"
 CONFIG_URL       = "config_url"
+CONTINUOUS_PHASE = 'continuous_phase'
 DATE             = "date"
 DATESTAMP        = "datestamp"
 DEVICE           = "device"
@@ -236,6 +237,8 @@ UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
 REQ_DROPS_DESCRIPTION = "Number of drops to use in genotyping (0 to use all available)."
 CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
+CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \
+                              "continuous phase instead of slugs."
 
 #=============================================================================
 # Probe Experiment Constants

@@ -13,7 +13,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, FA_JOB_START_DATESTAMP, URL, \
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
-    FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK
+    FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 
@@ -166,7 +166,8 @@ class FullAnalysisWorkFlowCallable(object):
                                     filtered_dyes=self.parameters[FILTERED_DYES],
                                     ui_threshold=self.parameters[UI_THRESHOLD],
                                     db_connector=self.db_connector,
-                                    job_name=job_name)
+                                    job_name=job_name,
+                                    use_pico_thresh=self.parameters[CONTINUOUS_PHASE])
         callback = id_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             plot_path=callable.plot_path,

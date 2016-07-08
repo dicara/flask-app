@@ -42,7 +42,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, UI_THRESHOLD, REPORT, \
+    IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION
 
@@ -121,6 +121,10 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       UI_THRESHOLD_DESCRIPTION,
                                                       default=UNINJECTED_THRESHOLD,
                                                       minimum=0.0)
+        cls.continuous_phase_param   = ParameterFactory.boolean(CONTINUOUS_PHASE,
+                                                          CONTINUOUS_PHASE_DESCRIPTION,
+                                                          default_value=False,
+                                                          required=False)
 
         parameters = [
                       cls.job_uuid_param,
@@ -133,6 +137,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.ignored_dyes_param,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
+                      cls.continuous_phase_param,
                      ]
         return parameters
 
@@ -160,6 +165,12 @@ class IdentityPostFunction(AbstractPostFunction):
             ignored_dyes = params_dict[cls.ignored_dyes_param]
 
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
+
+        if cls.continuous_phase_param in params_dict and \
+           params_dict[cls.continuous_phase_param][0]:
+            use_pico_thresh = True
+        else:
+            use_pico_thresh = False
 
         json_response = {IDENTITY: []}
 
@@ -206,7 +217,8 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       filtered_dyes,
                                                       ui_threshold,
                                                       cls._DB_CONNECTOR,
-                                                      job_name)
+                                                      job_name,
+                                                      use_pico_thresh)
                     response = copy.deepcopy(sai_callable.document)
                     callback = make_process_callback(sai_callable.uuid,
                                                      sai_callable.outfile_path,
@@ -243,7 +255,7 @@ class SaIdentityCallable(object):
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
-                 ui_threshold, db_connector, job_name):
+                 ui_threshold, db_connector, job_name, use_pico_thresh):
 
 
 
@@ -283,6 +295,7 @@ class SaIdentityCallable(object):
         self.ui_threshold          = ui_threshold
         self.db_connector          = db_connector
         self.job_name              = job_name
+        self.use_pico_thresh       = use_pico_thresh
 
         self.identity              = Identity()
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
@@ -304,6 +317,7 @@ class SaIdentityCallable(object):
                         JOB_NAME: self.job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
+                        CONTINUOUS_PHASE: use_pico_thresh,
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)
@@ -331,7 +345,8 @@ class SaIdentityCallable(object):
                                            ignored_dyes=self.ignored_dyes,
                                            filtered_dyes=self.filtered_dyes,
                                            uninjected_threshold=self.ui_threshold,
-                                           require_perfect_id=False)
+                                           require_perfect_id=False,
+                                           use_pico_thresh=self.use_pico_thresh)
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

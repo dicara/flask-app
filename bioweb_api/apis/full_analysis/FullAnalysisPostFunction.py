@@ -30,8 +30,8 @@ from bioweb_api import FA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, FIDUCIAL_DYE, STATUS, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
-    UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, \
-    NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
+    UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, CONTINUOUS_PHASE, \
+    NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
     PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
@@ -148,6 +148,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                       minimum=0.0,
                                                       required=False,
                                                       default=DEFAULT_UNINJECTED_THRESHOLD)
+        cls.continuous_phase_param   = ParameterFactory.boolean(CONTINUOUS_PHASE,
+                                                          CONTINUOUS_PHASE_DESCRIPTION,
+                                                          default_value=False,
+                                                          required=False)
 
         # assay caller params
         cls.ac_training_param = ParameterFactory.integer(AC_TRAINING_FACTOR,
@@ -189,6 +193,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ignored_dyes_param,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
+                      cls.continuous_phase_param,
                       cls.ac_training_param,
                       cls.ctrl_thresh,
                       cls.req_drops_param,
@@ -245,6 +250,9 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         if IGNORED_DYES not in parameters:
             parameters[IGNORED_DYES] = list()
+
+        if CONTINUOUS_PHASE not in parameters:
+            parameters[CONTINUOUS_PHASE] = False
 
         # Ensure archive directory is valid
         try:

@@ -14,9 +14,9 @@ ncbi-utilities>=0.2
 probe-design>=0.3
 primary-analysis>=2.13
 predator==0.1
-secondary-analysis>=1.53
+secondary-analysis==1.54
 experiment-database>=0.8.5
 PyPDF2>=1.25.1
 reportlab>=3.3.0
 gbutils>=1.5
-profile-db==0.3
+profile-db==0.4

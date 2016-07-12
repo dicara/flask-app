@@ -44,7 +44,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
-    UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL
+    UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES
 
 
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
@@ -257,32 +257,8 @@ class SaIdentityCallable(object):
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, db_connector, job_name, use_pico_thresh):
-
-
-
-        primary_analysis_doc = db_connector.find(
-                                PA_PROCESS_COLLECTION,
-                                criteria={UUID: primary_analysis_uuid},
-                                projection={ID: 0, RESULT: 1, UUID: 1, CONFIG: 1})[0]
-
-
-        with open(primary_analysis_doc[CONFIG]) as fd:
-            config = yaml.load(fd)
-
-        primary_analysis_dyes = [dye for dye in config['dye_map']['dyes']
-                if dye != fiducial_dye and dye != assay_dye]
-
-        identity_dyes = set([x[0] for x in dye_levels])
-
-        if not identity_dyes.issubset(set(primary_analysis_dyes)):
-            raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)",
-                            identity_dyes, primary_analysis_dyes)
-
-        if not os.path.isfile(primary_analysis_doc[RESULT]):
-            raise InvalidFileError(primary_analysis_doc[RESULT])
-
         self.uuid                  = str(uuid4())
-        self.primary_analysis_data = PrimaryAnalysisData.from_file(primary_analysis_doc[RESULT])
+        self.primary_analysis_uuid = primary_analysis_uuid
         self.dye_levels            = map(list, dye_levels)
         self.num_probes            = num_probes
         self.training_factor       = training_factor
@@ -299,7 +275,6 @@ class SaIdentityCallable(object):
         self.job_name              = job_name
         self.use_pico_thresh       = use_pico_thresh
 
-        self.identity              = Identity()
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
         self.tmp_plot_path         = os.path.join(self.tmp_path, "plot.png")
@@ -315,7 +290,7 @@ class SaIdentityCallable(object):
                         FILTERED_DYES: filtered_dyes,
                         UI_THRESHOLD: ui_threshold,
                         UUID: self.uuid,
-                        PA_PROCESS_UUID: primary_analysis_doc[UUID],
+                        PA_PROCESS_UUID: primary_analysis_uuid,
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
                         JOB_NAME: self.job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
@@ -329,14 +304,31 @@ class SaIdentityCallable(object):
 
 
     def __call__(self):
-        update = {"$set": {STATUS: JOB_STATUS.running,      # @UndefinedVariable
+        # retrieve primary analysis data
+        primary_analysis_doc = self.db_connector.find(
+                                PA_PROCESS_COLLECTION,
+                                criteria={UUID: self.primary_analysis_uuid},
+                                projection={ID: 0, RESULT: 1, UUID: 1, DYES: 1})[0]
+
+        # verify barcode dyes
+        primary_analysis_dyes = set(primary_analysis_doc[DYES])
+        identity_dyes = set([x[0] for x in self.dye_levels])
+        if not identity_dyes.issubset(set(primary_analysis_dyes)):
+            raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)",
+                            identity_dyes, primary_analysis_dyes)
+
+        # verify primary analysis file exists
+        if not os.path.isfile(primary_analysis_doc[RESULT]):
+            raise InvalidFileError(primary_analysis_doc[RESULT])
+
+        # update database to indicate job is running
+        update = {"$set": {STATUS: JOB_STATUS.running,
                            START_DATESTAMP: datetime.today()}}
-        query = {UUID: self.uuid}
-        self.db_connector.update(SA_IDENTITY_COLLECTION, query, update)
+        self.db_connector.update(SA_IDENTITY_COLLECTION, {UUID: self.uuid}, update)
 
         try:
             safe_make_dirs(self.tmp_path)
-            self.identity.execute_identity(self.primary_analysis_data,
+            Identity().execute_identity(PrimaryAnalysisData.from_file(primary_analysis_doc[RESULT]),
                                            self.num_probes, FACTORY_ORGANIC,
                                            plot_path=self.tmp_plot_path, 
                                            plate_plot_path=self.tmp_plate_plot_path,

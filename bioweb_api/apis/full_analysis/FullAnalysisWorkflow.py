@@ -10,10 +10,10 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, AC_TRAINING_FACTOR, REQUIRED_DROPS, EXP_DEF, JOB_TYPE_NAME, JOB_TYPE, \
     STATUS, JOB_STATUS, START_DATESTAMP, SUCCEEDED, PA_PROCESS_UUID, CTRL_THRESH, \
-    SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, FA_JOB_START_DATESTAMP, URL, \
+    SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, URL, \
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
-    FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE
+    FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 
@@ -190,7 +190,7 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from identity
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD]
+                FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, PLATE_PLOT_URL]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

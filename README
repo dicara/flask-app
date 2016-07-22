@@ -362,3 +362,5 @@ GnuBio Flask API.
    * Updated secondary-analysis from v1.54 to v1.55
      * v1.55
        * Bugfix: avoid combining variant calls if no calls are found
+ * v3.18
+   * Let RunInfo API only display runs with image stack(s)

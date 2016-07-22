@@ -67,9 +67,12 @@ def get_run_reports():
 
     reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
                                                          DEVICE_NAME: {'$ne': ''},
-                                                         EXP_DEF_NAME: {'$ne': None}},
+                                                         EXP_DEF_NAME: {'$ne': None},
+                                                         IMAGE_STACKS: {'$ne': None,
+                                                                        '$not': {'$size': 0}}},
                                  columns)
-
+    APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
+                    % (len(reports), ))
     return (reports, column_names, None)
 
 strip_str = lambda str : str.rstrip().lstrip()

@@ -115,11 +115,13 @@ class TestRunReportAPI(unittest.TestCase):
         response = get_data(self, _RUN_INFO_GET_URL + '?refresh=true&format=json', 200)
         len_expected_reports = len(_DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
                                                                               DEVICE_NAME: {'$ne': ''},
-                                                                              EXP_DEF_NAME: {'$ne': None}}))
+                                                                              EXP_DEF_NAME: {'$ne': None},
+                                                                              IMAGE_STACKS: {'$ne': None,
+                                                                                             '$not': {'$size': 0}}}))
         len_observed_reports = len(response['run_report'])
 
         msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \
-                % (len_expected_reports, len_observed_reports)
+                % (len_observed_reports, len_expected_reports)
         self.assertEqual(len_expected_reports, len_observed_reports, msg)
 
 if __name__ == '__main__':

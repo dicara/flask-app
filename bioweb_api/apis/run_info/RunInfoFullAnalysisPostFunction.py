@@ -100,6 +100,9 @@ class RunInfoFullAnalysisPostFunction(AbstractPostFunction):
                 update = {"$unset": {field: 1}}
             if update is not None:
                 cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION, query, update)
+
+                if method == "delete":
+                    cls._DB_CONNECTOR.remove(FA_PROCESS_COLLECTION, {UUID: fa_uuid})
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])

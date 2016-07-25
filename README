@@ -364,3 +364,5 @@ GnuBio Flask API.
        * Bugfix: avoid combining variant calls if no calls are found
  * v3.18
    * Let RunInfo API only display runs with image stack(s)
+   * Remove full analysis job when deleting job on RunInfo page
+   * Let RunInfo get function return cartridge information

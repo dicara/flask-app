@@ -33,7 +33,8 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
-    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME
+    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME, \
+    CARTRIDGE_SN, CARTRIDGE_BC
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -59,6 +60,8 @@ def get_run_reports():
     columns[EXP_DEF_NAME]       = 1
     columns[RUN_DESCRIPTION]    = 1
     columns[SAMPLE_NAME]        = 1
+    columns[CARTRIDGE_SN]       = 1
+    columns[CARTRIDGE_BC]       = 1
     columns[IMAGE_STACKS]       = 1
     columns[FA_UUID_MAP]        = 1
 
@@ -67,9 +70,12 @@ def get_run_reports():
 
     reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
                                                          DEVICE_NAME: {'$ne': ''},
-                                                         EXP_DEF_NAME: {'$ne': None}},
+                                                         EXP_DEF_NAME: {'$ne': None},
+                                                         IMAGE_STACKS: {'$ne': None,
+                                                                        '$not': {'$size': 0}}},
                                  columns)
-
+    APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
+                    % (len(reports), ))
     return (reports, column_names, None)
 
 strip_str = lambda str : str.rstrip().lstrip()

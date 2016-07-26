@@ -59,7 +59,7 @@ class RunReportWebUI(object):
 
         self.verify()
 
-        self._image_stack_names     = None
+        self._image_stack_names = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
             self._image_stack_names = [path.split('/')[-1]
                                         for path in self._tdi_stacks]
@@ -209,7 +209,7 @@ class RunReportClientUI(object):
         self._syringe_bc            = syringe_bc
         self._tdi_stacks            = tdi_stacks
 
-        self._image_stack_names     = None
+        self._image_stack_names     = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
             self._image_stack_names = [path.split('/')[-1]
                                         for path in self._tdi_stacks]

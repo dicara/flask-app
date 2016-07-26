@@ -368,4 +368,9 @@ GnuBio Flask API.
    * Let RunInfo get function return cartridge information
  * v3.19
    * Update secondary-analysis from v1.55 to v1.56
-     * Change the format of genotyper plot
+     * v1.56
+       * Change the format of genotyper plot
+ * v3.19.1
+   * Update secondary-analysis from v1.56 to v1.56.1
+     * v1.56.1
+       * Bugfix: handle empty cDNA list

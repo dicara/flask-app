@@ -366,3 +366,6 @@ GnuBio Flask API.
    * Let RunInfo API only display runs with image stack(s)
    * Remove full analysis job when deleting job on RunInfo page
    * Let RunInfo get function return cartridge information
+ * v3.19
+   * Update secondary-analysis from v1.55 to v1.56
+     * Change the format of genotyper plot

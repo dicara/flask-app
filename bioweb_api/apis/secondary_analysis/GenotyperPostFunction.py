@@ -264,7 +264,7 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             _ = future.result()
 
             generate_plots(exp_def_name, ac_result_path,
-                           outfile_path[:-3] + PNG, ignored_dyes)
+                           outfile_path[:-3] + PNG, ignored_dyes, True)
 
             url_prefix = "http://%s/results/%s/" % (HOSTNAME, PORT)
             dirname    = os.path.dirname(outfile_path)

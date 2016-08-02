@@ -61,7 +61,7 @@ setup(
                           'experiment-database>=0.8.5',
                           'PyPDF2>=1.25.1',
                           'reportlab>=3.3.0',
-                          'profile-db==0.4',
+                          'profile-db==0.4.1',
                           'gbutils>=1.5',
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},

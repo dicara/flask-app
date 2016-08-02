@@ -19,4 +19,4 @@ experiment-database>=0.8.5
 PyPDF2>=1.25.1
 reportlab>=3.3.0
 gbutils>=1.5
-profile-db==0.4
+profile-db==0.4.1

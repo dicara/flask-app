@@ -33,10 +33,10 @@ from bioweb_api.apis.parameters.MultipleValueParameter import MultipleValueParam
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
-    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS
+    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS, PA_DATA_SOURCE
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
-    get_dyes, get_devices
+    get_dyes, get_devices, get_hdf5_dataset_names
 from bioweb_api import IMAGES_COLLECTION
 
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
@@ -173,6 +173,12 @@ class ParameterFactory(object):
                                             param_type=param_type,
                                             required=required,
                                             allow_multiple=allow_multiple)
+    @staticmethod
+    def pa_data_source(required=True):
+        return CaseSensitiveStringParameter(PA_DATA_SOURCE, "Primary analysis data source.",
+                               required=required,
+                               allow_multiple=False,
+                               enum=get_archives()+get_hdf5_dataset_names())
 
     @staticmethod
     def archive(required=True):

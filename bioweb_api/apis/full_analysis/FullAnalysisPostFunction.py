@@ -33,12 +33,14 @@ from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, CONTINUOUS_PHASE, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
-    PA_MIN_NUM_IMAGES, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK
+    PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
+    HDF5_DATASET_NAME
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
-from bioweb_api.utilities.io_utilities import make_clean_response, get_archive_dirs
+from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import parse_pa_data_src
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
@@ -94,9 +96,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         required=False)
 
         # primary analysis parameters
-        cls.archives_param = ParameterFactory.cs_string(ARCHIVE,
-                                                        "Archive directory name.",
-                                                        required=True)
+        cls.pa_data_src_param = ParameterFactory.pa_data_source()
         cls.dyes_param     = ParameterFactory.dyes(required=False)
         cls.device_param   = ParameterFactory.device(required=False,
                                                      default='beta7')
@@ -177,7 +177,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
 
         parameters = [
-                      cls.archives_param,
+                      cls.pa_data_src_param,
                       cls.dyes_param,
                       cls.device_param,
                       cls.major_param,
@@ -256,8 +256,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         # Ensure archive directory is valid
         try:
-            archives = get_archive_dirs(parameters[ARCHIVE],
-                                        min_num_images=PA_MIN_NUM_IMAGES)
+            archives = parse_pa_data_src(parameters[PA_DATA_SOURCE])
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
@@ -271,7 +270,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         status_codes = list()
         len_archives = len(archives)
-        for idx, archive in enumerate(archives):
+        for idx, (archive, dataset_name) in enumerate(archives):
             cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx + 1) if len_archives > 1 \
                            else parameters[JOB_NAME]
 
@@ -284,6 +283,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                     cur_parameters = copy.deepcopy(parameters)
                     cur_parameters[JOB_NAME] = cur_job_name
                     cur_parameters[ARCHIVE] = archive
+                    cur_parameters[HDF5_DATASET_NAME] = dataset_name
 
                     fa_workflow = FullAnalysisWorkFlowCallable(parameters=cur_parameters,
                                                                db_connector=cls._DB_CONNECTOR)

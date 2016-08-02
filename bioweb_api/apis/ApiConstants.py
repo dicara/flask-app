@@ -156,6 +156,7 @@ NBARCODES        = "nbarcodes"
 NUM              = "num"
 NUM_IMAGES       = "num_images"
 OFFSETS          = "offsets"
+PA_DATA_SOURCE   = 'pa_data_src'
 PA_DOCUMENT      = 'pa_document'
 PA_MIN_NUM_IMAGES = 10 # Minimum number of images required to run
 PA_PROCESS_UUID  = "pa_process_uuid"

@@ -21,26 +21,22 @@ limitations under the License.
 # Imports
 #=============================================================================
 from datetime import datetime
-import json
 import os
 import re
 import time
 import unittest
 
-from bioweb_api import app, HOME_DIR, TMP_PATH, FA_PROCESS_COLLECTION, \
-    PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION, SA_ASSAY_CALLER_COLLECTION, \
-    HOSTNAME, PORT
+from bioweb_api import app, FA_PROCESS_COLLECTION, HOSTNAME, PORT
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, add_url_argument
-from bioweb_api.utilities import io_utilities
+
 from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, \
     EXP_DEF, ARCHIVE, PA_DOCUMENT, CONFIG_URL, OFFSETS, URL, ID_DOCUMENT, \
     UI_THRESHOLD, REPORT_URL, PLOT_URL, TRAINING_FACTOR, \
     AC_DOCUMENT, KDE_PLOT_URL, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
-    START_DATESTAMP, FINISH_DATESTAMP, RESULT, CONFIG, AC_TRAINING_FACTOR, \
-    UNIFIED_PDF, UNIFIED_PDF_URL
+    START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -66,10 +62,12 @@ _FA_JOB = {
             FINISH_DATESTAMP: datetime.today(),
         }
 
+_PRIMARY_ANALYSIS_URL     = "/api/v1/PrimaryAnalysis"
 _TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
 _DB_CONNECTOR             = DbConnector.Instance()
 _FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
-
+_ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
+_HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
 _FA_JOBNAME               = "test_full_analysis_job"
 _ARCHIVE_NAME             = "2016-04-14_1259.50-beta17"
 _EXP_DEF_NAME             = "ABL_24_V1"
@@ -225,9 +223,14 @@ class TestFullAnalysisAPI(unittest.TestCase):
         """
         Test the POST, GET and DELETE full analysis APIs
         """
+        # run these to ensure that the instance of mongo database used by
+        # bamboo is updated with the latest image stacks and HDF5 archives
+        get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
+        get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
+
         # Construct url
         url = _FULL_ANALYSIS_URL
-        url = add_url_argument(url, ARCHIVE, _ARCHIVE_NAME, True)
+        url = add_url_argument(url, PA_DATA_SOURCE, _ARCHIVE_NAME, True)
         url = add_url_argument(url, JOB_NAME, _FA_JOBNAME)
         url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
         url = add_url_argument(url, OFFSETS, _OFFSETS)

@@ -29,7 +29,7 @@ import shutil
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, read_yaml
 from bioweb_api.utilities import io_utilities
-from bioweb_api.apis.ApiConstants import UUID
+from bioweb_api.apis.ApiConstants import UUID, PA_DATA_SOURCE
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
     RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH, TMP_PATH
 
@@ -47,6 +47,7 @@ _EXPECTED_ANALYSIS_RESULT = "expected_analysis.txt"
 _EXPECTED_CONFIG_RESULT   = "expected.cfg"
 _PRIMARY_ANALYSIS_URL     = "/api/v1/PrimaryAnalysis"
 _ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
+_HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
 _DEVICES_URL              = os.path.join(_PRIMARY_ANALYSIS_URL, 'Devices')
 _DYES_URL                 = os.path.join(_PRIMARY_ANALYSIS_URL, 'Dyes')
 _PROCESS_URL              = os.path.join(_PRIMARY_ANALYSIS_URL, 'Process')
@@ -106,7 +107,65 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         archive = "tmp"
         url = self.construct_process_url(archive)
         post_data(self, url, 404)
-        
+
+    def test_hdf5_process(self):
+        get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
+
+        # Test run details
+        archive  = '2016-08-02_0924.38-pilot1-unittest'
+
+        # Construct url
+        url = self.construct_process_url(archive, 'test_HDF5_pa_process_job')
+
+        # Submit process job
+        response     = post_data(self, url, 200)
+        process_uuid = response[_PROCESS][0][UUID]
+
+        # Test that submitting two jobs with the same name fails and returns
+        # the appropriate error code.
+        post_data(self, url, 403)
+
+        running = True
+        while running:
+            time.sleep(10)
+            response = get_data(self, _PROCESS_URL, 200)
+            for job in response[_PROCESS]:
+                if process_uuid == job[UUID]:
+                    job_details = job
+                    running     = job_details[_STATUS] == 'running'
+
+        # Copy result files to cwd for bamboo to ingest as artifacts
+        self.assertTrue(_RESULT in job_details, 'Unable to locate primary analysis file')
+        if _RESULT in job_details:
+            analysis_txt_path = job_details[_RESULT]
+            msg = 'Expected HDF5 to be converted to file %s, but this file was not found.' \
+                  % analysis_txt_path
+            self.assertTrue(os.path.exists(analysis_txt_path), msg)
+
+        # Copy result files to cwd for bamboo to ingest as artifacts
+        self.assertTrue(_CONFIG in job_details, 'Unable to locate config file')
+        if _CONFIG in job_details:
+            config_path = job_details[_CONFIG]
+            msg = 'Expected HDF5 conversion to create config file %s, but this file was not found.' \
+                  % config_path
+            self.assertTrue(os.path.exists(config_path), msg)
+
+        error = ""
+        if 'error' in job_details:
+            error = job_details['error']
+        msg = "Expected pa process job status succeeded, but found %s. " \
+              "Error: %s" % (job_details[_STATUS], error)
+        self.assertEquals(job_details[_STATUS], "succeeded", msg)
+
+        # Delete absorption job
+        delete_data(self, _PROCESS_URL + "?uuid=%s" % process_uuid, 200)
+
+        # Ensure job no longer exists in the database
+        response = get_data(self, _PROCESS_URL, 200)
+        for job in response['Process']:
+            msg = "PA process job %s still exists in database." % process_uuid
+            self.assertNotEqual(process_uuid, job[UUID], msg)
+
     def test_process(self):
         get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
  
@@ -139,8 +198,8 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
             analysis_txt_path = job_details[_RESULT]
             if os.path.isfile(analysis_txt_path):
                 shutil.copy(analysis_txt_path, "observed_analysis.txt")
-               
-        config_path = None  
+
+        config_path = None
         if _CONFIG in job_details:
             config_path = job_details[_CONFIG]
             if os.path.isfile(config_path):
@@ -173,12 +232,12 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
             self.assertNotEqual(process_uuid, job[UUID], msg)
              
     @staticmethod
-    def construct_process_url(archive):
+    def construct_process_url(archive, job_name=_JOB_NAME):
         url  = _PROCESS_URL
-        url += "?archive=%s" % archive
+        url += "?%s=%s" % (PA_DATA_SOURCE, archive,)
         url += "&dyes=%s" % ",".join(_DYES)
         url += "&device=%s" % _DEVICE
-        url += "&job_name=%s" % _JOB_NAME
+        url += "&job_name=%s" % job_name
         return url
 
 if __name__ == "__main__":

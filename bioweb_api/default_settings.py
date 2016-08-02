@@ -43,6 +43,7 @@ TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(POR
 # Platform-Independent Configuration Settings
 #===============================================================================
 ARCHIVES_PATH           = "/mnt/runs"
+RUN_REPORT_PATH         = "/mnt/runs/run_reports"
 DATABASE_PORT           = 27017             # the Mongo port is well-known and pretty much constant
 MAX_BUFFER_SIZE         = 2*1024*1024*1024  # Max file upload size: 2GB
 
@@ -62,6 +63,7 @@ SA_GENOTYPER_COLLECTION      = "sa_genotyper"
 DYES_COLLECTION              = "dyes"
 DEVICES_COLLECTION           = "devices"
 ARCHIVES_COLLECTION          = "archives"
+HDF5_COLLECTION              = "HDF5s"
 PROBE_EXPERIMENTS_COLLECTION = "probe_experiments"
 PROBE_METADATA_COLLECTION    = "probe_metadata"
 IMAGES_COLLECTION            = "images_collection"

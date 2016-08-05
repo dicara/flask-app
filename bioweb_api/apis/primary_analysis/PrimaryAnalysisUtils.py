@@ -36,7 +36,7 @@ from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, ID, \
     VALID_HAM_IMAGE_EXTENSIONS, APPLICATION, HDF5_PATH, HDF5_DATASET_NAME, \
-    PA_MIN_NUM_IMAGES
+    PA_MIN_NUM_IMAGES, VALID_HDF5_EXTENSIONS
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
 from primary_analysis.pa_images import convert_images
@@ -182,13 +182,13 @@ def update_hdf5s():
     database_paths = set(_DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH))
     current_paths = set()
     for par_ in os.listdir(RUN_REPORT_PATH):
-        par_report_dir = os.path.join(RUN_REPORT_PATH, par_)
-        if os.path.isdir(par_report_dir):
-            for sub_ in os.listdir(par_report_dir):
-                par_report_subdir = os.path.join(par_report_dir, sub_)
-                if os.path.isdir(par_report_subdir):
-                    hdf5_files = fnmatch.filter(os.listdir(par_report_subdir), '*.h5')
-                    hdf5_paths = [os.path.join(par_report_subdir, f) for f in hdf5_files]
+        report_dir = os.path.join(RUN_REPORT_PATH, par_)
+        if os.path.isdir(report_dir):
+            for sub_ in os.listdir(report_dir):
+                subdir = os.path.join(report_dir, sub_)
+                if os.path.isdir(subdir):
+                    hdf5s = [f for f in os.listdir(subdir) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+                    hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
                     current_paths.update(hdf5_paths)
 
     # remove obsolete paths

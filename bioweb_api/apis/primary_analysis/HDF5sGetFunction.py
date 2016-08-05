@@ -42,10 +42,6 @@ class HDF5sGetFunction(AbstractGetFunction):
     def summary():
         return "Retrieve list of available HDF5 files."
     
-    @staticmethod
-    def notes():
-        return ""
-    
     @classmethod
     def parameters(cls):
         cls.refresh_parameter = ParameterFactory.boolean("refresh", 

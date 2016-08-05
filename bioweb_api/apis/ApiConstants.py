@@ -133,6 +133,8 @@ GT_DOCUMENT      = 'gt_document'
 HAM_NAME         = "ham_name"
 HAM              = "ham"
 HAM_UUID         = "ham_uuid"
+HDF5_DATASET_NAME = "hdf5_dataset"
+HDF5_PATH        = "hdf5_path"
 ID               = "_id"
 ID_DOCUMENT      = 'id_document'
 IGNORED_DYES     = "ignored_dyes"
@@ -154,6 +156,7 @@ NBARCODES        = "nbarcodes"
 NUM              = "num"
 NUM_IMAGES       = "num_images"
 OFFSETS          = "offsets"
+PA_DATA_SOURCE   = 'pa_data_src'
 PA_DOCUMENT      = 'pa_document'
 PA_MIN_NUM_IMAGES = 10 # Minimum number of images required to run
 PA_PROCESS_UUID  = "pa_process_uuid"
@@ -207,6 +210,7 @@ UNIFIED_PDF      = "unified_pdf"
 UNIFIED_PDF_URL  = "unified_pdf_url"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
+VALID_HDF5_EXTENSIONS = {'.h5'}
 VALID_MON_IMAGE_EXTENSIONS = ["jpg"]
 
 #=============================================================================

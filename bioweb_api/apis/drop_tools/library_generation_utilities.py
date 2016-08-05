@@ -15,11 +15,11 @@ MIN_NDYES  = 1
 MAX_NDYES  = 6
 SATURATION_CAP = 65535
 MAX_INTEN = {
-    DYE_CY7: 30000,
+    DYE_CY7: SATURATION_CAP,
     DYE_CY5_5: SATURATION_CAP,
     DYE_633: SATURATION_CAP,
     DYE_594: SATURATION_CAP,
-    DYE_PE: 30000,
+    DYE_PE: SATURATION_CAP,
     DYE_ALEXA700: SATURATION_CAP,
     DYE_DYLIGHT594: SATURATION_CAP,
     DYE_ALEXA660: SATURATION_CAP,
@@ -90,21 +90,15 @@ class LibraryDesign(object):
                     drop profile.
         """
         profiles = dict()
-        detection_uuids = set([])
         db_profiles = Datastore(url=HOSTNAME).get_profiles()
         db_profiles.sort(key=lambda  x:x[DETECTION_UUID])
         for profile in db_profiles:
             if (profile[DYE_NAME], profile[LOT_NUMBER],) in self.dyes_lots:
-                detection_uuids.add(profile[DETECTION_UUID])
                 profiles[profile[DYE_NAME]] = {PROFILE: profile[PROFILE],
                                                INTENSITY_CONC_RATIO: profile[INTENSITY_CONC_RATIO]}
             elif profile[DYE_NAME] in [DYE_JOE, DYE_FAM]:
                 profiles[profile[DYE_NAME]] = {PROFILE: profile[PROFILE],
                                                INTENSITY_CONC_RATIO: profile[INTENSITY_CONC_RATIO]}
-
-        # all profiles for a library design must come from a single detection
-        if len(detection_uuids) > 1:
-            raise Exception('All dye profiles must come from a single detection.')
 
         return profiles
 

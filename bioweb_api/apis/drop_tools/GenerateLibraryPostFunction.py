@@ -28,7 +28,7 @@ import traceback
 
 from datetime import datetime
 
-from bioweb_api import TMP_PATH, HOSTNAME, PORT
+from bioweb_api import TMP_PATH, HOSTNAME
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES, MIX_VOL, TOTAL_VOL

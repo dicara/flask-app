@@ -24,6 +24,7 @@ from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.primary_analysis.ArchivesGetFunction import ArchivesGetFunction
 from bioweb_api.apis.primary_analysis.DevicesGetFunction import DevicesGetFunction
 from bioweb_api.apis.primary_analysis.DyesGetFunction import DyesGetFunction
+from bioweb_api.apis.primary_analysis.HDF5sGetFunction import HDF5sGetFunction
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import ProcessPostFunction
 from bioweb_api.apis.primary_analysis.ProcessGetFunction import ProcessGetFunction
 from bioweb_api.apis.primary_analysis.ProcessDeleteFunction import ProcessDeleteFunction
@@ -43,6 +44,7 @@ class PrimaryAnalysisApiV1(AbstractApiV1):
                   ArchivesGetFunction(),
                   DevicesGetFunction(),
                   DyesGetFunction(),
+                  HDF5sGetFunction(),
                   ProcessPostFunction(),
                   ProcessGetFunction(),
                   ProcessDeleteFunction(),

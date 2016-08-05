@@ -374,3 +374,10 @@ GnuBio Flask API.
    * Update secondary-analysis from v1.56 to v1.56.1
      * v1.56.1
        * Bugfix: handle empty cDNA list
+ * v3.20
+   * Primary analysis and full analysis accept HDF5 files as input
+   * Library design generator saturation cap updated for cy7 and pe
+   * HDF5 get function added to primary analysis api
+   * Plate plot are shown on full analysis webpage
+   * Library design generator can make a design from two separate detections
+   * Removed unneeded database queries from secondary analysis callable constructor

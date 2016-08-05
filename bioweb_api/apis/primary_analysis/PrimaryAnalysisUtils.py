@@ -20,18 +20,23 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+import fnmatch
 import os
+import re
 import sys
 import shutil
 
+import h5py
+
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
-    DEVICES_COLLECTION, ARCHIVES_COLLECTION, PROBE_METADATA_COLLECTION
+    DEVICES_COLLECTION, ARCHIVES_COLLECTION, PROBE_METADATA_COLLECTION, \
+    HDF5_COLLECTION, RUN_REPORT_PATH
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, \
-    VALID_HAM_IMAGE_EXTENSIONS, APPLICATION
-
+from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, ID, \
+    VALID_HAM_IMAGE_EXTENSIONS, APPLICATION, HDF5_PATH, HDF5_DATASET_NAME, \
+    PA_MIN_NUM_IMAGES, VALID_HDF5_EXTENSIONS
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
 from primary_analysis.pa_images import convert_images
@@ -50,6 +55,67 @@ def get_archives():
     Return a listing of the archives directory.
     '''
     return _DB_CONNECTOR.distinct_sorted(ARCHIVES_COLLECTION, ARCHIVE)
+
+def get_hdf5s():
+    '''
+    Return a listing of the hdf5 file and dataset.
+    '''
+    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, None, [HDF5_PATH, HDF5_DATASET_NAME])
+    for doc in documents:
+        if ID in doc:
+            del doc[ID]
+    return documents
+
+def get_hdf5_dataset_names():
+    '''
+    Return a listing of the hdf5 dataset names.
+    '''
+    return _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_DATASET_NAME)
+
+def is_image_archive(archive_name):
+    if archive_name in get_archives():
+        return True
+    else:
+        return False
+
+def is_hdf5_archive(archive_name):
+    if archive_name in get_hdf5_dataset_names():
+        return True
+    else:
+        return False
+
+def get_hdf5_dataset_path(dataset_name):
+    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET_NAME: dataset_name}, [HDF5_PATH])
+    return documents[0][HDF5_PATH]
+
+def parse_pa_data_src(pa_data_src_name):
+    """
+    Determine primary analysis data source type (HDF5 or image stack) and return
+    a list containing the archive paths and dataset names
+
+    @param pa_data_src_name:    String, name of data source, could be either
+                                the HDF5 dataset name or a folder name containing
+                                image stacks
+    @return:                    A list of tuples, each tuple contains the path
+                                and the dataset name.
+    """
+    # archives is a list of tuples, each tuple contains the path and the dataset name
+    archives = list()
+    # in the case of HDF5 archive pa_data_src_name is the dataset name
+    if is_hdf5_archive(pa_data_src_name):
+        hdf5_path = get_hdf5_dataset_path(pa_data_src_name)
+        archives.append((hdf5_path, pa_data_src_name))
+        APP_LOGGER.info('%s is an HDF5 file.' % pa_data_src_name)
+    # image archives have no dataset name, use None
+    elif is_image_archive(pa_data_src_name):
+        image_archive_paths = io_utilities.get_archive_dirs(pa_data_src_name,
+                                    min_num_images=PA_MIN_NUM_IMAGES)
+        for path_ in image_archive_paths:
+            archives.append((path_, None,))
+        APP_LOGGER.info('%s is an image stack.' % pa_data_src_name)
+    else:
+        raise Exception('Archive must specify an image stack or HDF5')
+    return archives
 
 def get_dyes():
     '''
@@ -101,7 +167,60 @@ def update_archives():
 
     APP_LOGGER.info("Database successfully updated with available archives.")
     return True
-    
+
+def update_hdf5s():
+    APP_LOGGER.info("Updating database with available HDF5 files...")
+
+    # check if run report path exists
+    if not os.path.isdir(RUN_REPORT_PATH):
+        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
+        return False
+
+    # find new hdf5 files, using nested listdirs, way faster than glob, os.walk, or scandir
+    # only search two subdirectories within the run report folder
+    # assumes each the hdf5 file is in a subfolder in the run report folder
+    database_paths = set(_DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH))
+    current_paths = set()
+    for par_ in os.listdir(RUN_REPORT_PATH):
+        report_dir = os.path.join(RUN_REPORT_PATH, par_)
+        if os.path.isdir(report_dir):
+            for sub_ in os.listdir(report_dir):
+                subdir = os.path.join(report_dir, sub_)
+                if os.path.isdir(subdir):
+                    hdf5s = [f for f in os.listdir(subdir) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+                    hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
+                    current_paths.update(hdf5_paths)
+
+    # remove obsolete paths
+    obsolete_paths = list(database_paths - current_paths)
+    _DB_CONNECTOR.remove(HDF5_COLLECTION, {HDF5_PATH: {'$in': obsolete_paths}})
+
+    # update database with any new files
+    new_hdf5_paths = current_paths - database_paths
+    new_records = list()
+    for hdf5_path in new_hdf5_paths:
+        try:
+            with h5py.File(hdf5_path) as h5_file:
+                dataset_names = h5_file.keys()
+            for dsname in dataset_names:
+                if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
+                    new_records.append({
+                        HDF5_PATH: hdf5_path,
+                        HDF5_DATASET_NAME: dsname,
+                    })
+        except:
+            APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % hdf5_path)
+
+    if new_records:
+        # There is a possible race condition here. Ideally these operations
+        # would be performed in concert atomically
+        _DB_CONNECTOR.insert(HDF5_COLLECTION, new_records)
+        APP_LOGGER.info('Updated database with %s new HDF5 files' % len(new_records))
+    else:
+        APP_LOGGER.info('Unable to find any new HDF5 files')
+
+    return True
+
 def update_dyes():
     '''
     Update the database with available dyes.

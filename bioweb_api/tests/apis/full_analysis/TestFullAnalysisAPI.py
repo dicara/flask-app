@@ -51,6 +51,30 @@ tornado.options.parse_command_line()
 #===============================================================================
 # Private Static Variables
 #===============================================================================
+_EXPECTED_BETA_VARIANTS = {
+    (u'BRAF|15|F', u'c.1799', u'T', u'A'),
+    (u'KRAS|2|R', u'c.34', u'C', u'A'),
+    (u'KRAS|2|R', u'c.34', u'C', u'G'),
+    (u'KRAS|2|R', u'c.34', u'C', u'T'),
+    (u'KRAS|2|R', u'c.35', u'C', u'A'),
+    (u'KRAS|2|R', u'c.35', u'C', u'G'),
+    (u'KRAS|2|R', u'c.35', u'C', u'T'),
+    (u'KRAS|2|R', u'c.38', u'C', u'T'),
+    (u'NRAS|2|F', u'c.34', u'G', u'A'),
+    (u'NRAS|2|F', u'c.34', u'G', u'T'),
+    (u'NRAS|2|F', u'c.35', u'G', u'A'),
+    (u'NRAS|2|F', u'c.37', u'G', u'C'),
+    (u'NRAS|2|F', u'c.38', u'G', u'A'),
+    (u'NRAS|3|F', u'c.181', u'C', u'A'),
+    (u'NRAS|3|F', u'c.182', u'A', u'G'),
+    (u'NRAS|3|F', u'c.182', u'A', u'T'),
+}
+
+_EXPECTED_ABL_VARIANTS = {
+    (u'ALK25', u'28', u'G', u'A'),
+    (u'ABL16', u'35', u'C', u'T'),
+}
+
 _FA_JOB = {
             STATUS : "succeeded",
             JOB_TYPE_NAME : "full_analysis",
@@ -309,10 +333,13 @@ class TestFullAnalysisAPI(unittest.TestCase):
         self.assertEqual(len(observed_variants), 17)
 
         c = re.compile('([A-Z\d\|]+).(c.[\d]+)([A-Z]+)>([A-Z]+)')
-        reference, location, expected, variation = c.match(observed_variants[0]).groups()
-        self.assertEqual(reference, 'NRAS|2|F')
-        self.assertEqual(location, 'c.34')
-        self.assertEqual(variation, 'A')
+        variants = set()
+        for variant in observed_variants:
+            variant_match = c.match(variant)
+            if variant_match:
+                reference, location, expected, variation = variant_match.groups()
+                variants.add((reference, location, expected, variation))
+        self.assertEqual(variants, _EXPECTED_BETA_VARIANTS)
 
         # Construct url for testing ABL definition
         url = os.path.join("/api/v1/FullAnalysis", VARIANTS)
@@ -323,10 +350,13 @@ class TestFullAnalysisAPI(unittest.TestCase):
         self.assertEqual(len(observed_variants), 2)
 
         c = re.compile('([A-Z\d\|]+).([\d]+)([A-Z]+)>([A-Z]+)')
-        reference, location, expected, variation = c.match(observed_variants[-1]).groups()
-        self.assertEqual(reference, 'ABL16')
-        self.assertEqual(location, '35')
-        self.assertEqual(variation, 'T')
+        variants = set()
+        for variant in observed_variants:
+            variant_match = c.match(variant)
+            if variant_match:
+                reference, location, expected, variation = variant_match.groups()
+                variants.add((reference, location, expected, variation))
+        self.assertEqual(variants, _EXPECTED_ABL_VARIANTS)
 
 if __name__ == '__main__':
     unittest.main()

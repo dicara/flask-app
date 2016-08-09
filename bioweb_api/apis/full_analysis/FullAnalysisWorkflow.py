@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 from uuid import uuid4
 
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
@@ -29,17 +30,6 @@ from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_proces
 
 DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
 
-def populate_document(curr_job, prev_job, exist_docs=[]):
-    """
-    Add uuid and existing steps of previous job document to current document
-    @param curr_job:            Dictionary of current job
-    @param prev_job:            Dictionary of previous job
-    @param exist_docs:          list of names of existing job documents, e.g., PA_DOCUMENT
-    """
-    if not exist_docs: return curr_job
-    for doc_name in exist_docs:
-        curr_job[doc_name] = prev_job[doc_name]
-    return curr_job
 
 class FullAnalysisWorkFlowCallable(object):
     def __init__(self, parameters, db_connector):
@@ -63,42 +53,61 @@ class FullAnalysisWorkFlowCallable(object):
             EXP_DEF:            parameters[EXP_DEF]
         }
 
-        if parameters[JOB_NAME] in self.db_connector.distinct(FA_PROCESS_COLLECTION, JOB_NAME):
-            raise Exception('Job name %s already exists in full analysis collection' % parameters[JOB_NAME])
-
         self.uuid_container = [None]
         self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER, GENOTYPER]
-
-        # if this job is a re-run, do a truncated workflow
-        if UUID in parameters:
-            prev_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, parameters[UUID])
-            i = 0
-            while i < len(DOCUMENT_LIST):
-                doc_name = DOCUMENT_LIST[i]
-                if doc_name not in prev_job or STATUS not in prev_job[doc_name] \
-                    or prev_job[doc_name][STATUS] != SUCCEEDED \
-                    or is_param_diff(prev_job[doc_name], doc_name, parameters):
-                    if i > 0:  # if passed primary analysis
-                        last_succ_job = prev_job[DOCUMENT_LIST[i-1]] # last succeeded job
-                        self.uuid_container.append(last_succ_job[UUID])
-
-                    exist_docs = DOCUMENT_LIST[:i] if i > 0 else []
-                    self.workflow = self.workflow[i:]
-                    break
-                i += 1
-            if i == len(DOCUMENT_LIST):
-                exist_docs = DOCUMENT_LIST
-                self.workflow = []
-
-            self.document = populate_document(self.document, prev_job, exist_docs)
-
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
 
     def __call__(self):
-        update = {"$set": {STATUS: JOB_STATUS.running,
-                           START_DATESTAMP: datetime.today()}}
+        # check if a run needs to be resumed.
+        if UUID in self.parameters:
+            self.resume_workflow()
+
+        update_query = {STATUS: JOB_STATUS.running,
+                        START_DATESTAMP: datetime.today()}
+
+        update = {"$set": update_query}
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
-        if self.workflow: self.run_analysis()
+        if self.workflow:
+            self.run_analysis()
+
+    def resume_workflow(self):
+        """
+        User may be trying to resume an old workflow were something failed.  Look
+        for the subjob it failed on and resume from there. Update the document with
+        the succeeded subjobs and resume the workflow from the failed subjobs.
+        """
+        # find the full analysis job
+        previous_fa_job_document = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.parameters[UUID])
+        # find the job it failed on
+        failed_subjob = None
+        last_successful_subjob_uuid = None
+        for subjob_name in DOCUMENT_LIST:
+            if subjob_name not in previous_fa_job_document or \
+               previous_fa_job_document[subjob_name].get(STATUS, None) != SUCCEEDED or \
+               is_param_diff(previous_fa_job_document[subjob_name], subjob_name, self.parameters):
+                failed_subjob = subjob_name
+                break
+            else:
+                last_successful_subjob_uuid = previous_fa_job_document[subjob_name][UUID]
+
+        # append last successful uuid to uuid manager
+        if last_successful_subjob_uuid is not None:
+            self.uuid_container.append(last_successful_subjob_uuid)
+
+        if failed_subjob is None:
+            self.workflow = []
+            succeeded_subjobs = DOCUMENT_LIST
+        else:
+            self.workflow = self.workflow[DOCUMENT_LIST.index(failed_subjob):]
+            succeeded_subjobs = DOCUMENT_LIST[:DOCUMENT_LIST.index(failed_subjob)]
+
+        update_query = dict()
+        for subjob_name in succeeded_subjobs:
+            update_query[subjob_name] = previous_fa_job_document[subjob_name]
+
+        if update_query:
+            update = {"$set": update_query}
+            self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
 
     def primary_analysis_job(self, _):
         """

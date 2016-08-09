@@ -34,7 +34,7 @@ from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
-    HDF5_DATASET_NAME
+    IS_HDF5
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -96,7 +96,9 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         required=False)
 
         # primary analysis parameters
-        cls.pa_data_src_param = ParameterFactory.pa_data_source()
+        cls.pa_data_src_param = ParameterFactory.cs_string(PA_DATA_SOURCE,
+                                                        "Primary analysis data source (HDF5 or image stack).",
+                                                        required=True)
         cls.dyes_param     = ParameterFactory.dyes(required=False)
         cls.device_param   = ParameterFactory.device(required=False,
                                                      default='beta7')
@@ -270,7 +272,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         status_codes = list()
         len_archives = len(archives)
-        for idx, (archive, dataset_name) in enumerate(archives):
+        for idx, (name, is_hdf5) in enumerate(archives):
             cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx + 1) if len_archives > 1 \
                            else parameters[JOB_NAME]
 
@@ -282,8 +284,8 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                 try:
                     cur_parameters = copy.deepcopy(parameters)
                     cur_parameters[JOB_NAME] = cur_job_name
-                    cur_parameters[ARCHIVE] = archive
-                    cur_parameters[HDF5_DATASET_NAME] = dataset_name
+                    cur_parameters[ARCHIVE] = name
+                    cur_parameters[IS_HDF5] = is_hdf5
 
                     fa_workflow = FullAnalysisWorkFlowCallable(parameters=cur_parameters,
                                                                db_connector=cls._DB_CONNECTOR)

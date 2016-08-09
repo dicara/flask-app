@@ -35,7 +35,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, ID, \
-    VALID_HAM_IMAGE_EXTENSIONS, APPLICATION, HDF5_PATH, HDF5_DATASET_NAME, \
+    VALID_HAM_IMAGE_EXTENSIONS, APPLICATION, HDF5_PATH, HDF5_DATASET, \
     PA_MIN_NUM_IMAGES, VALID_HDF5_EXTENSIONS
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
@@ -60,7 +60,7 @@ def get_hdf5s():
     '''
     Return a listing of the hdf5 file and dataset.
     '''
-    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, None, [HDF5_PATH, HDF5_DATASET_NAME])
+    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, None, [HDF5_PATH, HDF5_DATASET])
     for doc in documents:
         if ID in doc:
             del doc[ID]
@@ -70,13 +70,7 @@ def get_hdf5_dataset_names():
     '''
     Return a listing of the hdf5 dataset names.
     '''
-    return _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_DATASET_NAME)
-
-def is_image_archive(archive_name):
-    if archive_name in get_archives():
-        return True
-    else:
-        return False
+    return _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_DATASET)
 
 def is_hdf5_archive(archive_name):
     if archive_name in get_hdf5_dataset_names():
@@ -84,8 +78,14 @@ def is_hdf5_archive(archive_name):
     else:
         return False
 
+def is_image_archive(archive_name):
+    if archive_name in get_archives():
+        return True
+    else:
+        return False
+
 def get_hdf5_dataset_path(dataset_name):
-    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET_NAME: dataset_name}, [HDF5_PATH])
+    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: dataset_name}, [HDF5_PATH])
     return documents[0][HDF5_PATH]
 
 def parse_pa_data_src(pa_data_src_name):
@@ -96,25 +96,24 @@ def parse_pa_data_src(pa_data_src_name):
     @param pa_data_src_name:    String, name of data source, could be either
                                 the HDF5 dataset name or a folder name containing
                                 image stacks
-    @return:                    A list of tuples, each tuple contains the path
-                                and the dataset name.
+    @return:                    A list of tuples, each tuple contains the primary analysis
+                                datasource name and a bool indicating whether or not it is HDF5.
     """
     # archives is a list of tuples, each tuple contains the path and the dataset name
     archives = list()
-    # in the case of HDF5 archive pa_data_src_name is the dataset name
     if is_hdf5_archive(pa_data_src_name):
-        hdf5_path = get_hdf5_dataset_path(pa_data_src_name)
-        archives.append((hdf5_path, pa_data_src_name))
+        archives.append((pa_data_src_name, True))
         APP_LOGGER.info('%s is an HDF5 file.' % pa_data_src_name)
-    # image archives have no dataset name, use None
     elif is_image_archive(pa_data_src_name):
         image_archive_paths = io_utilities.get_archive_dirs(pa_data_src_name,
                                     min_num_images=PA_MIN_NUM_IMAGES)
-        for path_ in image_archive_paths:
-            archives.append((path_, None,))
+        for img_src_name in image_archive_paths:
+            archives.append((img_src_name, False,))
         APP_LOGGER.info('%s is an image stack.' % pa_data_src_name)
     else:
-        raise Exception('Archive must specify an image stack or HDF5')
+        raise Exception('Unable to determine if %s is an image stack or HDF5 file.' %
+                        pa_data_src_name)
+
     return archives
 
 def get_dyes():
@@ -206,7 +205,7 @@ def update_hdf5s():
                 if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
                     new_records.append({
                         HDF5_PATH: hdf5_path,
-                        HDF5_DATASET_NAME: dsname,
+                        HDF5_DATASET: dsname,
                     })
         except:
             APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % hdf5_path)

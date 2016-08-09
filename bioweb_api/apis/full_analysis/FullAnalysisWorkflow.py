@@ -14,7 +14,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
-    HDF5_DATASET_NAME
+    IS_HDF5
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 
@@ -59,7 +59,7 @@ class FullAnalysisWorkFlowCallable(object):
             JOB_TYPE_NAME:      JOB_TYPE.full_analysis,
             SUBMIT_DATESTAMP:   datetime.today(),
             ARCHIVE:            parameters[ARCHIVE],
-            HDF5_DATASET_NAME:  parameters[HDF5_DATASET_NAME],
+            IS_HDF5:            parameters[IS_HDF5],
             EXP_DEF:            parameters[EXP_DEF]
         }
 
@@ -113,7 +113,7 @@ class FullAnalysisWorkFlowCallable(object):
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = PaProcessCallable(archive=self.parameters[ARCHIVE],
-                                    hdf5_dataset_name=self.parameters[HDF5_DATASET_NAME],
+                                    is_hdf5=self.parameters[IS_HDF5],
                                     dyes=dyes,
                                     device=self.parameters[DEVICE],
                                     major=self.parameters[MAJOR],

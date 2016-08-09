@@ -27,12 +27,12 @@ import sys
 import traceback
 
 from bioweb_api import FA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import EXP_DEF, ERROR, FINISH_DATESTAMP, \
+from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, FIDUCIAL_DYE, STATUS, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, CONTINUOUS_PHASE, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
-    UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, DYES, DYE_LEVELS, ARCHIVE, \
+    UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
     IS_HDF5
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
@@ -41,7 +41,6 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import parse_pa_data_src
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
@@ -214,47 +213,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
             param_value = params_dict[param]
             # unpack them from the list if length is 1
             parameters[param.name] = param_value[0] if len(param_value) == 1 else param_value
-
-        # there are certain parameters that the user may not have sent
-        # but that can come from the experiment definition, set them here
-        try:
-            if DYES not in parameters or \
-               DYE_LEVELS not in parameters or \
-               NUM_PROBES not in parameters:
-                # get dyes and number of levels
-                exp_defs = ExperimentDefinitions()
-                exp_def_uuid = exp_defs.get_experiment_uuid(parameters[EXP_DEF])
-                exp_def = exp_defs.get_experiment_defintion(exp_def_uuid)
-
-                probes = exp_def['probes']
-                controls = exp_def['controls']
-                barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
-                dye_levels = defaultdict(int)
-                for barcode in barcodes + controls:
-                    for dye_name, lvl in barcode['dye_levels'].items():
-                        dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
-                if DYES not in parameters:
-                    parameters[DYES] = dye_levels.keys()
-                if DYE_LEVELS not in parameters:
-                    parameters[DYE_LEVELS] = dye_levels.items()
-                if NUM_PROBES not in parameters:
-                    parameters[NUM_PROBES] = len(probes) + len(controls)
-
-        except:
-            APP_LOGGER.exception(traceback.format_exc())
-            json_response[ERROR] = str(sys.exc_info()[1])
-            return make_clean_response(json_response, 500)
-
-
-        # set parameters for anything user might not have set
-        if FILTERED_DYES not in parameters:
-            parameters[FILTERED_DYES] = list()
-
-        if IGNORED_DYES not in parameters:
-            parameters[IGNORED_DYES] = list()
-
-        if CONTINUOUS_PHASE not in parameters:
-            parameters[CONTINUOUS_PHASE] = False
 
         # Ensure archive directory is valid
         try:

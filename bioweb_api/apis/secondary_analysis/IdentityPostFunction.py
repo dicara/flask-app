@@ -314,8 +314,8 @@ class SaIdentityCallable(object):
         primary_analysis_dyes = set(primary_analysis_doc[DYES])
         identity_dyes = set([x[0] for x in self.dye_levels])
         if not identity_dyes.issubset(set(primary_analysis_dyes)):
-            raise Exception("Dyes in levels (%s) must be a subset of run dyes (%s)",
-                            identity_dyes, primary_analysis_dyes)
+            raise Exception("Dyes in levels: %s must be a subset of run dyes: %s" %
+                            (identity_dyes, primary_analysis_dyes))
 
         # verify primary analysis file exists
         if not os.path.isfile(primary_analysis_doc[RESULT]):

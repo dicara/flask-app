@@ -1,6 +1,8 @@
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import time
+import traceback
 from uuid import uuid4
 
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -16,9 +18,9 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5
+
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
-
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import SaAssayCallerCallable, ASSAY_CALLER
@@ -27,6 +29,7 @@ from bioweb_api.apis.primary_analysis.ProcessPostFunction import make_process_ca
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process_callback as id_make_process_callback
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
+from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
 DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
 
@@ -58,6 +61,7 @@ class FullAnalysisWorkFlowCallable(object):
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
 
     def __call__(self):
+        self.set_defaults()
         # check if a run needs to be resumed.
         if UUID in self.parameters:
             self.resume_workflow()
@@ -69,6 +73,46 @@ class FullAnalysisWorkFlowCallable(object):
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
         if self.workflow:
             self.run_analysis()
+
+    def set_defaults(self):
+        """
+        There are certain parameters that the user may not have sent
+        but that can come from the experiment definition, set them here
+        """
+        try:
+            if DYES not in self.parameters or \
+               DYE_LEVELS not in self.parameters or \
+               NUM_PROBES not in self.parameters:
+                # get dyes and number of levels
+                exp_defs = ExperimentDefinitions()
+                exp_def_uuid = exp_defs.get_experiment_uuid(self.parameters[EXP_DEF])
+                exp_def = exp_defs.get_experiment_defintion(exp_def_uuid)
+
+                probes = exp_def['probes']
+                controls = exp_def['controls']
+                barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
+                dye_levels = defaultdict(int)
+                for barcode in barcodes + controls:
+                    for dye_name, lvl in barcode['dye_levels'].items():
+                        dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
+                if DYES not in self.parameters:
+                    self.parameters[DYES] = dye_levels.keys()
+                if DYE_LEVELS not in self.parameters:
+                    self.parameters[DYE_LEVELS] = dye_levels.items()
+                if NUM_PROBES not in self.parameters:
+                    self.parameters[NUM_PROBES] = len(probes) + len(controls)
+        except:
+            APP_LOGGER.exception(traceback.format_exc())
+
+        # set parameters for anything user might not have set
+        if FILTERED_DYES not in self.parameters:
+            self.parameters[FILTERED_DYES] = list()
+
+        if IGNORED_DYES not in self.parameters:
+            self.parameters[IGNORED_DYES] = list()
+
+        if CONTINUOUS_PHASE not in self.parameters:
+            self.parameters[CONTINUOUS_PHASE] = False
 
     def resume_workflow(self):
         """

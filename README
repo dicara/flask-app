@@ -381,3 +381,9 @@ GnuBio Flask API.
    * Plate plot are shown on full analysis webpage
    * Library design generator can make a design from two separate detections
    * Removed unneeded database queries from secondary analysis callable constructor
+ * v3.21
+   * Switched from tornaodo to gunicorn
+   * Full analysis default options are set in __call__ function
+   * Full analysis resume workflow parameters are set in __call__ function
+   * Bug fix where full analysis would not properly resume HDF5 analysis
+   * Removed redundant database calls from ProcessPostFunction

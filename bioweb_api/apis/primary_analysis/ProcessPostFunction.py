@@ -184,7 +184,7 @@ class ProcessPostFunction(AbstractPostFunction):
 
 
                     # Add to queue
-                    cls._EXECUTION_MANAGER.add_job(response[UUID], 
+                    cls._EXECUTION_MANAGER.add_job(response[UUID],
                                                    pa_callable, callback)
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
@@ -250,8 +250,6 @@ class PaProcessCallable(object):
                              JOB_NAME: job_name,
                              JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
                              SUBMIT_DATESTAMP: datetime.today()}
-        if job_name in self.db_connector.distinct(PA_PROCESS_COLLECTION, JOB_NAME):
-            raise Exception('Job name %s already exists in primary analysis collection' % job_name)
 
         self.db_connector.insert(PA_PROCESS_COLLECTION, [self.document])
 
@@ -291,10 +289,10 @@ class PaProcessCallable(object):
             new_df.to_csv(self.outfile_path, sep=',', index=False)
             silently_remove_file(hdf5_dst_path)
         else:
-            return execute_process(self.archive, self.dyes, self.device, self.major,
-                                   self.minor, self.offsets, self.use_iid,
-                                   self.outfile_path, self.config_path,
-                                   self.uuid)
+            execute_process(self.archive, self.dyes, self.device, self.major,
+                            self.minor, self.offsets, self.use_iid,
+                            self.outfile_path, self.config_path,
+                            self.uuid)
         
 def make_process_callback(uuid, outfile_path, config_path, db_connector):
     """

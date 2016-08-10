@@ -377,8 +377,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
         try:
             _ = future.result()
             report_errors = check_report_for_errors(report_path)
-            status = JOB_STATUS.failed if report_errors else JOB_STATUS.succeeded
-            update_data = { STATUS: status, # @UndefinedVariable
+            update_data = { STATUS: JOB_STATUS.succeeded,
                             RESULT: outfile_path,
                             URL: "http://%s/results/%s/%s" %
                                  (HOSTNAME, PORT,

@@ -79,7 +79,10 @@ def is_hdf5_archive(archive_name):
         return False
 
 def is_image_archive(archive_name):
-    if archive_name in get_archives():
+    # remove separator from front and back of archive name
+    path = archive_name.lstrip(os.sep)
+    root_archive_name = path[:path.index(os.sep)] if os.sep in path else path
+    if root_archive_name in get_archives():
         return True
     else:
         return False

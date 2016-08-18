@@ -387,3 +387,5 @@ GnuBio Flask API.
    * Full analysis resume workflow parameters are set in __call__ function
    * Bug fix where full analysis would not properly resume HDF5 analysis
    * Removed redundant database calls from ProcessPostFunction
+ * v3.22
+   * Bug fix where full analysis would not resume nested image stacks

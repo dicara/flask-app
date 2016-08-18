@@ -74,6 +74,8 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
     
     def setUp(self):
         self._client = app.test_client(self)
+        get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
+        get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
         
     def test_dyes(self):
         response = get_data(self, _DYES_URL + '?refresh=true&format=json', 200)
@@ -95,9 +97,6 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
               (observed_devices, expected_devices)
         self.assertEqual(response, devices, msg)
         
-    def test_archives(self):
-        get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
-        
     def test_process_no_archive(self):
         archive = "nonexistent_archive"
         url = self.construct_process_url(archive)
@@ -109,10 +108,8 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         post_data(self, url, 404)
 
     def test_hdf5_process(self):
-        get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
-
         # Test run details
-        archive  = '2016-08-02_0924.38-pilot1-unittest'
+        archive = '2016-08-02_0924.38-pilot1-unittest'
 
         # Construct url
         url = self.construct_process_url(archive, 'test_HDF5_pa_process_job')
@@ -167,8 +164,6 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
             self.assertNotEqual(process_uuid, job[UUID], msg)
 
     def test_process(self):
-        get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
- 
         # Test run details
         archive  = '20140715_b8_633pe_6'
          

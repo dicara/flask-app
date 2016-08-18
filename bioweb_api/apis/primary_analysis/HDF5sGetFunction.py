@@ -24,7 +24,7 @@ from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_hdf5s, \
     update_hdf5s
-from bioweb_api.apis.ApiConstants import HDF5_DATASET_NAME
+from bioweb_api.apis.ApiConstants import HDF5_DATASET
 
 #=============================================================================
 # Class
@@ -60,7 +60,7 @@ class HDF5sGetFunction(AbstractGetFunction):
            params_dict[cls.refresh_parameter][0]:
             update_hdf5s()
 
-        hdf5s = [doc[HDF5_DATASET_NAME] for doc in get_hdf5s()]
+        hdf5s = [doc[HDF5_DATASET] for doc in get_hdf5s()]
         return (hdf5s, None, None)
          
 #===============================================================================

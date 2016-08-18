@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import numpy
 
 from bioweb_api import HOSTNAME
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from profile_database.datastore import Datastore
 from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
     DETECTION_UUID, INTENSITY_CONC_RATIO, DYE_594, DYE_CY5_5, DYE_PE, \
@@ -82,7 +83,7 @@ class LibraryDesign(object):
         self.dye_max_intensities = None
 
         self._get_nlevels()
-        self._get_max_intensities()
+        self._set_dye_max_intensities()
 
     def get_profiles(self):
         """
@@ -160,11 +161,12 @@ class LibraryDesign(object):
         del barcode_profs
         return scalar_combos[~invalid]
 
-    def _rm_most_variable(self, scalar_combos):
+    def _rm_most_variable(self, scalar_combos, percent_best):
         """
         Remove designs where the dyes have the most uneven intensity/level
 
         @param scalar_combos:   Numpy array, max intensity combinations
+        @param percent_best:    Float, the percentage of combinations to return
         @return:                Numpy array, max intensity combinations
         """
         # criteria is the variance of intensity per level between dyes, lower is better
@@ -172,40 +174,47 @@ class LibraryDesign(object):
         intensity_per_lvl = scalar_combos/self.nlvls[:ndims]
         var_intensity_per_lvl = numpy.var(intensity_per_lvl, axis=1)
 
-        # keep the 2.5% lowest
-        mask = var_intensity_per_lvl < numpy.percentile(var_intensity_per_lvl, 2.5)
-        return scalar_combos[mask]
+        # remove solutions that have a low probability of success
+        mask_ = var_intensity_per_lvl < numpy.percentile(var_intensity_per_lvl, percent_best)
+        return scalar_combos[mask_]
 
-    def _get_max_intensities(self, resolution=40):
+    def _set_dye_max_intensities(self, resolution=100.0):
         """
         The ideal library will take full advantage of our intensity space, which
         peaks at 65535 intensity units.  This function attempt to optimize the
         maximum level of each dye by recomposing the profiles and testing that
         they do not saturate.
 
-        @param resolution:  Integer, the number of intensities to test per dye
+        @param resolution:      Float, intensity unit spacing, i.e. resolution of 100.0
+                                would result in intensities of: 1000.0, 1100.00, 1200.0...
         """
-        # make a group of scalars for each dye (dimension)
-        scalars = [numpy.linspace(10000, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
+        # test various percent cutoffs
+        for percent_best in numpy.arange(2.5, 25, 2.5):
+            try:
+                # make a group of scalars for each dye (dimension)
+                scalars = [numpy.linspace(10000.0, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
 
-        # create barcode profiles by summing each combination of dyes profiles
-        # to find an optimal max barcode profile
-        scalar_combos = scalars.pop(0)
-        while scalars:
-            scalar_combos = numpy.hstack((
-                numpy.repeat(scalar_combos, resolution, axis=0),
-                numpy.tile(scalars.pop(0), (len(scalar_combos), 1))
-            ))
-            scalar_combos = self._rm_saturated(scalar_combos)
-            scalar_combos = self._rm_most_variable(scalar_combos)
+                # create barcode profiles by summing each combination of dyes profiles
+                # to find an optimal max barcode profile
+                scalar_combos = scalars.pop(0)
+                while scalars:
+                    scalar_combos = numpy.hstack((
+                        numpy.repeat(scalar_combos, resolution, axis=0),
+                        numpy.tile(scalars.pop(0), (len(scalar_combos), 1))
+                    ))
+                    scalar_combos = self._rm_saturated(scalar_combos)
+                    scalar_combos = self._rm_most_variable(scalar_combos, percent_best)
 
-        if len(scalar_combos) <= 0:
+                midx = numpy.argmax(numpy.sum(scalar_combos, axis=1))
+                # self.plot(scalar_combos[midx])
+
+                self.dye_max_intensities = dict(zip(self.dye_names, scalar_combos[midx]))
+                break
+            except Exception as e:
+                APP_LOGGER.exception(e)
+
+        if not self.dye_max_intensities or len(self.dye_max_intensities) != len(self.dye_names):
             raise Exception('A library cannot be generated from this combination of dyes.')
-
-        midx = numpy.argmax(numpy.sum(scalar_combos, axis=1))
-        # self.plot(scalar_combos[midx])
-
-        self.dye_max_intensities = dict(zip(self.dye_names, scalar_combos[midx]))
 
     def _validate_dyes_lots(self):
         """
@@ -292,9 +301,9 @@ class LibraryDesign(object):
 
 
 if __name__ == '__main__':
-    input_requested_nbarcodes = 1024
-    input_dyes = [DYE_CY5_5, DYE_594, DYE_633, DYE_CY7, DYE_PE, DYE_ALEXA700]
-    input_lots = ['CY5.5RP000-16-011', 'DY594RPE000-15-006', 'DY633RPE000-13-007', 'CY7RPE000-16-010', 'RPE000-15-026', 'DYAF7RPE000-15-002']
+    input_requested_nbarcodes = 24
+    input_dyes = [DYE_CY5_5, DYE_594, DYE_633, DYE_PE, ]
+    input_lots = ['CY5.5RP000-16-012', 'DY594RPE000-16-009', 'DY633RPE000-16-009', 'RPE000-15-026B', ]
 
     ld = LibraryDesign(list(zip(input_dyes, input_lots)), input_requested_nbarcodes)
     design, dyes, levels = ld.generate()

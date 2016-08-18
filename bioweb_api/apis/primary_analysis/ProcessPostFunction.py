@@ -42,10 +42,10 @@ from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
-    OFFSETS, MAJOR, MINOR, USE_IID, HDF5_DATASET_NAME
+    OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5
     
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
-    parse_pa_data_src
+    parse_pa_data_src, get_hdf5_dataset_path
     
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
@@ -159,7 +159,7 @@ class ProcessPostFunction(AbstractPostFunction):
 
         # Process each archive
         status_codes  = []
-        for i, (archive, hdf5_dataset_name) in enumerate(archives):
+        for i, (name, is_hdf5) in enumerate(archives):
             if len(archives) == 1:
                 cur_job_name = job_name
             else:
@@ -171,11 +171,11 @@ class ProcessPostFunction(AbstractPostFunction):
                 json_response[PROCESS].append({ERROR: 'Job exists.'})
             else:
                 try:
-                    pa_callable = PaProcessCallable(archive, dyes, device,
+                    pa_callable = PaProcessCallable(name, dyes, device,
                                                      major, minor,
                                                      offset, use_iid,
                                                      cls._DB_CONNECTOR,
-                                                     cur_job_name, hdf5_dataset_name)
+                                                     cur_job_name, is_hdf5)
                     response = copy.deepcopy(pa_callable.document)
                     callback = make_process_callback(pa_callable.uuid,
                                                      pa_callable.outfile_path,
@@ -184,7 +184,7 @@ class ProcessPostFunction(AbstractPostFunction):
 
 
                     # Add to queue
-                    cls._EXECUTION_MANAGER.add_job(response[UUID], 
+                    cls._EXECUTION_MANAGER.add_job(response[UUID],
                                                    pa_callable, callback)
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
@@ -209,7 +209,7 @@ class PaProcessCallable(object):
     Callable that executes the process command.
     """
     def __init__(self, archive, dyes, device, major, minor, offset, use_iid,
-                 db_connector, job_name, hdf5_dataset_name):
+                 db_connector, job_name, is_hdf5):
         """
         @param archive:             String, path to archive, could be HDF5 or image.
         @param dyes:                List of strings specifying dye names.
@@ -223,12 +223,10 @@ class PaProcessCallable(object):
         @param use_iid:             Bool, use iid peak detection.
         @param db_connector:        DB_CONNECTOR instance.
         @param job_name:            String specifying job name.
-        @param hdf5_dataset_name:   String or None, if None job will be run as
-                                    an image archive analysis, if string it will
-                                    be run as an HDF5.
+        @param is_hdf5:             Bool indicates if archive is an HDF5 file.
         """
         self.uuid         = str(uuid4())
-        self.hdf5_dataset_name = hdf5_dataset_name
+        self.is_hdf5      = is_hdf5
         self.archive      = archive
         self.dyes         = dyes
         self.device       = device
@@ -239,8 +237,8 @@ class PaProcessCallable(object):
         self.outfile_path = os.path.join(RESULTS_PATH, self.uuid)
         self.config_path  = self.outfile_path + '.cfg'
         self.db_connector = db_connector
-        self.document     = {ARCHIVE: hdf5_dataset_name if hdf5_dataset_name else archive,
-                             HDF5_DATASET_NAME: hdf5_dataset_name,
+        self.document     = {ARCHIVE: archive,
+                             IS_HDF5: is_hdf5,
                              DYES: dyes,
                              DEVICE: device,
                              OFFSETS: offset,
@@ -250,8 +248,6 @@ class PaProcessCallable(object):
                              JOB_NAME: job_name,
                              JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
                              SUBMIT_DATESTAMP: datetime.today()}
-        if job_name in self.db_connector.distinct(PA_PROCESS_COLLECTION, JOB_NAME):
-            raise Exception('Job name %s already exists in primary analysis collection' % job_name)
 
         self.db_connector.insert(PA_PROCESS_COLLECTION, [self.document])
 
@@ -260,12 +256,13 @@ class PaProcessCallable(object):
                            START_DATESTAMP: datetime.today()}}
         query = {UUID: self.uuid}
         self.db_connector.update(PA_PROCESS_COLLECTION, query, update)
-        if self.hdf5_dataset_name:
+        if self.is_hdf5:
+            hdf5_src_path = get_hdf5_dataset_path(self.archive)
             hdf5_dst_path = self.outfile_path+'.h5'
-            shutil.copyfile(self.archive, hdf5_dst_path)
+            shutil.copyfile(hdf5_src_path, hdf5_dst_path)
 
             f = h5py.File(hdf5_dst_path)
-            dataset = f[self.hdf5_dataset_name]
+            dataset = f[self.archive]
             columns = dataset.attrs['columns']
             decomp_dyes = [c.replace('-decomp', '') for c in columns if '-decomp' in c]
 
@@ -291,10 +288,10 @@ class PaProcessCallable(object):
             new_df.to_csv(self.outfile_path, sep=',', index=False)
             silently_remove_file(hdf5_dst_path)
         else:
-            return execute_process(self.archive, self.dyes, self.device, self.major,
-                                   self.minor, self.offsets, self.use_iid,
-                                   self.outfile_path, self.config_path,
-                                   self.uuid)
+            execute_process(self.archive, self.dyes, self.device, self.major,
+                            self.minor, self.offsets, self.use_iid,
+                            self.outfile_path, self.config_path,
+                            self.uuid)
         
 def make_process_callback(uuid, outfile_path, config_path, db_connector):
     """

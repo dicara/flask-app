@@ -1,8 +1,11 @@
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import time
+import traceback
 from uuid import uuid4
 
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
@@ -14,10 +17,10 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
-    HDF5_DATASET_NAME
+    IS_HDF5
+
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
-
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import SaAssayCallerCallable, ASSAY_CALLER
@@ -26,20 +29,10 @@ from bioweb_api.apis.primary_analysis.ProcessPostFunction import make_process_ca
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process_callback as id_make_process_callback
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
+from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
 DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
 
-def populate_document(curr_job, prev_job, exist_docs=[]):
-    """
-    Add uuid and existing steps of previous job document to current document
-    @param curr_job:            Dictionary of current job
-    @param prev_job:            Dictionary of previous job
-    @param exist_docs:          list of names of existing job documents, e.g., PA_DOCUMENT
-    """
-    if not exist_docs: return curr_job
-    for doc_name in exist_docs:
-        curr_job[doc_name] = prev_job[doc_name]
-    return curr_job
 
 class FullAnalysisWorkFlowCallable(object):
     def __init__(self, parameters, db_connector):
@@ -59,46 +52,106 @@ class FullAnalysisWorkFlowCallable(object):
             JOB_TYPE_NAME:      JOB_TYPE.full_analysis,
             SUBMIT_DATESTAMP:   datetime.today(),
             ARCHIVE:            parameters[ARCHIVE],
-            HDF5_DATASET_NAME:  parameters[HDF5_DATASET_NAME],
+            IS_HDF5:            parameters[IS_HDF5],
             EXP_DEF:            parameters[EXP_DEF]
         }
 
-        if parameters[JOB_NAME] in self.db_connector.distinct(FA_PROCESS_COLLECTION, JOB_NAME):
-            raise Exception('Job name %s already exists in full analysis collection' % parameters[JOB_NAME])
-
         self.uuid_container = [None]
         self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER, GENOTYPER]
-
-        # if this job is a re-run, do a truncated workflow
-        if UUID in parameters:
-            prev_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, parameters[UUID])
-            i = 0
-            while i < len(DOCUMENT_LIST):
-                doc_name = DOCUMENT_LIST[i]
-                if doc_name not in prev_job or STATUS not in prev_job[doc_name] \
-                    or prev_job[doc_name][STATUS] != SUCCEEDED \
-                    or is_param_diff(prev_job[doc_name], doc_name, parameters):
-                    if i > 0:  # if passed primary analysis
-                        last_succ_job = prev_job[DOCUMENT_LIST[i-1]] # last succeeded job
-                        self.uuid_container.append(last_succ_job[UUID])
-
-                    exist_docs = DOCUMENT_LIST[:i] if i > 0 else []
-                    self.workflow = self.workflow[i:]
-                    break
-                i += 1
-            if i == len(DOCUMENT_LIST):
-                exist_docs = DOCUMENT_LIST
-                self.workflow = []
-
-            self.document = populate_document(self.document, prev_job, exist_docs)
-
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
 
     def __call__(self):
-        update = {"$set": {STATUS: JOB_STATUS.running,
-                           START_DATESTAMP: datetime.today()}}
+        self.set_defaults()
+        # check if a run needs to be resumed.
+        if UUID in self.parameters:
+            self.resume_workflow()
+
+        update_query = {STATUS: JOB_STATUS.running,
+                        START_DATESTAMP: datetime.today()}
+
+        update = {"$set": update_query}
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
-        if self.workflow: self.run_analysis()
+        if self.workflow:
+            self.run_analysis()
+
+    def set_defaults(self):
+        """
+        There are certain parameters that the user may not have sent
+        but that can come from the experiment definition, set them here
+        """
+        try:
+            if DYES not in self.parameters or \
+               DYE_LEVELS not in self.parameters or \
+               NUM_PROBES not in self.parameters:
+                # get dyes and number of levels
+                exp_defs = ExperimentDefinitions()
+                exp_def_uuid = exp_defs.get_experiment_uuid(self.parameters[EXP_DEF])
+                exp_def = exp_defs.get_experiment_defintion(exp_def_uuid)
+
+                probes = exp_def['probes']
+                controls = exp_def['controls']
+                barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
+                dye_levels = defaultdict(int)
+                for barcode in barcodes + controls:
+                    for dye_name, lvl in barcode['dye_levels'].items():
+                        dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
+                if DYES not in self.parameters:
+                    self.parameters[DYES] = dye_levels.keys()
+                if DYE_LEVELS not in self.parameters:
+                    self.parameters[DYE_LEVELS] = dye_levels.items()
+                if NUM_PROBES not in self.parameters:
+                    self.parameters[NUM_PROBES] = len(probes) + len(controls)
+        except:
+            APP_LOGGER.exception(traceback.format_exc())
+
+        # set parameters for anything user might not have set
+        if FILTERED_DYES not in self.parameters:
+            self.parameters[FILTERED_DYES] = list()
+
+        if IGNORED_DYES not in self.parameters:
+            self.parameters[IGNORED_DYES] = list()
+
+        if CONTINUOUS_PHASE not in self.parameters:
+            self.parameters[CONTINUOUS_PHASE] = False
+
+    def resume_workflow(self):
+        """
+        User may be trying to resume an old workflow were something failed.  Look
+        for the subjob it failed on and resume from there. Update the document with
+        the succeeded subjobs and resume the workflow from the failed subjobs.
+        """
+        # find the full analysis job
+        previous_fa_job_document = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.parameters[UUID])
+        # find the job it failed on
+        failed_subjob = None
+        last_successful_subjob_uuid = None
+        for subjob_name in DOCUMENT_LIST:
+            if subjob_name not in previous_fa_job_document or \
+               previous_fa_job_document[subjob_name].get(STATUS, None) != SUCCEEDED or \
+               is_param_diff(previous_fa_job_document[subjob_name], subjob_name, self.parameters):
+                failed_subjob = subjob_name
+                break
+            else:
+                last_successful_subjob_uuid = previous_fa_job_document[subjob_name][UUID]
+
+        # append last successful uuid to uuid manager
+        if last_successful_subjob_uuid is not None:
+            self.uuid_container.append(last_successful_subjob_uuid)
+
+        if failed_subjob is None:
+            self.workflow = []
+            succeeded_subjobs = DOCUMENT_LIST
+        else:
+            self.workflow = self.workflow[DOCUMENT_LIST.index(failed_subjob):]
+            succeeded_subjobs = DOCUMENT_LIST[:DOCUMENT_LIST.index(failed_subjob)]
+
+        update_query = dict()
+        for subjob_name in succeeded_subjobs:
+            update_query[subjob_name] = previous_fa_job_document[subjob_name]
+
+        if update_query:
+            update = {"$set": update_query}
+            self.db_connector.update(FA_PROCESS_COLLECTION, self.query, update)
 
     def primary_analysis_job(self, _):
         """
@@ -113,7 +166,7 @@ class FullAnalysisWorkFlowCallable(object):
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = PaProcessCallable(archive=self.parameters[ARCHIVE],
-                                    hdf5_dataset_name=self.parameters[HDF5_DATASET_NAME],
+                                    is_hdf5=self.parameters[IS_HDF5],
                                     dyes=dyes,
                                     device=self.parameters[DEVICE],
                                     major=self.parameters[MAJOR],

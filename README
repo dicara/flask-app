@@ -389,3 +389,51 @@ GnuBio Flask API.
    * Removed redundant database calls from ProcessPostFunction
  * v3.22
    * Bug fix where full analysis would not resume nested image stacks
+ * v3.23
+   * Update experiment-database from v0.8.5 to v0.10.1
+     * v0.9
+       * Convert DNA sequences to regular string (no Unicode string)
+     * v0.10
+       * Let HotspotExperiment return sorted list of variants
+     * v0.10.1
+       * Fixed get_variants unittest
+       * Check order of variant list in unittest
+   * Update secondary-analysis from v1.56.1 to v1.64.1
+     * v1.57
+       * Share more details about online analysis in real-time
+         * Send positive/negative counts tied to probe uuid from genotyper
+         * Publish negative controls in positive population from assay_caller
+         * Publish throughput and % identified from identity
+       * Additional configuration options to identity for more control
+     * v1.58
+       * Report variants with no probe count in VCF
+     * v1.58.1
+       * Bugfix in calling substitute_variant
+     * v1.59
+       * Update experiment-database to v0.9
+       * Add unittest for assay caller plotting
+       * Log VCF writing related information in genotyper
+     * v1.59.1
+       * Typo fix
+     * v1.59.2
+       * Move stand alone functions to genotyper_utils
+       * Move VCF writing codes to _write_vcf function
+     * v1.60
+       * Update experiment-database form v0.9 to v0.10.1
+       * Modified unittests for the new experiment-database
+     * v1.61
+       * Add flag to enable/disable drop logging from AbstractFilters
+     * v1.62
+       * Identity expecation matrix uses standard scaler
+       * Identity sorts dimensions based on noise, not number of levels
+       * Identity uses Kohonen fitting method
+       * Removed unused eval_qual argument from Identity
+       * Identity generates cluster size plot in execute_identity, not the identity model
+       * Identity training size with least errors is selected
+     * v1.63
+       * handle missing probes in filter
+     * v1.64
+       * handle combined filters correctly
+     * v1.64.1
+       * Bug fix, identity expectation matrix checker cast float as integer
+       * IDs displayed on expectation matrix plots

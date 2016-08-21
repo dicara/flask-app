@@ -437,3 +437,20 @@ GnuBio Flask API.
      * v1.64.1
        * Bug fix, identity expectation matrix checker cast float as integer
        * IDs displayed on expectation matrix plots
+ * v3.24
+   * Update secondary-analysis from v1.64.1 to v1.67
+	 * v1.65
+	   * Refactor Assay Caller
+	   * Add Naive Bayes Assay Caller
+	   * Use Naive Bayes Assay Caller as default
+	   * Minor bugfix for bad observations in genotyping
+	 * v1.65.1
+	   * Bug fix, Naive Bayes assay caller model wasn't packaged correctly
+	 * v1.66
+	   * Bug fix, offline genotyper KeyError when processing control barcodes
+	 * v1.66.1
+	   * Bug fix, issue with assay caller's negative controls list creation
+	 * v1.67
+	   * Add KDE plot to generated assay caller plots.
+	 * v1.67.1
+	   * Ensure get_title in assay caller plot generation returns something.

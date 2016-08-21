@@ -34,9 +34,10 @@ from bioweb_api.tests.test_utils import post_data, get_data, \
 from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, \
     EXP_DEF, ARCHIVE, PA_DOCUMENT, CONFIG_URL, OFFSETS, URL, ID_DOCUMENT, \
     UI_THRESHOLD, REPORT_URL, PLOT_URL, TRAINING_FACTOR, \
-    AC_DOCUMENT, KDE_PLOT_URL, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
+    AC_DOCUMENT, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
-    START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE
+    START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
+    ERROR
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -93,8 +94,8 @@ _FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
 _ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
 _HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
 _FA_JOBNAME               = "test_full_analysis_job"
-_ARCHIVE_NAME             = "2016-04-14_1259.50-beta17"
-_EXP_DEF_NAME             = "ABL_24_V1"
+_ARCHIVE_NAME             = "2016-08-17_1602.41-pilot5"
+_EXP_DEF_NAME             = "Beta_24b_V1"
 _BETA_EXP_DEF_NAME        = "Beta_24_V5"
 _ABL_EXP_DEF_NAME         = "ABL_24_V4"
 _OFFSETS                  = 30
@@ -149,7 +150,6 @@ class TestFullAnalysisAPI(unittest.TestCase):
         cls._ac_uuid = "4d78456c-c1ca-4113-a501-afe7fbeee86d"
         ac_record = {
             STATUS : "succeeded",
-            KDE_PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid + "_kde.png"),
             UUID : cls._ac_uuid,
             URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid),
             SCATTER_PLOT_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._ac_uuid + "_scatter.png"),
@@ -223,10 +223,6 @@ class TestFullAnalysisAPI(unittest.TestCase):
         msg = "Assay caller scatter plot file cannot be found: %s" % ac_scatter
         self.assertTrue(os.path.isfile(ac_scatter), msg)
 
-        ac_kde = os.path.join(_TEST_DIR, os.path.basename(response[AC_DOCUMENT][KDE_PLOT_URL]))
-        msg = "Assay caller KDE plot file cannot be found: %s" % ac_kde
-        self.assertTrue(os.path.isfile(ac_kde), msg)
-
         gt_result = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][URL]))
         msg = "Genotyper result file cannot be found: %s" % gt_result
         self.assertTrue(os.path.isfile(gt_result), msg)
@@ -282,15 +278,26 @@ class TestFullAnalysisAPI(unittest.TestCase):
 
         msg = "%s doesn't exist in job_details." % PA_DOCUMENT
         self.assertTrue(PA_DOCUMENT in job_details, msg)
+        if ERROR in job_details[PA_DOCUMENT]:
+            self.assertTrue(False, job_details[PA_DOCUMENT][ERROR])
 
         msg = "%s doesn't exist in job_details." % ID_DOCUMENT
         self.assertTrue(ID_DOCUMENT in job_details, msg)
+        if ERROR in job_details[ID_DOCUMENT]:
+            self.assertTrue(False, job_details[ID_DOCUMENT][ERROR])
 
         msg = "%s doesn't exist in job_details." % AC_DOCUMENT
         self.assertTrue(AC_DOCUMENT in job_details, msg)
+        if ERROR in job_details[AC_DOCUMENT]:
+            self.assertTrue(False, job_details[AC_DOCUMENT][ERROR])
 
         msg = "%s doesn't exist in job_details." % GT_DOCUMENT
         self.assertTrue(GT_DOCUMENT in job_details, msg)
+        if ERROR in job_details[GT_DOCUMENT]:
+            self.assertTrue(False, job_details[GT_DOCUMENT][ERROR])
+
+        if ERROR in job_details:
+            self.assertTrue(False, job_details[GT_DOCUMENT])
 
         # Delete full analysis job
         delete_url = add_url_argument(_FULL_ANALYSIS_URL, UUID, fa_uuid, True)

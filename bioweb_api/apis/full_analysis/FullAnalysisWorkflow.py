@@ -15,9 +15,9 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     STATUS, JOB_STATUS, START_DATESTAMP, SUCCEEDED, PA_PROCESS_UUID, CTRL_THRESH, \
     SA_IDENTITY_UUID, SA_ASSAY_CALLER_UUID, SA_GENOTYPER_UUID, URL, \
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
-    PLOT_URL, KDE_PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
+    PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
-    IS_HDF5
+    IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -275,7 +275,6 @@ class FullAnalysisWorkFlowCallable(object):
                                         job_name=job_name)
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
-                                            kde_plot_path=callable.kde_plot_path,
                                             scatter_plot_path=callable.scatter_plot_path,
                                             db_connector=self.db_connector)
 
@@ -293,7 +292,7 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from assay caller
         result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, KDE_PLOT_URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
+        keys = [UUID, URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
                 FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {AC_DOCUMENT: document}}
@@ -325,7 +324,8 @@ class FullAnalysisWorkFlowCallable(object):
                                             ac_result_path=callable.ac_result_path,
                                             ignored_dyes=callable.ignored_dyes,
                                             outfile_path=callable.outfile_path,
-                                            db_connector=self.db_connector)
+                                            db_connector=self.db_connector,
+                                            cur_job_name=job_name)
 
         # enter genotyper uuid into full analysis database entry
         self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
@@ -340,8 +340,9 @@ class FullAnalysisWorkFlowCallable(object):
 
         # update full analysis entry with results from genotyper
         result = self.db_connector.find_one(SA_GENOTYPER_COLLECTION, UUID, callable.uuid)
-        keys = [UUID, URL, PDF_URL, PNG_URL, PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, REQUIRED_DROPS]
+        keys = [UUID, URL, PDF_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, 
+            KDE_PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP, 
+            REQUIRED_DROPS]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {GT_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

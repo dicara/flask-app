@@ -28,7 +28,7 @@ from bioweb_api import SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
-    START_DATESTAMP, KDE_PLOT, KDE_PLOT_URL, SCATTER_PLOT, SCATTER_PLOT_URL, \
+    START_DATESTAMP, SCATTER_PLOT, SCATTER_PLOT_URL, \
     FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID, CTRL_THRESH
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 
@@ -43,22 +43,22 @@ class AssayCallerGetFunction(AbstractGetFunction):
     @staticmethod
     def name():
         return ASSAY_CALLER
-   
+
     @staticmethod
     def summary():
         return "Retrieve list of secondary analysis assay caller jobs."
-    
+
     @staticmethod
     def notes():
         return ""
-    
+
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         columns                   = OrderedDict()
@@ -81,21 +81,19 @@ class AssayCallerGetFunction(AbstractGetFunction):
         columns[ERROR]            = 1
         columns[RESULT]           = 1
         columns[URL]              = 1
-        columns[KDE_PLOT]         = 1
-        columns[KDE_PLOT_URL]     = 1
         columns[SCATTER_PLOT]     = 1
         columns[SCATTER_PLOT_URL] = 1
-        
-        column_names = columns.keys()  
-        column_names.remove(ID)         
-        
+
+        column_names = columns.keys()
+        column_names.remove(ID)
+
         data = cls._DB_CONNECTOR.find(SA_ASSAY_CALLER_COLLECTION, {}, columns)
-         
+
         return (data, column_names, None)
-         
+
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
     function = AssayCallerGetFunction()
-    print function                
+    print function

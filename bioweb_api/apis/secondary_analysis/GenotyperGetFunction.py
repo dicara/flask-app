@@ -28,7 +28,8 @@ from bioweb_api import SA_GENOTYPER_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, ID, \
     JOB_TYPE_NAME, RESULT, ERROR, SUBMIT_DATESTAMP, START_DATESTAMP, \
     FINISH_DATESTAMP, URL, REQUIRED_DROPS, SA_ASSAY_CALLER_UUID, EXP_DEF_NAME, \
-    EXP_DEF_UUID, PDF, PDF_URL, PNG, PNG_URL, PNG_SUM, PNG_SUM_URL
+    EXP_DEF_UUID, PDF, PDF_URL, PNG, PNG_URL, PNG_SUM, PNG_SUM_URL, KDE_PNG, \
+    KDE_PNG_SUM, KDE_PNG_SUM_URL, KDE_PNG_URL
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
 
 #=============================================================================
@@ -42,22 +43,22 @@ class GenotyperGetFunction(AbstractGetFunction):
     @staticmethod
     def name():
         return GENOTYPER
-   
+
     @staticmethod
     def summary():
         return "Retrieve list of secondary analysis genotyper jobs."
-    
+
     @staticmethod
     def notes():
         return ""
-    
+
     @classmethod
     def parameters(cls):
         parameters = [
                       ParameterFactory.format(),
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         columns                       = OrderedDict()
@@ -81,18 +82,22 @@ class GenotyperGetFunction(AbstractGetFunction):
         columns[PNG_URL]              = 1
         columns[PNG_SUM]              = 1
         columns[PNG_SUM_URL]          = 1
+        columns[KDE_PNG]              = 1
+        columns[KDE_PNG_URL]          = 1
+        columns[KDE_PNG_SUM]          = 1
+        columns[KDE_PNG_SUM_URL]      = 1
         columns[URL]                  = 1
 
-        column_names = columns.keys()  
-        column_names.remove(ID)         
-        
+        column_names = columns.keys()
+        column_names.remove(ID)
+
         data = cls._DB_CONNECTOR.find(SA_GENOTYPER_COLLECTION, {}, columns)
-         
+
         return (data, column_names, None)
-         
+
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
     function = GenotyperGetFunction()
-    print function            
+    print function

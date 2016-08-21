@@ -39,11 +39,10 @@ from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
-    START_DATESTAMP, FINISH_DATESTAMP, URL, KDE_PLOT, KDE_PLOT_URL, \
-    SCATTER_PLOT, SCATTER_PLOT_URL, JOE, FAM, EXP_DEF_NAME, EXP_DEF_UUID, \
-    CTRL_THRESH, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
-    CTRL_THRESH_DESCRIPTION
-    
+    START_DATESTAMP, FINISH_DATESTAMP, URL, SCATTER_PLOT, SCATTER_PLOT_URL, \
+    JOE, FAM, EXP_DEF_NAME, CTRL_THRESH, NUM_PROBES_DESCRIPTION, \
+    TRAINING_FACTOR_DESCRIPTION, CTRL_THRESH_DESCRIPTION
+
 from expdb import HotspotExperiment
 from primary_analysis.command import InvalidFileError
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
@@ -67,15 +66,15 @@ class AssayCallerPostFunction(AbstractPostFunction):
     @staticmethod
     def name():
         return ASSAY_CALLER
-   
+
     @staticmethod
     def summary():
         return 'Run the equivalent of sa assay_caller.'
-    
+
     @staticmethod
     def notes():
         return ''
-    
+
     def response_messages(self):
         msgs = super(AssayCallerPostFunction, self).response_messages()
         msgs.extend([
@@ -87,7 +86,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                        'analysis jobs found matching input criteria.'},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         cls.job_uuid_param  = ParameterFactory.job_uuid(SA_IDENTITY_COLLECTION)
@@ -114,7 +113,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                      CTRL_THRESH_DESCRIPTION,
                                                      default=AC_CTRL_THRESHOLD,
                                                      minimum=0.0, maximum=100.0)
-        
+
         parameters = [
                       cls.job_uuid_param,
                       cls.job_name_param,
@@ -126,7 +125,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.ctrl_thresh,
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         job_uuids       = params_dict[cls.job_uuid_param]
@@ -137,7 +136,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         ctrl_thresh     = params_dict[cls.ctrl_thresh][0]
-        
+
         json_response = {ASSAY_CALLER: []}
 
         # Ensure analysis job exists
@@ -150,7 +149,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
-        
+
         # Process each archive
         status_codes  = []
         for i, sa_identity_job in enumerate(sa_identity_jobs):
@@ -161,7 +160,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
 
 
             status_code = 200
-            
+
             if cur_job_name in cls._DB_CONNECTOR.distinct(SA_ASSAY_CALLER_COLLECTION, 
                                                           JOB_NAME):
                 status_code = 403
@@ -170,7 +169,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                 try:
                     if not os.path.isfile(sa_identity_job[RESULT]):
                         raise InvalidFileError(sa_identity_job[RESULT])
-                    
+
                     # Create helper functions
                     sac_callable = SaAssayCallerCallable(sa_identity_job[UUID],
                                                          exp_def_name,
@@ -184,13 +183,12 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     response = copy.deepcopy(sac_callable.document)
                     callback = make_process_callback(sac_callable.uuid,
                                                      sac_callable.outfile_path,
-                                                     sac_callable.kde_plot_path,
                                                      sac_callable.scatter_plot_path,
                                                      cls._DB_CONNECTOR)
                     # Add to queue
                     cls._EXECUTION_MANAGER.add_job(response[UUID], sac_callable,
                                                    callback)
-                    
+
                 except:
                     APP_LOGGER.exception(traceback.format_exc())
                     response = {JOB_NAME: cur_job_name, ERROR: str(sys.exc_info()[1])}
@@ -201,11 +199,11 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     json_response[ASSAY_CALLER].append(response)
 
             status_codes.append(status_code)
-        
+
         # If all jobs submitted successfully, then 200 should be returned.
         # Otherwise, the maximum status code seems good enough.
         return make_clean_response(json_response, max(status_codes))
-                    
+
 #===============================================================================
 # Callable/Callback Functionality
 #===============================================================================
@@ -228,13 +226,10 @@ class SaAssayCallerCallable(object):
         self.job_name              = job_name
         self.ctrl_thresh           = ctrl_thresh
         self.outfile_path          = os.path.join(RESULTS_PATH, self.uuid)
-        self.kde_plot_path         = os.path.join(RESULTS_PATH, self.uuid + '_kde.png')
         self.scatter_plot_path     = os.path.join(RESULTS_PATH, self.uuid + '_scatter.png')
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, 
                                                   'assay_calls.txt')
-        self.tmp_kde_plot_path     = os.path.join(self.tmp_path, 
-                                                  'assay_calls_kde.png')
         self.tmp_scatter_plot_path = os.path.join(self.tmp_path, 
                                                   'assay_calls_scatter.png')
         self.document = {
@@ -262,7 +257,7 @@ class SaAssayCallerCallable(object):
                            START_DATESTAMP: datetime.today()}}
         query = {UUID: self.uuid}
         self.db_connector.update(SA_ASSAY_CALLER_COLLECTION, query, update)
-        
+
         try:
             safe_make_dirs(self.tmp_path)
 
@@ -270,38 +265,34 @@ class SaAssayCallerCallable(object):
             exp_def_uuid = exp_def_fetcher.get_experiment_uuid(self.exp_def_name)
             exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
             experiment = HotspotExperiment.from_dict(exp_def)
-            
+
             AssayCallManager(self.num_probes, in_file=self.analysis_file, 
                              out_file=self.tmp_outfile_path, 
-                             kde_plot_file=self.tmp_kde_plot_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
                              assay=self.assay_dye, fiducial=self.fiducial_dye,
                              controls=experiment.controls.barcodes,
                              ctrl_thresh=self.ctrl_thresh,
                              n_jobs=8)
-            
+
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception('Secondary analysis assay caller job ' +
                                 'failed: output file not generated.')
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
-            if os.path.isfile(self.tmp_kde_plot_path):
-                shutil.copy(self.tmp_kde_plot_path, self.kde_plot_path)
             if os.path.isfile(self.tmp_scatter_plot_path):
                 shutil.copy(self.tmp_scatter_plot_path, self.scatter_plot_path)
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
-        
-         
-def make_process_callback(uuid, outfile_path, kde_plot_path, scatter_plot_path, 
-                          db_connector):
+
+
+def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
     '''
     Return a closure that is fired when the job finishes. This 
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
-     
+
     @param uuid:         Unique job id in database
     @param outfile_path: Path where the final identity results will live.
     @param plot_path:    Path where the final PNG plot should live.
@@ -317,10 +308,6 @@ def make_process_callback(uuid, outfile_path, kde_plot_path, scatter_plot_path,
                                  URL: 'http://%s/results/%s/%s' % 
                                            (HOSTNAME, PORT, 
                                             os.path.basename(outfile_path)),
-                                 KDE_PLOT: kde_plot_path,
-                                 KDE_PLOT_URL: 'http://%s/results/%s/%s' % 
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(kde_plot_path)),
                                  SCATTER_PLOT: scatter_plot_path,
                                  SCATTER_PLOT_URL: 'http://%s/results/%s/%s' % 
                                            (HOSTNAME, PORT, 
@@ -333,7 +320,6 @@ def make_process_callback(uuid, outfile_path, kde_plot_path, scatter_plot_path,
                 db_connector.update(SA_ASSAY_CALLER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
-                silently_remove_file(kde_plot_path)
                 silently_remove_file(scatter_plot_path)
         except:
             APP_LOGGER.exception(traceback.format_exc())
@@ -347,11 +333,10 @@ def make_process_callback(uuid, outfile_path, kde_plot_path, scatter_plot_path,
                 db_connector.update(SA_ASSAY_CALLER_COLLECTION, query, update)
             else:
                 silently_remove_file(outfile_path)
-                silently_remove_file(kde_plot_path)
                 silently_remove_file(scatter_plot_path)
-         
+
     return process_callback
-            
+
 #===============================================================================
 # Run Main
 #===============================================================================

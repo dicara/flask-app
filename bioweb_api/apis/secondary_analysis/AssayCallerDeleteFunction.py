@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
-from bioweb_api.apis.ApiConstants import RESULT, KDE_PLOT, SCATTER_PLOT
+from bioweb_api.apis.ApiConstants import RESULT, SCATTER_PLOT
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 
@@ -47,7 +47,7 @@ class AssayCallerDeleteFunction(AbstractDeleteJobFunction):
     
     @classmethod
     def process_request(cls, params_dict, 
-                        del_file_keys=(RESULT, KDE_PLOT, SCATTER_PLOT,)):
+                        del_file_keys=(RESULT, SCATTER_PLOT,)):
         return super(AssayCallerDeleteFunction, cls).process_request(params_dict, del_file_keys=del_file_keys)
 
 #===============================================================================

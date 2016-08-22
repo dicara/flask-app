@@ -53,7 +53,7 @@ class VariantsGetFunction(AbstractGetFunction):
     @classmethod
     def parameters(cls):
         cls.exp_def_param = ParameterFactory.experiment_definition()
-
+        
         parameters = [
                       cls.exp_def_param,
                       ParameterFactory.format(),

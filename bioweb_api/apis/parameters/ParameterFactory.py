@@ -33,13 +33,13 @@ from bioweb_api.apis.parameters.MultipleValueParameter import MultipleValueParam
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
-    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS, PA_DATA_SOURCE
+    STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS, \
+    PA_DATA_SOURCE, EXP_DEF_NAME
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices, get_hdf5_dataset_names
-from bioweb_api import IMAGES_COLLECTION
+from bioweb_api import IMAGES_COLLECTION, EXP_DEF_COLLECTION
 
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
 
 #=============================================================================
 # Class
@@ -290,24 +290,24 @@ class ParameterFactory(object):
         return MultipleValueParameter(DYE_METRICS, description,
                                       [dyes_param, nlvls_param, low_intensity_param, high_intensity_param],
                                       required=required)
-    
+
     @classmethod
     def job_uuid(cls, collection, required=True, allow_multiple=True):
         job_uuids = cls._DB_CONNECTOR.distinct(collection, UUID)
-        return cls.lc_string(UUID, "Comma separated job UUID(s).", 
+        return cls.lc_string(UUID, "Comma separated job UUID(s).",
                              allow_multiple=allow_multiple, enum=job_uuids, required=required)
-        
+
     @classmethod
     def date(cls, required=True, enum=None):
         ''' Create a parameter instance for selecting date(s). '''
-        return DateParameter(DATE, "Run date of the form YYYY_MM_DD.", 
+        return DateParameter(DATE, "Run date of the form YYYY_MM_DD.",
                              required=required, enum=enum)
-        
+
     @classmethod
     def experiment_definition(cls):
-        exp_defs = ExperimentDefinitions()
-        return cls.cs_string(EXP_DEF, "Experiment definition.", required=True, 
-                             enum=exp_defs.experiment_names)
+        exp_defs = cls._DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, EXP_DEF_NAME)
+        return cls.cs_string(EXP_DEF, "Experiment definition.", required=True,
+                             enum=exp_defs)
 
     @staticmethod
     def mon_camera_type(name=STACK_TYPE, description=None, required=True, allow_multiple=True,

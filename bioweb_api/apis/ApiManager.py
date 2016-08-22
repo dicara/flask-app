@@ -32,6 +32,7 @@ from bioweb_api.apis.drop_tools.DropToolsApi import DropToolsAPIV1
 from bioweb_api.apis.dye_profiles_database.DyeProfilesDatabaseApi import DyeProfilesDatabaseAPIV1
 from bioweb_api.apis.image.ImageApi import ImageAPIV1
 from bioweb_api.apis.run_info.RunInfoApi import RunInfoAPIV1
+from bioweb_api.apis.exp_def.ExpDefApi import ExpDefApiV1
 from bioweb_api.apis.ApiConstants import API, API_DOCS, SWAGGER_VERSION
 
 #=============================================================================
@@ -54,6 +55,7 @@ _APIS = [
          DropToolsAPIV1(),
          DyeProfilesDatabaseAPIV1(),
          RunInfoAPIV1(),
+         ExpDefApiV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

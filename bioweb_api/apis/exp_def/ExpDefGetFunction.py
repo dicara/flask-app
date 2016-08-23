@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Yuewei Sheng
-@date:   June 14, 2016
+@date:   August 22, 2016
 '''
 
 #=============================================================================
@@ -22,52 +22,38 @@ limitations under the License.
 #=============================================================================
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.full_analysis.FullAnalysisUtils import get_variants
-
-#=============================================================================
-# Public Static Variables
-#=============================================================================
-VARIANTS = "Variants"
+from bioweb_api.apis.exp_def.ExpDefUtils import get_experiment_defintions
 
 #=============================================================================
 # Class
 #=============================================================================
-class VariantsGetFunction(AbstractGetFunction):
+class ExpDefGetFunction(AbstractGetFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return VARIANTS
+        return "ExpDef"
 
     @staticmethod
     def summary():
-        return "Retrieve list of variants from experiment definition."
-
-    @staticmethod
-    def notes():
-        return "Returns a list of the name, location and nucleic acid variation of \
-                variants that exist in the experiment definition."
+        return "Retrieve experiment definitions."
 
     @classmethod
     def parameters(cls):
-        cls.exp_def_param = ParameterFactory.experiment_definition()
-        
         parameters = [
-                      cls.exp_def_param,
                       ParameterFactory.format(),
                      ]
         return parameters
 
     @classmethod
     def process_request(cls, params_dict):
-        variants = [ {"variant": a} for a in get_variants(params_dict[cls.exp_def_param][0]) ]
-        return (variants, None, None)
+        return get_experiment_defintions()
 
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = VariantsGetFunction()
+    function = ExpDefGetFunction()
     print function

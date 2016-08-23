@@ -458,3 +458,5 @@ GnuBio Flask API.
    * Retrieve expdef from MongoDB
    * Avoid calling expdb when checking expdef param
    * Add ExpDef API to handle get and post requests
+ * v3.26
+   * Version update

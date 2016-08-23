@@ -40,10 +40,6 @@ class ExpDefGetFunction(AbstractGetFunction):
     def summary():
         return "Retrieve experiment definitions."
 
-    @staticmethod
-    def notes():
-        return ""
-
     @classmethod
     def parameters(cls):
         parameters = [

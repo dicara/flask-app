@@ -47,10 +47,6 @@ class ExpDefPostFunction(AbstractPostFunction):
         return "Populating MongoDB exp_def collection with experiment \
                 definitions in http://expdb."
 
-    @staticmethod
-    def notes():
-        return ""
-
     @classmethod
     def parameters(cls):
         parameters = [

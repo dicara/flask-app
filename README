@@ -438,7 +438,9 @@ GnuBio Flask API.
        * Bug fix, identity expectation matrix checker cast float as integer
        * IDs displayed on expectation matrix plots
  * v3.24
-   * Update secondary-analysis from v1.64.1 to v1.67
+   * Updated secondary-analysis from v1.64.1 to v1.66
+     * v1.64.2
+       * Bug fix, zero barcode expectation is not standard scaled
      * v1.65
        * Refactor Assay Caller
        * Add Naive Bayes Assay Caller

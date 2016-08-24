@@ -22,6 +22,10 @@ limitations under the License.
 #===============================================================================
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
+import threading
+import time
+
+from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 #===============================================================================
 # Class
@@ -41,12 +45,17 @@ class ExecutionManager(object):
         # Enforce that it's a singleton
         if self._INSTANCE:
             raise Exception("%s is a singleton and should be accessed through the Instance method." % self.__class__.__name__)
-        cpu_count = multiprocessing.cpu_count()
-        self._pool = ProcessPoolExecutor(max_workers=cpu_count)
+        self._cpu_count = multiprocessing.cpu_count()
+        self._pool = None
+
+        # start loop that monitors queue in a thread
+        t = threading.Thread(target=self._monitor_queue)
+        t.daemon = True
+        t.start()
         
     def __del__(self):
         self._pool.shutdown()
-    
+
     @classmethod
     def Instance(cls):
         if not cls._INSTANCE:
@@ -60,11 +69,29 @@ class ExecutionManager(object):
         """
         Submit new job to job queue.
         """
+        if self._pool is None:
+            self._pool = ProcessPoolExecutor(max_workers=self._cpu_count)
+
         future = self._pool.submit(fn)
+        self._JOB_QUEUE[uuid] = future
         if callback:
             future.add_done_callback(callback)
-        self._JOB_QUEUE[uuid] = future
-        
+
+    def _monitor_queue(self):
+        while True:
+            time.sleep(10)
+            future_uuids = self._JOB_QUEUE.keys()
+            for future_uuid in future_uuids:
+                if not self.running(future_uuid):
+                    self.del_uuid(future_uuid)
+
+            if len(self._JOB_QUEUE) <= 0 and self._pool is not None:
+                self._pool.shutdown()
+                self._pool = None
+
+    def del_uuid(self, uuid):
+        del self._JOB_QUEUE[uuid]
+
     def done(self, uuid):
         """
         Is this job done running.
@@ -127,7 +154,7 @@ if __name__ == "__main__":
     print em.result(uuid)
     i = 0
     while  em.running(uuid):
-        print i 
+        print i
         i += 1
         time.sleep(1)
     print em.result(uuid)

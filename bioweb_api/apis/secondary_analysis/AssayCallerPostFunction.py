@@ -267,7 +267,7 @@ class SaAssayCallerCallable(object):
             experiment = HotspotExperiment.from_dict(exp_def)
 
             AssayCallManager(self.num_probes, in_file=self.analysis_file, 
-                             out_file=self.tmp_outfile_path, 
+                             out_file=self.tmp_outfile_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
                              assay=self.assay_dye, fiducial=self.fiducial_dye,

@@ -83,9 +83,9 @@ class TestRunReportAPI(unittest.TestCase):
         self.assertIn(CHIP_SN, report_doc)
         self.assertIn(DEVICE_NAME, report_doc)
         self.assertIn(EXP_DEF_NAME, report_doc)
-        self.assertEqual(report_doc[CARTRIDGE_SN], 'S0029859')
-        self.assertEqual(report_doc[REAGENT_INFO], 'abl24')
-        self.assertEqual(report_doc[RUN_DESCRIPTION], 'software')
+        self.assertEqual(report_doc[CARTRIDGE_SN], '36464')
+        self.assertEqual(report_doc[DEVICE_NAME], 'pilot6')
+        self.assertEqual(report_doc[RUN_DESCRIPTION], 'fragmented gdna')
 
     def test_read_yaml_clientui(self):
         """

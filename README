@@ -474,3 +474,5 @@ GnuBio Flask API.
        * Bug fix, geotyper analysis target_id not defined
  * v3.28
    * Update field names in yaml run reports
+ * v3.29
+   * ExecutionManager's ProcessPoolExecutor is shutdown when no jobs are running

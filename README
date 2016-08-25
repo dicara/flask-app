@@ -460,3 +460,13 @@ GnuBio Flask API.
    * Add ExpDef API to handle get and post requests
  * v3.26
    * Version update
+ * v3.27
+   * Update secondary-analysis from v1.67 to v1.69.2
+     * v1.68
+       * Uninjected ratio changed to 1.5
+     * v1.69
+       * Treat references as single-strand DNA
+     * v1.69.1
+       * Handle value problem
+     * v1.69.2
+       * Bug fix, geotyper analysis target_id not defined

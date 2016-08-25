@@ -34,7 +34,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
     IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME, \
-    CARTRIDGE_SN, CARTRIDGE_BC
+    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -61,6 +61,7 @@ def get_run_reports():
     columns[RUN_DESCRIPTION]    = 1
     columns[SAMPLE_NAME]        = 1
     columns[CARTRIDGE_SN]       = 1
+    columns[CARTRIDGE_SN_OLD]   = 1
     columns[CARTRIDGE_BC]       = 1
     columns[IMAGE_STACKS]       = 1
     columns[FA_UUID_MAP]        = 1

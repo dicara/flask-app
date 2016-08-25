@@ -470,3 +470,5 @@ GnuBio Flask API.
        * Handle value problem
      * v1.69.2
        * Bug fix, geotyper analysis target_id not defined
+ * v3.28
+   * Update field names in yaml run reports

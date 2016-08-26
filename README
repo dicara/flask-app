@@ -476,3 +476,6 @@ GnuBio Flask API.
    * Update field names in yaml run reports
  * v3.29
    * ExecutionManager's ProcessPoolExecutor is shutdown when no jobs are running
+   * Update secondary-analysis from v1.69.2 to v1.69.3
+     * v1.69.3
+       * Handle if assay dye intensity is zero.

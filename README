@@ -479,3 +479,5 @@ GnuBio Flask API.
    * Update secondary-analysis from v1.69.2 to v1.69.3
      * v1.69.3
        * Handle if assay dye intensity is zero.
+ * v3.30
+   * Fetch single run report using cartridge serial number

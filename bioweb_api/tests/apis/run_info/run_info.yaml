@@ -1,14 +1,15 @@
-cart_serial_number: S0029859
-chip_rev: R4
-chip_serial_number: S0030177
-device_name: beta17
+cart_serial: '36464'
+chip_rev: P0011311r2
+chip_serial: ''
+device_name: pilot6
 exit_notes: ''
-exp_def: ABL_24_V1
-reagent_info: abl24
-run_id: id1460644705
-starting_notes: software
+exp_def: Beta_24b_V1
+exp_def_uuid: eebfb4d0-d27d-4fb9-8575-8c3423c3f171
+mcp_mode: FullManual
+reagent_info: ''
+run_id: id1471981533
+starting_notes: fragmented gdna
 tdi_stacks:
-- /mnt/runs/2016-04-14_1259.50-beta17
-- /mnt/runs/2016-04-14_1303.21-beta17
-- /mnt/runs/2016-04-14_1307.13-beta17
-user_list: thung,ddicara
+- /home/experiment/image_stacks/2016-08-23_1744.54-pilot6_frag_gdna_7500
+- /home/experiment/image_stacks/2016-08-23_1749.55-pilot6_frag_gdna_20k
+user_list: ''

@@ -37,31 +37,35 @@ class ExecutionManager(object):
     _INSTANCE  = None
     # List of futures for submitted jobs.
     _JOB_QUEUE = {} 
-    
+
     #===========================================================================
     # Constructor
     #===========================================================================
-    def __init__(self):
+    def __init__(self, max_workers=None):
         # Enforce that it's a singleton
         if self._INSTANCE:
             raise Exception("%s is a singleton and should be accessed through the Instance method." % self.__class__.__name__)
-        self._cpu_count = multiprocessing.cpu_count()
+
+        if max_workers is None:
+            self._max_workers = multiprocessing.cpu_count()
+        else:
+            self._max_workers = max_workers
         self._pool = None
 
         # start loop that monitors queue in a thread
         t = threading.Thread(target=self._monitor_queue)
         t.daemon = True
         t.start()
-        
+
     def __del__(self):
         self._pool.shutdown()
 
     @classmethod
     def Instance(cls):
         if not cls._INSTANCE:
-            cls._INSTANCE = ExecutionManager()
+            cls._INSTANCE = ExecutionManager(max_workers=2)
         return cls._INSTANCE
-    
+
     #===========================================================================
     # Simple execution functions
     #===========================================================================
@@ -70,7 +74,7 @@ class ExecutionManager(object):
         Submit new job to job queue.
         """
         if self._pool is None:
-            self._pool = ProcessPoolExecutor(max_workers=self._cpu_count)
+            self._pool = ProcessPoolExecutor(max_workers=self._max_workers)
 
         future = self._pool.submit(fn)
         self._JOB_QUEUE[uuid] = future

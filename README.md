@@ -438,7 +438,9 @@ GnuBio Flask API.
        * Bug fix, identity expectation matrix checker cast float as integer
        * IDs displayed on expectation matrix plots
  * v3.24
-   * Update secondary-analysis from v1.64.1 to v1.67
+   * Updated secondary-analysis from v1.64.1 to v1.66
+     * v1.64.2
+       * Bug fix, zero barcode expectation is not standard scaled
      * v1.65
        * Refactor Assay Caller
        * Add Naive Bayes Assay Caller
@@ -472,3 +474,8 @@ GnuBio Flask API.
        * Bug fix, geotyper analysis target_id not defined
  * v3.28
    * Update field names in yaml run reports
+ * v3.29
+   * ExecutionManager's ProcessPoolExecutor is shutdown when no jobs are running
+   * Update secondary-analysis from v1.69.2 to v1.69.3
+     * v1.69.3
+       * Handle if assay dye intensity is zero.

@@ -47,7 +47,7 @@ _DB_CONNECTOR = DbConnector.Instance()
 #=============================================================================
 # RESTful location of services
 #=============================================================================
-def get_run_reports():
+def get_run_reports(cartridge_sn=None):
     """
     Retrieve a list of run reports.
     """
@@ -69,12 +69,25 @@ def get_run_reports():
     column_names = columns.keys()
     column_names.remove(ID)
 
-    reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, {UUID: {'$exists': True},
-                                                         DEVICE_NAME: {'$ne': ''},
-                                                         EXP_DEF_NAME: {'$ne': None},
-                                                         IMAGE_STACKS: {'$ne': None,
-                                                                        '$not': {'$size': 0}}},
-                                 columns)
+    if cartridge_sn is None:
+        reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
+                                        {UUID: {'$exists': True},
+                                         DEVICE_NAME: {'$ne': ''},
+                                         EXP_DEF_NAME: {'$ne': None},
+                                         IMAGE_STACKS: {'$ne': None,
+                                                        '$not': {'$size': 0}}},
+                                     columns)
+    else:
+        reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
+                                        {UUID: {'$exists': True},
+                                         DEVICE_NAME: {'$ne': ''},
+                                         EXP_DEF_NAME: {'$ne': None},
+                                         IMAGE_STACKS: {'$ne': None,
+                                                        '$not': {'$size': 0}},
+                                         '$or': [{CARTRIDGE_SN: cartridge_sn},
+                                                 {CARTRIDGE_SN_OLD: cartridge_sn},
+                                                 {'{0}.{1}'.format(CARTRIDGE_BC, 'serial_num'): cartridge_sn}]},
+                                     columns)
     APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
                     % (len(reports), ))
     return (reports, column_names, None)

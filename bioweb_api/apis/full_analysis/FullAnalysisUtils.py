@@ -41,15 +41,14 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
-     SUCCEEDED, REPORT_URL, SCATTER_PLOT_URL, PNG_URL, URL, PDF_URL, VARIANTS, \
-     NAME
+     SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, \
+     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 from gbutils.vcf_pdf_writer import PDFWriter, FONT_NAME_STD, FONT_SIZE
-from expdb.defs import HotspotExperiment
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 
@@ -185,13 +184,17 @@ class MakeUnifiedPDF(PDFWriter):
     def __init__(self, fa_job):
         self.uuid                = fa_job[UUID]
         id_report_url            = fa_job[ID_DOCUMENT][REPORT_URL]
-        ac_scatter_plot_url      = fa_job[AC_DOCUMENT][SCATTER_PLOT_URL]
         gt_png_url               = fa_job[GT_DOCUMENT][PNG_URL]
+        gt_png_sum_url           = fa_job[GT_DOCUMENT][PNG_SUM_URL]
+        gt_kde_url               = fa_job[GT_DOCUMENT][KDE_PNG_URL]
+        gt_kde_sum_url           = fa_job[GT_DOCUMENT][KDE_PNG_SUM_URL]
         gt_pdf_url               = fa_job[GT_DOCUMENT][PDF_URL]
 
         self.id_report_path      = os.path.join(RESULTS_PATH, os.path.basename(id_report_url))
-        self.ac_scatter_plot_path= os.path.join(RESULTS_PATH, os.path.basename(ac_scatter_plot_url))
         self.gt_png_path         = os.path.join(RESULTS_PATH, os.path.basename(gt_png_url))
+        self.gt_png_sum_path     = os.path.join(RESULTS_PATH, os.path.basename(gt_png_sum_url))
+        self.gt_kde_path         = os.path.join(RESULTS_PATH, os.path.basename(gt_kde_url))
+        self.gt_kde_sum_path     = os.path.join(RESULTS_PATH, os.path.basename(gt_kde_sum_url))
         self.gt_pdf_path         = os.path.join(RESULTS_PATH, os.path.basename(gt_pdf_url))
 
         self.fa_pdf_path         = os.path.join(RESULTS_PATH, self.uuid + '.pdf')
@@ -205,8 +208,10 @@ class MakeUnifiedPDF(PDFWriter):
 
             combine_sa = self._combine_sa(self.tmp_sa_path,
                                           self.id_report_path,
-                                          self.ac_scatter_plot_path,
-                                          self.gt_png_path)
+                                          self.gt_png_path,
+                                          self.gt_png_sum_path,
+                                          self.gt_kde_path,
+                                          self.gt_kde_sum_path)
             if not combine_sa:
                 raise Exception("Failed to combine secondary analysis results.")
 
@@ -222,23 +227,31 @@ class MakeUnifiedPDF(PDFWriter):
         finally:
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
-    def _combine_sa(self, output_path, id_report_path, ac_scatter_plot_path,
-                    gt_png_path):
+    def _combine_sa(self, output_path, id_report_path, gt_png_path, 
+            gt_png_sum_path, gt_kde_path, gt_kde_sum_path):
         """
         Combine Identity report, Assay Caller scatter plot, and Genotyper PNG
 
         @param id_report_path:          pathname of identity report
-        @param ac_scatter_plot_path:    pathname of assay caller scatter plot
-        @param gt_png_path:             pathname of genotyper PNG
+        @param gt_png_path:             pathname of genotyper scatter PNG
+        @param gt_png_sum_path:         pathname of genotyper scatter sum PNG
+        @param gt_kde_path:             pathname of genotyper KDE PNG
+        @param gt_kde_sum_path:         pathname of genotyper KDE sum PNG
         """
         try:
             doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
             story = list()
 
+            story.append(self.get_image(gt_png_sum_path, width=8*inch))
+            story.append(PageBreak())
+
             story.append(self.get_image(gt_png_path, width=8*inch))
             story.append(PageBreak())
 
-            story.append(self.get_image(ac_scatter_plot_path, width=8*inch))
+            story.append(self.get_image(gt_kde_sum_path, width=8*inch))
+            story.append(PageBreak())
+
+            story.append(self.get_image(gt_kde_path, width=8*inch))
             story.append(PageBreak())
 
             styles = getSampleStyleSheet()

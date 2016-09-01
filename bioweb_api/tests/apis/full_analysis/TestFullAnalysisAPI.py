@@ -297,7 +297,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
             self.assertTrue(False, job_details[GT_DOCUMENT][ERROR])
 
         if ERROR in job_details:
-            self.assertTrue(False, job_details[GT_DOCUMENT])
+            self.assertTrue(False, job_details[ERROR])
 
         # Delete full analysis job
         delete_url = add_url_argument(_FULL_ANALYSIS_URL, UUID, fa_uuid, True)

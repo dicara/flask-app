@@ -481,3 +481,14 @@ GnuBio Flask API.
        * Handle if assay dye intensity is zero.
  * v3.30
    * Fetch single run report using cartridge serial number
+ * v3.31
+   * Update secondary-analysis from v1.69.3 to v1.72
+	 * v1.69.4
+	   * Handle cDNA change of deletions and insertions
+	 * v1.70
+	   * Add picoinjection status reporting
+	 * v1.71
+	   * Fix unit tests hanging due to permissions on runs server
+	   * Fix picoinjection status reporting for offline
+	 * v1.72
+	   * offline identity uses csv generator instead of pandas dataframe

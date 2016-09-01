@@ -328,21 +328,22 @@ class SaIdentityCallable(object):
 
         try:
             safe_make_dirs(self.tmp_path)
-            Identity().execute_identity(PrimaryAnalysisData.from_file(primary_analysis_doc[RESULT]),
-                                           self.num_probes, FACTORY_ORGANIC,
-                                           plot_path=self.tmp_plot_path, 
-                                           plate_plot_path=self.tmp_plate_plot_path,
-                                           out_file=self.tmp_outfile_path,
-                                           report_path=self.tmp_report_path,
-                                           assay_dye=self.assay_dye,
-                                           picoinjection_dye=self.fiducial_dye,
-                                           dye_levels=self.dye_levels,
-                                           show_figure=False, 
-                                           ignored_dyes=self.ignored_dyes,
-                                           filtered_dyes=self.filtered_dyes,
-                                           uninjected_threshold=self.ui_threshold,
-                                           require_perfect_id=False,
-                                           use_pico_thresh=self.use_pico_thresh)
+            Identity(primary_analysis_doc[RESULT],
+                     self.num_probes, 
+                     FACTORY_ORGANIC,
+                     plot_path=self.tmp_plot_path, 
+                     out_file=self.tmp_outfile_path,
+                     report_path=self.tmp_report_path,
+                     assay_dye=self.assay_dye,
+                     picoinjection_dye=self.fiducial_dye,
+                     dye_levels=self.dye_levels,
+                     show_figure=False, 
+                     ignored_dyes=self.ignored_dyes,
+                     filtered_dyes=self.filtered_dyes,
+                     require_perfect_id=False,
+                     uninjected_threshold=self.ui_threshold,
+                     plate_plot_path=self.tmp_plate_plot_path,
+                     use_pico_thresh=self.use_pico_thresh).execute()
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

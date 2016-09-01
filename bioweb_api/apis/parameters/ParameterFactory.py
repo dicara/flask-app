@@ -34,7 +34,7 @@ from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUE
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
     STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS, \
-    PA_DATA_SOURCE, EXP_DEF_NAME
+    PA_DATA_SOURCE, EXP_DEF_NAME, CARTRIDGE_SN
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices, get_hdf5_dataset_names
@@ -330,3 +330,12 @@ class ParameterFactory(object):
                                             required=required,
                                             allow_multiple=allow_multiple,
                                             enum=uniq_names)
+
+    @staticmethod
+    def cartridge_sn(required=False, allow_multiple=False,
+                     param_type=PARAMETER_TYPES.query):
+        """ Create a parameter instance for cartridge serial number. """
+        return UpperCaseStringParameter(CARTRIDGE_SN, "Cartridge serial number. ",
+                                        param_type=param_type,
+                                        required=required,
+                                        allow_multiple=allow_multiple)

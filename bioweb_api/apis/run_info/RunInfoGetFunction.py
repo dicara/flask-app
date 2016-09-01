@@ -53,7 +53,9 @@ class RunInfoGetFunction(AbstractGetFunction):
                                                          "Refresh available " \
                                                          "run reports.",
                                                          default_value=False)
+        cls.cart_sn_parameter = ParameterFactory.cartridge_sn()
         parameters = [
+                      cls.cart_sn_parameter,
                       cls.refresh_parameter,
                       ParameterFactory.format(),
                      ]
@@ -65,7 +67,11 @@ class RunInfoGetFunction(AbstractGetFunction):
            params_dict[cls.refresh_parameter][0]:
             update_run_reports()
 
-        return get_run_reports()
+        if cls.cart_sn_parameter in params_dict and \
+            params_dict[cls.cart_sn_parameter][0]:
+            return get_run_reports(params_dict[cls.cart_sn_parameter][0])
+        else:
+            return get_run_reports()
 
 #===============================================================================
 # Run Main

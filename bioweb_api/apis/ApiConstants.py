@@ -95,6 +95,7 @@ ABSORB           = "absorb"
 AC_DOCUMENT      = 'ac_document'
 ARCHIVE          = "archive"
 ARCHIVES         = "archives"
+CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"

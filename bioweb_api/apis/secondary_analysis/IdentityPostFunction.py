@@ -50,7 +50,6 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     UNINJECTED_THRESHOLD
 from secondary_analysis.identity.identity import Identity
-from secondary_analysis.identity.primary_analysis_data import PrimaryAnalysisData
 
 from primary_analysis.command import InvalidFileError
 

@@ -23,14 +23,12 @@ limitations under the License.
 import copy
 from datetime import datetime
 import os
-import shutil
 import sys
 import traceback
 import yaml
 
 import h5py
 import numpy
-import pandas
 from uuid import uuid4
 
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -257,12 +255,8 @@ class PaProcessCallable(object):
         query = {UUID: self.uuid}
         self.db_connector.update(PA_PROCESS_COLLECTION, query, update)
         if self.is_hdf5:
-            hdf5_src_path = get_hdf5_dataset_path(self.archive)
-            hdf5_dst_path = self.outfile_path+'.h5'
-            shutil.copyfile(hdf5_src_path, hdf5_dst_path)
-
-            f = h5py.File(hdf5_dst_path)
-            dataset = f[self.archive]
+            hdf5_path = get_hdf5_dataset_path(self.archive)
+            dataset = h5py.File(hdf5_path)[self.archive]
             columns = dataset.attrs['columns']
             decomp_dyes = [c.replace('-decomp', '') for c in columns if '-decomp' in c]
 
@@ -282,10 +276,9 @@ class PaProcessCallable(object):
                                      {UUID: self.uuid},
                                      {"$set": {DYES: decomp_dyes}})
 
-            APP_LOGGER.info(self.outfile_path)
-            numpy.savetxt(self.outfile_path, dataset, '%.1f', '\t', 
-                header="\t".join(columns), comments='')
-            silently_remove_file(hdf5_dst_path)
+            # write data to disk
+            numpy.savetxt(self.outfile_path, dataset.value, fmt='%.1f',
+                          delimiter='\t', header='\t'.join(columns), comments='')
         else:
             execute_process(self.archive, self.dyes, self.device, self.major,
                             self.minor, self.offsets, self.use_iid,

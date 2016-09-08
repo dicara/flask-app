@@ -483,19 +483,17 @@ GnuBio Flask API.
    * Fetch single run report using cartridge serial number
  * v3.31
    * Update secondary-analysis from v1.69.3 to v1.72
-	 * v1.69.4
-	   * Handle cDNA change of deletions and insertions
-	 * v1.70
-	   * Add picoinjection status reporting
-	 * v1.71
-	   * Fix unit tests hanging due to permissions on runs server
-	   * Fix picoinjection status reporting for offline
-	 * v1.72
-	   * offline identity uses csv generator instead of pandas dataframe
+   * v1.69.4
+     * Handle cDNA change of deletions and insertions
+   * v1.70
+     * Add picoinjection status reporting
+   * v1.71
+     * Fix unit tests hanging due to permissions on runs server
+     * Fix picoinjection status reporting for offline
+   * v1.72
+     * offline identity uses csv generator instead of pandas dataframe
  * v3.32
    * Updated secondary-analysis from v1.72 to v1.75
-     * v1.72
-       * offline identity uses csv generator instead of pandas dataframe
      * v1.73
        * Decomposition filter exceptions report name of filter causing errors
        * Correct identity model training size reported in log
@@ -506,3 +504,9 @@ GnuBio Flask API.
        * assay caller scatter plot re-integrated
        * add distance metrics to naive bayes scatter plot
    * Primary analysis post function saves HDF5 using numpy savetxt instead of pandas
+ * v3.33
+   * Update secondary-analysis from v1.75 to v1.76
+     * v1.76
+       * Split genotyper plots into multiple images and output as PDF
+       * Store probe/barcode data in dictionary, remove generator
+   * Modify genotyper post function to expect pdf files instead of png

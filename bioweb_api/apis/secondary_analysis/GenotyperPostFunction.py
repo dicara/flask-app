@@ -259,7 +259,7 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
     @param ignored_dyes: List of dyes to ignore
     @param outfile_path: Path where the final identity results will live
     @param db_connector: Object that handles communication with the DB
-    @param cur_job_name: Current job name from which to get the title for 
+    @param cur_job_name: Current job name from which to get the title for
         plotting purposes (e.g. 2016-08-16_1400.59-pilot2_2MVHbM)
     """
     query = {UUID: uuid}
@@ -273,13 +273,13 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             basename   = os.path.splitext(vcf_fn)[0]
             pdf_fn     = '%s.%s' % (basename, PDF)
             scatter_png_fn     = '%s_scatter.%s' % (basename, PNG)
-            scatter_ind_png_fn = '%s_scatter_ind.%s' % (basename, PNG)
+            scatter_ind_pdf_fn = '%s_scatter_ind.%s' % (basename, PDF)
             kde_png_fn         = '%s_kde.%s' % (basename, PNG)
-            kde_ind_png_fn     = '%s_kde_ind.%s' % (basename, PNG)
+            kde_ind_pdf_fn     = '%s_kde_ind.%s' % (basename, PDF)
 
-            generate_plots(exp_def_name, ac_result_path, 
-                           os.path.splitext(outfile_path)[0], 
-                           ignored_dyes=ignored_dyes, 
+            generate_plots(exp_def_name, ac_result_path,
+                           os.path.splitext(outfile_path)[0],
+                           ignored_dyes=ignored_dyes,
                            data_set_name=cur_job_name)
 
             update = { "$set": {
@@ -288,12 +288,12 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                                  URL: url_prefix + vcf_fn,
                                  PDF: os.path.join(dirname, pdf_fn),
                                  PDF_URL: url_prefix + pdf_fn,
-                                 PNG: os.path.join(dirname, scatter_ind_png_fn),
-                                 PNG_URL: url_prefix + scatter_ind_png_fn,
+                                 PNG: os.path.join(dirname, scatter_ind_pdf_fn),
+                                 PNG_URL: url_prefix + scatter_ind_pdf_fn,
                                  PNG_SUM: os.path.join(dirname, scatter_png_fn),
                                  PNG_SUM_URL: url_prefix + scatter_png_fn,
-                                 KDE_PNG: os.path.join(dirname, kde_ind_png_fn),
-                                 KDE_PNG_URL: url_prefix + kde_ind_png_fn,
+                                 KDE_PNG: os.path.join(dirname, kde_ind_pdf_fn),
+                                 KDE_PNG_URL: url_prefix + kde_ind_pdf_fn,
                                  KDE_PNG_SUM: os.path.join(dirname, kde_png_fn),
                                  KDE_PNG_SUM_URL: url_prefix + kde_png_fn,
                                  FINISH_DATESTAMP: datetime.today(),
@@ -306,9 +306,9 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                 silently_remove_file(outfile_path)
                 silently_remove_file(os.path.join(dirname, pdf_fn))
                 silently_remove_file(os.path.join(dirname, scatter_png_fn))
-                silently_remove_file(os.path.join(dirname, scatter_ind_png_fn))
+                silently_remove_file(os.path.join(dirname, scatter_ind_pdf_fn))
                 silently_remove_file(os.path.join(dirname, kde_png_fn))
-                silently_remove_file(os.path.join(dirname, kde_ind_png_fn))
+                silently_remove_file(os.path.join(dirname, kde_ind_pdf_fn))
         except:
             APP_LOGGER.exception("Error in Genotyper post request process callback.")
             error_msg = str(sys.exc_info()[1])
@@ -326,9 +326,9 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
                 silently_remove_file(outfile_path)
                 silently_remove_file(os.path.join(dirname, pdf_fn))
                 silently_remove_file(os.path.join(dirname, scatter_png_fn))
-                silently_remove_file(os.path.join(dirname, scatter_ind_png_fn))
+                silently_remove_file(os.path.join(dirname, scatter_ind_pdf_fn))
                 silently_remove_file(os.path.join(dirname, kde_png_fn))
-                silently_remove_file(os.path.join(dirname, kde_ind_png_fn))
+                silently_remove_file(os.path.join(dirname, kde_ind_pdf_fn))
 
     return process_callback
 

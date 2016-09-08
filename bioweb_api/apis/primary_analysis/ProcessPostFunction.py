@@ -282,9 +282,8 @@ class PaProcessCallable(object):
                                      {UUID: self.uuid},
                                      {"$set": {DYES: decomp_dyes}})
 
-            # create pandas dataframe and write to disk
             APP_LOGGER.info(self.outfile_path)
-            numpy.savetxt(self.outfile_path, dataset, '%g', '\t', 
+            numpy.savetxt(self.outfile_path, dataset, '%.1f', '\t', 
                 header="\t".join(columns), comments='')
             silently_remove_file(hdf5_dst_path)
         else:

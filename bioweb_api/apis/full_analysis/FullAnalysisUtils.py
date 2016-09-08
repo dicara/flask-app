@@ -240,19 +240,14 @@ class MakeUnifiedPDF(PDFWriter):
         @param gt_kde_sum_path:         pathname of genotyper KDE sum PNG
         """
         try:
-            doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
+            path = output_path + '_png_id'
+            doc = SimpleDocTemplate(path, pagesize=landscape(letter))
             story = list()
 
             story.append(self.get_image(gt_png_sum_path))
             story.append(PageBreak())
 
-            story.append(self.get_image(gt_png_path))
-            story.append(PageBreak())
-
             story.append(self.get_image(gt_kde_sum_path))
-            story.append(PageBreak())
-
-            story.append(self.get_image(gt_kde_path))
             story.append(PageBreak())
 
             styles = getSampleStyleSheet()
@@ -275,9 +270,12 @@ class MakeUnifiedPDF(PDFWriter):
 
             doc.build(story, onFirstPage=self.standard_page,
                       onLaterPages=self.standard_page)
+
+            self._merge_pdfs(output_path, gt_png_path, gt_kde_path, path)
+
+            os.unlink(path)
             return True
         except:
-            print traceback.format_exc()
             APP_LOGGER.exception(traceback.format_exc())
             return False
 

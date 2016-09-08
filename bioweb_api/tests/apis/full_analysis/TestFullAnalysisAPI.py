@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
     AC_DOCUMENT, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
-    ERROR
+    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -105,8 +105,10 @@ _CTRL_THRESH              = 5
 _REQUIRED_DROPS           = 0
 
 _ID_REPORT_PATH           = os.path.join(_TEST_DIR, 'e21e96e1-5a7a-4a03-84bc-1c2ff1d213d9.yaml')
-_AC_SCATTER_PLOT_PATH     = os.path.join(_TEST_DIR, '4d78456c-c1ca-4113-a501-afe7fbeee86d_scatter.png')
-_GT_PNG_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277.png')
+_GT_PNG_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_scatter.png')
+_GT_PNG_IND_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_scatter_ind.png')
+_GT_KDE_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_kde.png')
+_GT_KDE_IND_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_kde_ind.png')
 _GT_PDF_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277.pdf')
 _OUTPUT_SA_PATH           = os.path.join(_TEST_DIR, 'sa_combined.pdf')
 _OUTPUT_PDF_PATH          = os.path.join(_TEST_DIR, 'unified.pdf')
@@ -163,12 +165,14 @@ class TestFullAnalysisAPI(unittest.TestCase):
         cls._gt_uuid = "b05801d0-0f75-4c64-8df4-b2e6151a9277"
         gt_record = {
             STATUS : "succeeded",
-            PNG_SUM_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_sum.png"),
             UUID : cls._gt_uuid,
             URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".vcf"),
             REQUIRED_DROPS : 0,
             PDF_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".pdf"),
-            PNG_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + ".png"),
+            PNG_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_scatter_ind.png"),
+            PNG_SUM_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_scatter.png"),
+            KDE_PNG_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_kde_ind.png"),
+            KDE_PNG_SUM_URL : os.path.join("http://" + HOSTNAME, "results", str(PORT), cls._gt_uuid + "_kde.png"),
             START_DATESTAMP: datetime.today(),
             FINISH_DATESTAMP: datetime.today(),
         }
@@ -235,6 +239,14 @@ class TestFullAnalysisAPI(unittest.TestCase):
         msg = "Genotyper PNG sum file cannot be found: %s" % gt_png_sum
         self.assertTrue(os.path.isfile(gt_png_sum), msg)
 
+        gt_kde = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PNG_URL]))
+        msg = "Genotyper PNG file cannot be found: %s" % gt_kde
+        self.assertTrue(os.path.isfile(gt_kde), msg)
+
+        gt_kde_sum = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PNG_SUM_URL]))
+        msg = "Genotyper PNG sum file cannot be found: %s" % gt_kde_sum
+        self.assertTrue(os.path.isfile(gt_kde_sum), msg)
+
         gt_pdf = os.path.join(_TEST_DIR, os.path.basename(response[GT_DOCUMENT][PDF_URL]))
         msg = "Genotyper PDF file cannot be found: %s" % gt_pdf
         self.assertTrue(os.path.isfile(gt_pdf), msg)
@@ -297,7 +309,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
             self.assertTrue(False, job_details[GT_DOCUMENT][ERROR])
 
         if ERROR in job_details:
-            self.assertTrue(False, job_details[GT_DOCUMENT])
+            self.assertTrue(False, job_details[ERROR])
 
         # Delete full analysis job
         delete_url = add_url_argument(_FULL_ANALYSIS_URL, UUID, fa_uuid, True)
@@ -317,8 +329,11 @@ class TestFullAnalysisAPI(unittest.TestCase):
         make_pdf = MakeUnifiedPDF(_FA_JOB)
         make_pdf._combine_sa(_OUTPUT_SA_PATH,
                              _ID_REPORT_PATH,
-                             _AC_SCATTER_PLOT_PATH,
-                             _GT_PNG_PATH)
+                             _GT_PNG_IND_PATH,
+                             _GT_PNG_PATH,
+                             _GT_KDE_IND_PATH,
+                             _GT_KDE_PATH,
+                             )
         self.assertTrue(os.path.isfile(_OUTPUT_SA_PATH))
 
         make_pdf._merge_pdfs(_OUTPUT_PDF_PATH, _OUTPUT_SA_PATH, _GT_PDF_PATH)

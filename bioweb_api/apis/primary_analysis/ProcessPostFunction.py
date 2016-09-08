@@ -282,10 +282,9 @@ class PaProcessCallable(object):
                                      {UUID: self.uuid},
                                      {"$set": {DYES: decomp_dyes}})
 
-            # create pandas dataframe and write to disk
-            new_df = pandas.DataFrame(numpy.array(dataset), columns=columns)
             APP_LOGGER.info(self.outfile_path)
-            new_df.to_csv(self.outfile_path, sep=',', index=False)
+            numpy.savetxt(self.outfile_path, dataset, '%.1f', '\t', 
+                header="\t".join(columns), comments='')
             silently_remove_file(hdf5_dst_path)
         else:
             execute_process(self.archive, self.dyes, self.device, self.major,

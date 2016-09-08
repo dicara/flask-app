@@ -25,6 +25,7 @@ import os
 from random import choice
 import shutil
 from string import ascii_letters
+import traceback
 
 from PyPDF2 import PdfFileMerger
 from reportlab.lib.pagesizes import letter, landscape
@@ -227,7 +228,7 @@ class MakeUnifiedPDF(PDFWriter):
         finally:
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
-    def _combine_sa(self, output_path, id_report_path, gt_png_path, 
+    def _combine_sa(self, output_path, id_report_path, gt_png_path,
             gt_png_sum_path, gt_kde_path, gt_kde_sum_path):
         """
         Combine Identity report, Assay Caller scatter plot, and Genotyper PNG
@@ -242,16 +243,16 @@ class MakeUnifiedPDF(PDFWriter):
             doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
             story = list()
 
-            story.append(self.get_image(gt_png_sum_path, width=8*inch))
+            story.append(self.get_image(gt_png_sum_path))
             story.append(PageBreak())
 
-            story.append(self.get_image(gt_png_path, width=8*inch))
+            story.append(self.get_image(gt_png_path))
             story.append(PageBreak())
 
-            story.append(self.get_image(gt_kde_sum_path, width=8*inch))
+            story.append(self.get_image(gt_kde_sum_path))
             story.append(PageBreak())
 
-            story.append(self.get_image(gt_kde_path, width=8*inch))
+            story.append(self.get_image(gt_kde_path))
             story.append(PageBreak())
 
             styles = getSampleStyleSheet()
@@ -276,6 +277,8 @@ class MakeUnifiedPDF(PDFWriter):
                       onLaterPages=self.standard_page)
             return True
         except:
+            print traceback.format_exc()
+            APP_LOGGER.exception(traceback.format_exc())
             return False
 
     @staticmethod
@@ -289,11 +292,18 @@ class MakeUnifiedPDF(PDFWriter):
         merger.write(output_path)
 
     @staticmethod
-    def get_image(path, width=3*inch):
+    def get_image(path, max_width=8*inch, max_height=6.08*inch):
         """
         Resize a image and return an reportlab.platypus.Image object
         """
         img = utils.ImageReader(path)
         iw, ih = img.getSize()
         aspect = ih / float(iw)
-        return Image(path, width=width, height=(width * aspect))
+        if iw >= ih and (max_width * aspect) < max_height:
+            return Image(path,
+                         width=max_width,
+                         height=(max_width * aspect))
+        else:
+            return Image(path,
+                         width=(max_height / aspect),
+                         height=max_height)

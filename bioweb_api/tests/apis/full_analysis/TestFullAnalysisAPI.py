@@ -106,9 +106,9 @@ _REQUIRED_DROPS           = 0
 
 _ID_REPORT_PATH           = os.path.join(_TEST_DIR, 'e21e96e1-5a7a-4a03-84bc-1c2ff1d213d9.yaml')
 _GT_PNG_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_scatter.png')
-_GT_PNG_IND_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_scatter_ind.png')
+_GT_PNG_IND_PATH          = os.path.join(_TEST_DIR, 'beta_24_scatter_ind.pdf')
 _GT_KDE_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_kde.png')
-_GT_KDE_IND_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277_kde_ind.png')
+_GT_KDE_IND_PATH          = os.path.join(_TEST_DIR, 'beta_24_kde_ind.pdf')
 _GT_PDF_PATH              = os.path.join(_TEST_DIR, 'b05801d0-0f75-4c64-8df4-b2e6151a9277.pdf')
 _OUTPUT_SA_PATH           = os.path.join(_TEST_DIR, 'sa_combined.pdf')
 _OUTPUT_PDF_PATH          = os.path.join(_TEST_DIR, 'unified.pdf')

@@ -513,3 +513,12 @@ GnuBio Flask API.
        * Bugfix for failed assay plotting
        * Fixed assay scatter plot axes
    * Modify genotyper post function to expect pdf files instead of png
+ * v3.34
+   * Update secondary-analysis from v1.76.1 to v1.78
+     * v1.77
+       * Expose max uninjected ratio for the KDE picoinjection filter
+     * v1.78
+       * bug fix: identity model was logging wrong training size
+       * bug fix: identity report was miscounting the number of drops marked as background noise
+   * Let Identity and FullAnalysis take max uninjected ratio as parameter
+   * Reduce updating run report runtime

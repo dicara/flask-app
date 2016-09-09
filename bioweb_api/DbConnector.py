@@ -36,7 +36,7 @@ _DB     = _CLIENT[DATABASE_NAME]
 class DbConnector(object):
     '''
     This class is intended to be a singleton. It handles communication (i.e.
-    queries) with MongoDB. Every call to the _DB should go through this 
+    queries) with MongoDB. Every call to the _DB should go through this
     class.
     '''
     _INSTANCE = None
@@ -61,18 +61,18 @@ class DbConnector(object):
     @staticmethod
     def insert(collection, records):
         '''
-        This function performs a MongoDB insert. The insert command signature is 
+        This function performs a MongoDB insert. The insert command signature is
         db.collection.insert(<collection>, <records>). Collection is the
-        name of the collection to receive the records.  Records 
+        name of the collection to receive the records.  Records
         specifies the documents to insert.
 
         Note that Mongo raises an exception if 'records' is empty.  This
         routine guards against an empty insert, and just supplies a return
         value for zero records inserted.
-        
+
         @param collection   - Name of collection to perform find on.
         @param records      - List of documents to insert.
-        
+
         @return WriteResult - a standard Mongo result object.
         '''
         if len(records) > 0:
@@ -83,16 +83,16 @@ class DbConnector(object):
     @staticmethod
     def find(collection, criteria, projection=None):
         '''
-        This function performs a MongoDB find. The find command signature is 
-        db.collection.find(<criteria>, <projection>). Criteria are the search 
+        This function performs a MongoDB find. The find command signature is
+        db.collection.find(<criteria>, <projection>). Criteria are the search
         terms (pass an empty dictionary {} to return all documents). Projection
         specifies the fields to return (pass None to return all documents).
-        
+
         @param collection - Name of collection to perform find on.
         @param criteria   - Dictionary of search terms. Empty dictionary or None
                             to return all records.
         @param projection - Array of field names to return. None to return all.
-        
+
         @return List of records - empty list if no records are found.
         '''
         return list(_DB[collection].find(criteria, projection))
@@ -100,29 +100,40 @@ class DbConnector(object):
     @staticmethod
     def find_one(collection, field_name, field_value):
         '''
-        This function performs a MongoDB find_one. The first record with the 
+        This function performs a MongoDB find_one. The first record with the
         provided field_name and field_value will be returned.
-        
+
         @param collection  - Name of collection to perform find on.
         @param field_name  - Name of field to search for.
         @param field_value - Value of field to search for.
-        
+
         @return First record found meeting search criteria.
         '''
         return _DB[collection].find_one({field_name: field_value})
 
+    @staticmethod
+    def find_max(collection, field_name):
+        """
+        This function performs a MongoDB find_one and returns a document with
+        maximum value in field_name.
+
+        @param collection  - Name of collection to perform find on.
+        @param field_name  - Name of field to search for.
+        """
+        return _DB[collection].find_one(sort=[(field_name, -1)])
+
     @classmethod
     def find_from_params(cls, collection, params_dict, fields):
         '''
-        This function performs a MongoDB find. The find command signature is 
+        This function performs a MongoDB find. The find command signature is
         db.collection.find(<criteria>, <projection>). This function generates
-        the proper criteria dictionary from params_dict. The <projection> is 
-        simply the provided fields. 
+        the proper criteria dictionary from params_dict. The <projection> is
+        simply the provided fields.
 
         @param collection   - Name of collection to perform find on.
         @param params_dict  - Dictionary of parameters to use as search criteria.
         @param fields       - List of field names to return in resultant records.
-        
+
         @return List of records found that meet the search criteria.
         '''
         criteria = { param.name: {"$in": v} for param,v in params_dict.items() }
@@ -140,7 +151,7 @@ class DbConnector(object):
     def distinct_sorted(cls, collection, column_name, is_string=True):
         '''
         Call distinct on the provide column_name in the provided collection. If
-        the column contains strings, then return case-insensitively sorted 
+        the column contains strings, then return case-insensitively sorted
         results. Otherwise, simply sort the results.
         '''
         if is_string:
@@ -161,7 +172,7 @@ class DbConnector(object):
 
 #===========================================================================
 # Ensure the initial instance is created.
-#===========================================================================    
+#===========================================================================
 DbConnector.Instance()
 
 #===============================================================================

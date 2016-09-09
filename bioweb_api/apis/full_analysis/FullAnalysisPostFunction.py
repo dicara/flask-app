@@ -34,7 +34,7 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
-    IS_HDF5
+    IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -48,6 +48,7 @@ from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINI
 from secondary_analysis.constants import ASSAY_DYE as DEFAULT_ASSAY_DYE
 from secondary_analysis.constants import PICO_DYE as DEFAULT_PICO_DYE
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
+from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 
 FULL_ANALYSIS = 'FullAnalysis'
@@ -153,6 +154,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                           CONTINUOUS_PHASE_DESCRIPTION,
                                                           default_value=False,
                                                           required=False)
+        cls.max_ui_ratio_param  = ParameterFactory.float(MAX_UNINJECTED_RATIO,
+                                                         MAX_UI_RATIO_DESCRIPTION,
+                                                         default=DEFAULT_UNINJECTED_RATIO,
+                                                         minimum=0.0)
 
         # assay caller params
         cls.ac_training_param = ParameterFactory.integer(AC_TRAINING_FACTOR,
@@ -195,6 +200,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,
+                      cls.max_ui_ratio_param,
                       cls.ac_training_param,
                       cls.ctrl_thresh,
                       cls.req_drops_param,

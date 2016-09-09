@@ -148,6 +148,7 @@ KDE_PNG_URL      = "kde_png_url"
 KDE_PNG_SUM      = "kde_png_sum"
 KDE_PNG_SUM_URL  = "kde_png_sum_url"
 MAJOR            = "major"
+MAX_UNINJECTED_RATIO = "max_uninj_ratio"
 MINOR            = "minor"
 MISSING_VALUE    = ""
 MIX_VOL          = "mix_vol"
@@ -248,6 +249,8 @@ CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
 CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \
                               "continuous phase instead of slugs."
+MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio \
+                            for the pico KDE filter."
 
 #=============================================================================
 # Probe Experiment Constants

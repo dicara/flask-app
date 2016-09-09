@@ -44,11 +44,12 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
-    UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES
+    UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
+    MAX_UI_RATIO_DESCRIPTION
 
 
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
-    UNINJECTED_THRESHOLD
+    UNINJECTED_THRESHOLD, UNINJECTED_RATIO
 from secondary_analysis.identity.identity import Identity
 
 from primary_analysis.command import InvalidFileError
@@ -62,7 +63,7 @@ IDENTITY = "Identity"
 # Private Static Variables
 #=============================================================================
 
-    
+
 #=============================================================================
 # Class
 #=============================================================================
@@ -70,15 +71,15 @@ class IdentityPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return IDENTITY
-   
+
     @staticmethod
     def summary():
         return "Run the equivalent of pa identity."
-    
+
     @staticmethod
     def notes():
         return ""
@@ -86,25 +87,25 @@ class IdentityPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(IdentityPostFunction, self).response_messages()
         msgs.extend([
-                     { "code": 403, 
+                     { "code": 403,
                        "message": "Job name already exists. Delete the " \
                                   "existing job or pick a new name."},
-                     { "code": 404, 
+                     { "code": 404,
                        "message": "Submission unsuccessful. No primary " \
                        "analysis jobs found matching input criteria."},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         cls.job_uuid_param  = ParameterFactory.job_uuid(PA_PROCESS_COLLECTION)
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                          "name to give this "
                                                          "job.")
-        cls.fid_dye_param      = ParameterFactory.dye(FIDUCIAL_DYE, 
+        cls.fid_dye_param      = ParameterFactory.dye(FIDUCIAL_DYE,
                                                       "Fiducial dye.")
         cls.assay_dye_param    = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
-        cls.n_probes_param     = ParameterFactory.integer(NUM_PROBES, 
+        cls.n_probes_param     = ParameterFactory.integer(NUM_PROBES,
                                                         NUM_PROBES_DESCRIPTION,
                                                         default=0, minimum=0)
         cls.training_param     = ParameterFactory.integer(TRAINING_FACTOR,
@@ -124,6 +125,10 @@ class IdentityPostFunction(AbstractPostFunction):
                                                           CONTINUOUS_PHASE_DESCRIPTION,
                                                           default_value=False,
                                                           required=False)
+        cls.max_ui_ratio_param = ParameterFactory.float(MAX_UNINJECTED_RATIO,
+                                                        MAX_UI_RATIO_DESCRIPTION,
+                                                        default=UNINJECTED_RATIO,
+                                                        minimum=0.0)
 
         parameters = [
                       cls.job_uuid_param,
@@ -137,6 +142,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,
+                      cls.max_ui_ratio_param,
                      ]
         return parameters
 
@@ -154,7 +160,7 @@ class IdentityPostFunction(AbstractPostFunction):
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         dye_levels      = params_dict[cls.dye_levels_param]
-        
+
         filtered_dyes = list()
         if cls.filtered_dyes_param in params_dict:
             filtered_dyes = params_dict[cls.filtered_dyes_param]
@@ -170,6 +176,8 @@ class IdentityPostFunction(AbstractPostFunction):
             use_pico_thresh = True
         else:
             use_pico_thresh = False
+
+        max_uninj_ratio = params_dict[cls.max_ui_ratio_param][0]
 
         json_response = {IDENTITY: []}
 
@@ -215,6 +223,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       ignored_dyes,
                                                       filtered_dyes,
                                                       ui_threshold,
+                                                      max_uninj_ratio,
                                                       cls._DB_CONNECTOR,
                                                       job_name,
                                                       use_pico_thresh)
@@ -255,7 +264,8 @@ class SaIdentityCallable(object):
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
-                 ui_threshold, db_connector, job_name, use_pico_thresh):
+                 ui_threshold, max_uninj_ratio, db_connector, job_name,
+                 use_pico_thresh):
         self.uuid                  = str(uuid4())
         self.primary_analysis_uuid = primary_analysis_uuid
         self.dye_levels            = map(list, dye_levels)
@@ -270,6 +280,7 @@ class SaIdentityCallable(object):
         self.ignored_dyes          = ignored_dyes
         self.filtered_dyes         = filtered_dyes
         self.ui_threshold          = ui_threshold
+        self.max_uninj_ratio       = max_uninj_ratio
         self.db_connector          = db_connector
         self.job_name              = job_name
         self.use_pico_thresh       = use_pico_thresh
@@ -288,6 +299,7 @@ class SaIdentityCallable(object):
                         IGNORED_DYES: ignored_dyes,
                         FILTERED_DYES: filtered_dyes,
                         UI_THRESHOLD: ui_threshold,
+                        MAX_UNINJECTED_RATIO: max_uninj_ratio,
                         UUID: self.uuid,
                         PA_PROCESS_UUID: primary_analysis_uuid,
                         STATUS: JOB_STATUS.submitted,     # @UndefinedVariable
@@ -342,7 +354,8 @@ class SaIdentityCallable(object):
                      filtered_dyes=self.filtered_dyes,
                      uninjected_threshold=self.ui_threshold,
                      require_perfect_id=False,
-                     use_pico_thresh=self.use_pico_thresh).execute()
+                     use_pico_thresh=self.use_pico_thresh,
+                     max_uninj_ratio=self.max_uninj_ratio).execute()
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:
@@ -356,15 +369,15 @@ class SaIdentityCallable(object):
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
-        
-         
+
+
 def make_process_callback(uuid, outfile_path, plot_path, report_path,
                           plate_plot_path, db_connector):
     """
-    Return a closure that is fired when the job finishes. This 
+    Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
-     
+
     @param uuid:         Unique job id in database
     @param outfile_path: Path where the final identity results will live.
     @param plot_path:    Path where the final PNG plot should live.
@@ -422,7 +435,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
                 silently_remove_file(report_path)
                 silently_remove_file(outfile_path)
                 silently_remove_file(plot_path)
-         
+
     return process_callback
 
 
@@ -452,4 +465,4 @@ def check_report_for_errors(report_path):
 #===============================================================================
 if __name__ == "__main__":
     function = IdentityPostFunction()
-    print function      
+    print function

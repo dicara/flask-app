@@ -43,11 +43,12 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, \
-     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME
+     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
+from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
 from gbutils.vcf_pdf_writer import PDFWriter, FONT_NAME_STD, FONT_SIZE
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -59,6 +60,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              ID_TRAINING_FACTOR:    ID_DOCUMENT,
              UI_THRESHOLD:          ID_DOCUMENT,
+             MAX_UNINJECTED_RATIO:  ID_DOCUMENT,
              AC_TRAINING_FACTOR:    AC_DOCUMENT,
              CTRL_THRESH:           AC_DOCUMENT,
              REQUIRED_DROPS:        GT_DOCUMENT}
@@ -66,6 +68,7 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
 DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             ID_TRAINING_FACTOR: DEFAULT_ID_TRAINING_FACTOR,
             UI_THRESHOLD:       DEFAULT_UNINJECTED_THRESHOLD,
+            MAX_UNINJECTED_RATIO: DEFAULT_UNINJECTED_RATIO,
             AC_TRAINING_FACTOR: DEFAULT_AC_TRAINING_FACTOR,
             CTRL_THRESH:        DEFAULT_AC_CTRL_THRESHOLD,
             REQUIRED_DROPS:     0}

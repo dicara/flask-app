@@ -505,8 +505,11 @@ GnuBio Flask API.
        * add distance metrics to naive bayes scatter plot
    * Primary analysis post function saves HDF5 using numpy savetxt instead of pandas
  * v3.33
-   * Update secondary-analysis from v1.75 to v1.76
+   * Update secondary-analysis from v1.75 to v1.76.1
      * v1.76
        * Split genotyper plots into multiple images and output as PDF
        * Store probe/barcode data in dictionary, remove generator
+     * v1.76.1
+       * Bugfix for failed assay plotting
+       * Fixed assay scatter plot axes
    * Modify genotyper post function to expect pdf files instead of png

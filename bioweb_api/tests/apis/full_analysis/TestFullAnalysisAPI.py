@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
     AC_DOCUMENT, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
-    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL
+    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -100,6 +100,7 @@ _BETA_EXP_DEF_NAME        = "Beta_24_V5"
 _ABL_EXP_DEF_NAME         = "ABL_24_V4"
 _OFFSETS                  = 30
 _UI_THRESHOLD             = 4000
+_MAX_UI_RATIO             = 1.5
 _AC_TRAINING_FACTOR       = 100
 _CTRL_THRESH              = 5
 _REQUIRED_DROPS           = 0
@@ -267,6 +268,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
         url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
         url = add_url_argument(url, OFFSETS, _OFFSETS)
         url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
+        url = add_url_argument(url, MAX_UNINJECTED_RATIO, _MAX_UI_RATIO)
         url = add_url_argument(url, AC_TRAINING_FACTOR, _AC_TRAINING_FACTOR)
         url = add_url_argument(url, CTRL_THRESH, _CTRL_THRESH)
         url = add_url_argument(url, REQUIRED_DROPS, _REQUIRED_DROPS)

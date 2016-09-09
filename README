@@ -492,3 +492,17 @@ GnuBio Flask API.
 	   * Fix picoinjection status reporting for offline
 	 * v1.72
 	   * offline identity uses csv generator instead of pandas dataframe
+ * v3.32
+   * Updated secondary-analysis from v1.72 to v1.75
+     * v1.72
+       * offline identity uses csv generator instead of pandas dataframe
+     * v1.73
+       * Decomposition filter exceptions report name of filter causing errors
+       * Correct identity model training size reported in log
+     * v1.74.1
+       * Improved picoinjection decomp filter output message
+       * Added unit test for uninjected ratio
+     * v1.75
+       * assay caller scatter plot re-integrated
+       * add distance metrics to naive bayes scatter plot
+   * Primary analysis post function saves HDF5 using numpy savetxt instead of pandas

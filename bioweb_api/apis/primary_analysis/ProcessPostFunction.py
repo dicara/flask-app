@@ -24,6 +24,7 @@ import copy
 from datetime import datetime
 import os
 import sys
+import time
 import traceback
 import yaml
 
@@ -41,10 +42,10 @@ from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, 
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
     OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5
-    
+
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
     parse_pa_data_src, get_hdf5_dataset_path
-    
+
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
 #===============================================================================
@@ -61,18 +62,18 @@ PROCESS        = "Process"
 # Class
 #===============================================================================
 class ProcessPostFunction(AbstractPostFunction):
-    
+
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return PROCESS
-   
+
     @staticmethod
     def summary():
         return "Run the equivalent of pa process."
-    
+
     @staticmethod
     def notes():
         return ""
@@ -80,7 +81,7 @@ class ProcessPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(ProcessPostFunction, self).response_messages()
         msgs.extend([
-                     { "code": 403, 
+                     { "code": 403,
                        "message": "Job name already exists. Delete the " \
                                   "existing job or pick a new name."},
                      { "code": 404,
@@ -88,17 +89,17 @@ class ProcessPostFunction(AbstractPostFunction):
                                   "images must exist in archive."},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         cls.pa_data_src_param = ParameterFactory.pa_data_source()
         cls.dyes_param     = ParameterFactory.dyes()
         cls.device_param   = ParameterFactory.device()
         cls.major_param    = ParameterFactory.integer(MAJOR, "Major dye " \
-                                                      "profile version", 
+                                                      "profile version",
                                                       minimum=0)
         cls.minor_param    = ParameterFactory.integer(MINOR, "Minor dye " \
-                                                      "profile version", 
+                                                      "profile version",
                                                       minimum=0)
         cls.job_name_param = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                         "name to give this "
@@ -108,9 +109,9 @@ class ProcessPostFunction(AbstractPostFunction):
             "in a range of (-<offset>,<offset>] to determine the optimal " \
             "offset.", default=abs(DEFAULT_OFFSETS[0]), minimum=1)
         cls.use_iid_param  = ParameterFactory.boolean(USE_IID, "Use IID Peak " \
-                                                      "Detection.", 
+                                                      "Detection.",
                                                       default_value=False)
-        
+
         parameters = [
                       cls.pa_data_src_param,
                       cls.dyes_param,
@@ -122,7 +123,7 @@ class ProcessPostFunction(AbstractPostFunction):
                       cls.use_iid_param,
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         pa_data_src_name  = params_dict[cls.pa_data_src_param][0]
@@ -131,14 +132,14 @@ class ProcessPostFunction(AbstractPostFunction):
         job_name      = params_dict[cls.job_name_param][0]
         offset        = params_dict[cls.offset][0]
         use_iid       = params_dict[cls.use_iid_param][0]
-        
+
         major = None
         if cls.major_param in params_dict:
             major = params_dict[cls.major_param][0]
         minor = None
         if cls.minor_param in params_dict:
             minor = params_dict[cls.minor_param][0]
-        
+
         json_response = {PROCESS: []}
 
         # Ensure archive directory is valid
@@ -148,7 +149,7 @@ class ProcessPostFunction(AbstractPostFunction):
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
             return make_clean_response(json_response, 500)
-        
+
         # Ensure at least one valid archive is found
         if len(archives) < 1:
             return make_clean_response(json_response, 404)
@@ -194,11 +195,11 @@ class ProcessPostFunction(AbstractPostFunction):
                     json_response[PROCESS].append(response)
 
             status_codes.append(status_code)
-        
+
         # If all jobs submitted successfully, then 200 should be returned.
         # Otherwise, the maximum status code seems good enough.
         return make_clean_response(json_response, max(status_codes))
-            
+
 #===============================================================================
 # Callable/Callback Functionality
 #===============================================================================
@@ -232,7 +233,11 @@ class PaProcessCallable(object):
         self.minor        = minor
         self.offsets      = range(-offset, offset)
         self.use_iid      = use_iid
-        self.outfile_path = os.path.join(RESULTS_PATH, self.uuid)
+
+        date_folder       = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
+        if not os.path.exists(date_folder):
+            os.makedirs(date_folder)
+        self.outfile_path = os.path.join(date_folder, self.uuid)
         self.config_path  = self.outfile_path + '.cfg'
         self.db_connector = db_connector
         self.document     = {ARCHIVE: archive,
@@ -284,13 +289,13 @@ class PaProcessCallable(object):
                             self.minor, self.offsets, self.use_iid,
                             self.outfile_path, self.config_path,
                             self.uuid)
-        
+
 def make_process_callback(uuid, outfile_path, config_path, db_connector):
     """
-    Return a closure that is fired when the job finishes. This 
+    Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
-    
+
     @param uuid: Unique job id in database
     @param outfile_path - Path where the final analysis.txt file should live.
     @param config_path  - Path where the final configuration file should live.
@@ -300,13 +305,14 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
     def process_callback(future):
         try:
             _ = future.result()
-            update = { "$set": { 
+            folder = os.path.basename(os.path.dirname(outfile_path))
+            update = { "$set": {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  CONFIG: config_path,
                                  FINISH_DATESTAMP: datetime.today(),
-                                 URL: "http://%s/results/%s/%s" % (HOSTNAME, PORT, uuid),
-                                 CONFIG_URL: "http://%s/results/%s/%s.cfg" % (HOSTNAME, PORT, uuid),
+                                 URL: "http://%s/results/%s/%s/%s" % (HOSTNAME, PORT, folder, uuid),
+                                 CONFIG_URL: "http://%s/results/%s/%s/%s.cfg" % (HOSTNAME, PORT, folder, uuid),
                                }
                     }
             # If job has been deleted, then delete result and don't update DB.
@@ -318,7 +324,7 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
         except:
             error_msg = str(sys.exc_info()[1])
             update    = { "$set": {STATUS: JOB_STATUS.failed, # @UndefinedVariable
-                                   RESULT: None, 
+                                   RESULT: None,
                                    FINISH_DATESTAMP: datetime.today(),
                                    ERROR: error_msg}}
             # If job has been deleted, then delete result and don't update DB.
@@ -329,7 +335,7 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
                 silently_remove_file(config_path)
 
     return process_callback
-         
+
 #===============================================================================
 # Run Main
 #===============================================================================

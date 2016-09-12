@@ -24,6 +24,7 @@ import copy
 import os
 import shutil
 import sys
+import time
 import traceback
 import yaml
 
@@ -271,10 +272,14 @@ class SaIdentityCallable(object):
         self.dye_levels            = map(list, dye_levels)
         self.num_probes            = num_probes
         self.training_factor       = training_factor
-        self.plot_path             = os.path.join(RESULTS_PATH, self.uuid + '.png')
-        self.plate_plot_path       = os.path.join(RESULTS_PATH, self.uuid + '_plate.png')
-        self.outfile_path          = os.path.join(RESULTS_PATH, self.uuid)
-        self.report_path           = os.path.join(RESULTS_PATH, self.uuid + '.yaml')
+
+        date_folder                = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
+        if not os.path.exists(date_folder):
+            os.makedirs(date_folder)
+        self.plot_path             = os.path.join(date_folder, self.uuid + '.png')
+        self.plate_plot_path       = os.path.join(date_folder, self.uuid + '_plate.png')
+        self.outfile_path          = os.path.join(date_folder, self.uuid)
+        self.report_path           = os.path.join(date_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.ignored_dyes          = ignored_dyes
@@ -390,21 +395,22 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
         try:
             _ = future.result()
             report_errors = check_report_for_errors(report_path)
+            folder = os.path.basename(os.path.dirname(outfile_path))
             update_data = { STATUS: JOB_STATUS.succeeded,
                             RESULT: outfile_path,
-                            URL: "http://%s/results/%s/%s" %
-                                 (HOSTNAME, PORT,
+                            URL: "http://%s/results/%s/%s/%s" %
+                                 (HOSTNAME, PORT, folder,
                                   os.path.basename(outfile_path)),
                             PLOT: plot_path,
                             REPORT: report_path,
-                            PLOT_URL: "http://%s/results/%s/%s" %
-                                      (HOSTNAME, PORT,
+                            PLOT_URL: "http://%s/results/%s/%s/%s" %
+                                      (HOSTNAME, PORT, folder,
                                        os.path.basename(plot_path)),
-                            REPORT_URL: "http://%s/results/%s/%s" %
-                                        (HOSTNAME, PORT,
+                            REPORT_URL: "http://%s/results/%s/%s/%s" %
+                                        (HOSTNAME, PORT, folder,
                                          os.path.basename(report_path)),
-                            PLATE_PLOT_URL: "http://%s/results/%s/%s" %
-                                        (HOSTNAME, PORT,
+                            PLATE_PLOT_URL: "http://%s/results/%s/%s/%s" %
+                                        (HOSTNAME, PORT, folder,
                                          os.path.basename(plate_plot_path)),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:

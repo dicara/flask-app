@@ -25,6 +25,7 @@ import logging
 import os
 import shutil
 import sys
+import time
 
 from datetime import datetime
 from uuid import uuid4
@@ -187,7 +188,11 @@ class SaGenotyperCallable(object):
         self.exp_def_name = exp_def_name
         self.assay_caller_uuid = assay_caller_uuid
         self.ac_result_path   = assay_caller_doc[RESULT]
-        self.outfile_path     = os.path.join(RESULTS_PATH, self.uuid + '.%s' % VCF)
+
+        date_folder           = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
+        if not os.path.exists(date_folder):
+            os.makedirs(date_folder)
+        self.outfile_path     = os.path.join(date_folder, self.uuid + '.%s' % VCF)
         self.required_drops   = required_drops
         self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
@@ -267,7 +272,8 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
         try:
             _ = future.result()
 
-            url_prefix = "http://%s/results/%s/" % (HOSTNAME, PORT)
+            folder     = os.path.basename(os.path.dirname(outfile_path))
+            url_prefix = "http://%s/results/%s/%s/" % (HOSTNAME, PORT, folder)
             dirname    = os.path.dirname(outfile_path)
             vcf_fn     = os.path.basename(outfile_path)
             basename   = os.path.splitext(vcf_fn)[0]

@@ -522,3 +522,5 @@ GnuBio Flask API.
        * bug fix: identity report was miscounting the number of drops marked as background noise
    * Let Identity and FullAnalysis take max uninjected ratio as parameter
    * Reduce updating run report runtime
+ * v3.35
+   * Store analysis output files in date folders

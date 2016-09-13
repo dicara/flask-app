@@ -26,15 +26,16 @@ import os
 import re
 import yaml
 
-from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION
-from bioweb_api.apis.ApiConstants import ID, UUID
+from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
+    HDF5_COLLECTION
+from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     CHIP_REVISION_TXT, DATETIME, DEVICE_NAME_TXT, EXIT_NOTES_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
     IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME, \
-    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD
+    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -233,6 +234,20 @@ def update_run_reports():
                     log_data = read_report_file(report_file_path, date_obj, utag)
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
+                    if IMAGE_STACKS in log_data:
+                        if len(log_data[IMAGE_STACKS]) > 0:
+                            continue
+                        else:
+                            run_id = log_data[RUN_ID]
+                            hdf5_path = os.path.join(RUN_REPORT_PATH, folder, sf,
+                                                     run_id + '.h5')
+                            hdf5_archives = _DB_CONNECTOR.find(
+                                                    HDF5_COLLECTION,
+                                                    {HDF5_PATH: hdf5_path},
+                                                    {HDF5_DATASET: 1})
+                            log_data[IMAGE_STACKS] = [a[HDF5_DATASET]
+                                                      for a in hdf5_archives]
+
                     reports.append(log_data)
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))

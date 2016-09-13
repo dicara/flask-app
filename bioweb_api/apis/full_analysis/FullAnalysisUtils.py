@@ -37,13 +37,13 @@ from reportlab.lib import utils
 from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, HOSTNAME, \
      PORT, EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.utilities.io_utilities import safe_make_dirs
+from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder
 from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUMENT, \
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, \
-     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, URL
+     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -128,8 +128,8 @@ def add_unified_pdf(fa_job):
     make_pdf.save()
 
     fa_uuid = fa_job[UUID]
-    folder = os.path.basename(os.path.dirname(fa_job[GT_DOCUMENT][URL]))
-    fa_pdf_path = os.path.join(RESULTS_PATH, folder, fa_uuid + '.pdf')
+    results_folder = get_results_folder()
+    fa_pdf_path = os.path.join(results_folder, fa_uuid + '.pdf')
     if not os.path.isfile(fa_pdf_path):
         raise Exception("Failed in making the unified pdf report.")
     else:
@@ -195,16 +195,15 @@ class MakeUnifiedPDF(PDFWriter):
         gt_kde_sum_url           = fa_job[GT_DOCUMENT][KDE_PNG_SUM_URL]
         gt_pdf_url               = fa_job[GT_DOCUMENT][PDF_URL]
 
-        folder                   = os.path.basename(os.path.dirname(fa_job[GT_DOCUMENT][URL]))
-        path                     = os.path.join(RESULTS_PATH, folder)
-        self.id_report_path      = os.path.join(path, os.path.basename(id_report_url))
-        self.gt_png_path         = os.path.join(path, os.path.basename(gt_png_url))
-        self.gt_png_sum_path     = os.path.join(path, os.path.basename(gt_png_sum_url))
-        self.gt_kde_path         = os.path.join(path, os.path.basename(gt_kde_url))
-        self.gt_kde_sum_path     = os.path.join(path, os.path.basename(gt_kde_sum_url))
-        self.gt_pdf_path         = os.path.join(path, os.path.basename(gt_pdf_url))
+        results_folder           = get_results_folder()
+        self.id_report_path      = os.path.join(results_folder, os.path.basename(id_report_url))
+        self.gt_png_path         = os.path.join(results_folder, os.path.basename(gt_png_url))
+        self.gt_png_sum_path     = os.path.join(results_folder, os.path.basename(gt_png_sum_url))
+        self.gt_kde_path         = os.path.join(results_folder, os.path.basename(gt_kde_url))
+        self.gt_kde_sum_path     = os.path.join(results_folder, os.path.basename(gt_kde_sum_url))
+        self.gt_pdf_path         = os.path.join(results_folder, os.path.basename(gt_pdf_url))
 
-        self.fa_pdf_path         = os.path.join(path, self.uuid + '.pdf')
+        self.fa_pdf_path         = os.path.join(results_folder, self.uuid + '.pdf')
         self.tmp_path            = os.path.join(TMP_PATH, self.uuid)
         self.tmp_sa_path         = os.path.join(self.tmp_path, 'sa_combined.pdf')
         self.tmp_pdf_path        = os.path.join(self.tmp_path, 'fa_unified.pdf')

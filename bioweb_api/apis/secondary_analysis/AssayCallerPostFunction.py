@@ -24,7 +24,6 @@ import copy
 import os
 import shutil
 import sys
-import time
 import traceback
 
 from uuid import uuid4
@@ -32,11 +31,11 @@ from datetime import datetime
 
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.utilities.io_utilities import make_clean_response, \
-    silently_remove_file, safe_make_dirs
+    silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
-from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
+from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -227,11 +226,9 @@ class SaAssayCallerCallable(object):
         self.job_name              = job_name
         self.ctrl_thresh           = ctrl_thresh
 
-        date_folder                = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
-        if not os.path.exists(date_folder):
-            os.makedirs(date_folder)
-        self.outfile_path          = os.path.join(date_folder, self.uuid)
-        self.scatter_plot_path     = os.path.join(date_folder, self.uuid + '_scatter.png')
+        results_folder             = get_results_folder()
+        self.outfile_path          = os.path.join(results_folder, self.uuid)
+        self.scatter_plot_path     = os.path.join(results_folder, self.uuid + '_scatter.png')
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path,
                                                   'assay_calls.txt')
@@ -307,17 +304,13 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
     def process_callback(future):
         try:
             _ = future.result()
-            folder = os.path.basename(os.path.dirname(outfile_path))
             update = { '$set': {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 URL: 'http://%s/results/%s/%s/%s' %
-                                           (HOSTNAME, PORT, folder,
-                                            os.path.basename(outfile_path)),
+                                 URL: get_results_url(os.path.basename(outfile_path)),
                                  SCATTER_PLOT: scatter_plot_path,
-                                 SCATTER_PLOT_URL: 'http://%s/results/%s/%s/%s' %
-                                           (HOSTNAME, PORT, folder,
-                                            os.path.basename(scatter_plot_path)),
+                                 SCATTER_PLOT_URL: get_results_url(
+                                                    os.path.basename(scatter_plot_path)),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }

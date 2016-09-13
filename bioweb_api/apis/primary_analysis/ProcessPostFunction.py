@@ -24,7 +24,6 @@ import copy
 from datetime import datetime
 import os
 import sys
-import time
 import traceback
 import yaml
 
@@ -36,8 +35,9 @@ from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.utilities.io_utilities import silently_remove_file
-from bioweb_api import PA_PROCESS_COLLECTION, HOSTNAME, PORT, RESULTS_PATH
+from bioweb_api.utilities.io_utilities import silently_remove_file, get_results_folder, \
+    get_results_url
+from bioweb_api import PA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
@@ -234,10 +234,8 @@ class PaProcessCallable(object):
         self.offsets      = range(-offset, offset)
         self.use_iid      = use_iid
 
-        date_folder       = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
-        if not os.path.exists(date_folder):
-            os.makedirs(date_folder)
-        self.outfile_path = os.path.join(date_folder, self.uuid)
+        results_folder    = get_results_folder()
+        self.outfile_path = os.path.join(results_folder, self.uuid)
         self.config_path  = self.outfile_path + '.cfg'
         self.db_connector = db_connector
         self.document     = {ARCHIVE: archive,
@@ -305,14 +303,13 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
     def process_callback(future):
         try:
             _ = future.result()
-            folder = os.path.basename(os.path.dirname(outfile_path))
             update = { "$set": {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  CONFIG: config_path,
                                  FINISH_DATESTAMP: datetime.today(),
-                                 URL: "http://%s/results/%s/%s/%s" % (HOSTNAME, PORT, folder, uuid),
-                                 CONFIG_URL: "http://%s/results/%s/%s/%s.cfg" % (HOSTNAME, PORT, folder, uuid),
+                                 URL: get_results_url(uuid),
+                                 CONFIG_URL: get_results_url(uuid + '.cfg'),
                                }
                     }
             # If job has been deleted, then delete result and don't update DB.

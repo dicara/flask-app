@@ -25,7 +25,6 @@ import logging
 import os
 import shutil
 import sys
-import time
 
 from datetime import datetime
 from uuid import uuid4
@@ -33,7 +32,7 @@ from uuid import uuid4
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_GENOTYPER_COLLECTION, SA_ASSAY_CALLER_COLLECTION, \
-    SA_IDENTITY_COLLECTION, RESULTS_PATH, TMP_PATH, HOSTNAME, PORT
+    SA_IDENTITY_COLLECTION, TMP_PATH
 from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
@@ -42,7 +41,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     PNG_SUM_URL, REQ_DROPS_DESCRIPTION, VARIANT_MASK, KDE_PNG, KDE_PNG_SUM, \
     KDE_PNG_SUM_URL, KDE_PNG_URL
 from bioweb_api.utilities.io_utilities import make_clean_response, \
-    silently_remove_file, safe_make_dirs
+    silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
 from expdb import HotspotExperiment
@@ -189,10 +188,8 @@ class SaGenotyperCallable(object):
         self.assay_caller_uuid = assay_caller_uuid
         self.ac_result_path   = assay_caller_doc[RESULT]
 
-        date_folder           = os.path.join(RESULTS_PATH, time.strftime('%m_%d_%Y'))
-        if not os.path.exists(date_folder):
-            os.makedirs(date_folder)
-        self.outfile_path     = os.path.join(date_folder, self.uuid + '.%s' % VCF)
+        results_folder        = get_results_folder()
+        self.outfile_path     = os.path.join(results_folder, self.uuid + '.%s' % VCF)
         self.required_drops   = required_drops
         self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
@@ -272,8 +269,6 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
         try:
             _ = future.result()
 
-            folder     = os.path.basename(os.path.dirname(outfile_path))
-            url_prefix = "http://%s/results/%s/%s/" % (HOSTNAME, PORT, folder)
             dirname    = os.path.dirname(outfile_path)
             vcf_fn     = os.path.basename(outfile_path)
             basename   = os.path.splitext(vcf_fn)[0]
@@ -291,17 +286,17 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             update = { "$set": {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 URL: url_prefix + vcf_fn,
+                                 URL: get_results_url(vcf_fn),
                                  PDF: os.path.join(dirname, pdf_fn),
-                                 PDF_URL: url_prefix + pdf_fn,
+                                 PDF_URL: get_results_url(pdf_fn),
                                  PNG: os.path.join(dirname, scatter_ind_pdf_fn),
-                                 PNG_URL: url_prefix + scatter_ind_pdf_fn,
+                                 PNG_URL: get_results_url(scatter_ind_pdf_fn),
                                  PNG_SUM: os.path.join(dirname, scatter_png_fn),
-                                 PNG_SUM_URL: url_prefix + scatter_png_fn,
+                                 PNG_SUM_URL: get_results_url(scatter_png_fn),
                                  KDE_PNG: os.path.join(dirname, kde_ind_pdf_fn),
-                                 KDE_PNG_URL: url_prefix + kde_ind_pdf_fn,
+                                 KDE_PNG_URL: get_results_url(kde_ind_pdf_fn),
                                  KDE_PNG_SUM: os.path.join(dirname, kde_png_fn),
-                                 KDE_PNG_SUM_URL: url_prefix + kde_png_fn,
+                                 KDE_PNG_SUM_URL: get_results_url(kde_png_fn),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }

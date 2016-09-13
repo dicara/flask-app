@@ -524,3 +524,5 @@ GnuBio Flask API.
    * Reduce updating run report runtime
  * v3.35
    * Store analysis output files in date folders
+ * v3.35.1
+   * Bugfix in getting the latest date of run reports

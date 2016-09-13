@@ -206,7 +206,10 @@ def update_run_reports():
     '''
     APP_LOGGER.info("Updating database with available run reports...")
 
-    latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+    try:
+        latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+    except TypeError:
+        latest_date = None
     if os.path.isdir(RUN_REPORT_PATH):
         date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
                         if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
@@ -216,7 +219,7 @@ def update_run_reports():
         for folder in date_folders:
             path = os.path.join(RUN_REPORT_PATH, folder)
             date_obj = datetime.strptime(folder, '%m_%d_%y')
-            if date_obj < latest_date: continue
+            if latest_date is not None and date_obj < latest_date: continue
 
             report_files_utags = [(get_run_info_path(path, sf), sf)
                                    for sf in os.listdir(path)]

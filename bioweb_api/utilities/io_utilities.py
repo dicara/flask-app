@@ -27,13 +27,14 @@ import numbers
 import os
 import shutil
 import stat
+import time
 
 from datetime import datetime
 from flask import make_response, jsonify
 
-from bioweb_api import ARCHIVES_PATH
+from bioweb_api import ARCHIVES_PATH, RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS
-    
+
 #===============================================================================
 # Public Global Variables
 #===============================================================================
@@ -54,7 +55,7 @@ def safe_make_dirs(dir_name):
             pass  # Directory already existed
         else:
             raise  # Reraise other errors
-        
+
 def silently_remove_file(filename):
     '''
     Attempt to remove a file, ignoring any thrown exceptions.
@@ -72,33 +73,33 @@ def silently_remove_tree(tree_path):
         shutil.rmtree(tree_path)
     except OSError:
         pass
-    
+
 def get_case_insensitive_dictreader(f, dialect, required_headers=None):
     '''
     Create a DictReader with the provided file handle and convert all headers to
     lowercase. If duplicate headers are found, raise an IOError. Similarly, if
-    required_headers are included, raise an IOError if the file doesn't 
+    required_headers are included, raise an IOError if the file doesn't
     contain any of the required headers.
-    
+
     @param f       - File handle.
     @param dialect - Dialect of file being read.
-    
+
     @return DictReader with all lowercase headers.
     '''
     reader = csv.DictReader(f, dialect=dialect)
-    
+
     reader.fieldnames = map(lambda x: x.lower(), reader.fieldnames)
-    
+
     # Ensure there aren't any duplicate headers.
     if len(reader.fieldnames) != len(set(reader.fieldnames)):
-        raise IOError("File contains duplicate headers: %s" % 
+        raise IOError("File contains duplicate headers: %s" %
                       find_duplicates(reader.fieldnames))
-        
-    # Ensure that required headers are present in the file. 
+
+    # Ensure that required headers are present in the file.
     if required_headers and not set(reader.fieldnames) >= set(required_headers):
-        raise IOError("Required headers are missing: %s" % 
+        raise IOError("Required headers are missing: %s" %
                       list(set(required_headers) - set(reader.fieldnames)))
-    
+
     return reader
 
 def find_duplicates(in_list):
@@ -106,37 +107,37 @@ def find_duplicates(in_list):
     Return a list of all duplicate items found in the provded list.
     '''
     return [x for x, y in collections.Counter(in_list).items() if y > 1]
-    
+
 def get_dialect(file_path, delimiters="\t,"):
     '''
     Return the dialect of the file. If dialect cannot be determined, return
-    None. If the file doesn't exist, throw an IOError exception. 
+    None. If the file doesn't exist, throw an IOError exception.
     '''
     if not os.path.isfile(file_path):
         raise IOError("File not found: %s" % file_path)
-    
+
     dialect = None
     with open(file_path) as f:
         try:
             dialect = csv.Sniffer().sniff(f.read(),delimiters=delimiters)
         except:
             pass
-        
+
     return dialect
 
 def get_python_mode(permissions):
     '''
-    Given an array of permissions ([user, group, other] where 1=execute, 2=write, 
-    and 4=read), determine the mode python can interpret to set the mode of a 
+    Given an array of permissions ([user, group, other] where 1=execute, 2=write,
+    and 4=read), determine the mode python can interpret to set the mode of a
     path correctly.
     '''
     if len(permissions) != 3:
         raise Exception("Permissions array must contain 3 integer modes that are 1 <= mode <= 7, but array contained %s" % str(permissions))
-    
+
     user  = permissions[0]
     group = permissions[1]
     other = permissions[2]
-    
+
     mode = None
     if user == 1:
         mode = stat.S_IXUSR
@@ -154,7 +155,7 @@ def get_python_mode(permissions):
         mode = stat.S_IXUSR | stat.S_IWUSR | stat.S_IRUSR
     else:
         raise Exception("User mode must be 1 <= mode <= 7 but is: %d" % mode)
-    
+
     if group == 1:
         mode = mode | stat.S_IXGRP
     elif group == 2:
@@ -171,7 +172,7 @@ def get_python_mode(permissions):
         mode = mode | stat.S_IXGRP | stat.S_IWGRP | stat.S_IRGRP
     else:
         raise Exception("Group mode must be 1 <= mode <= 7 but is: %d" % mode)
-    
+
     if other == 1:
         mode = mode | stat.S_IXOTH
     elif other == 2:
@@ -188,7 +189,7 @@ def get_python_mode(permissions):
         mode = mode | stat.S_IXOTH | stat.S_IWOTH | stat.S_IROTH
     else:
         raise Exception("Other mode must be 1 <= mode <= 7 but is: %d" % mode)
-    
+
     return mode
 
 def make_clean_response(response, http_status_code):
@@ -196,21 +197,21 @@ def make_clean_response(response, http_status_code):
     Responses cannot contain python objects. Therefore, check that the response
     contains strings or numbers. If datetime is encountered, convert to a
     string. If NaN is encountered, convert it to None.
-    
+
     @param response:
     @param http_status_code:
     """
-    return make_response(jsonify(clean_item(response)), http_status_code)   
+    return make_response(jsonify(clean_item(response)), http_status_code)
 
 def clean_item(item):
     """
-    This function ensures the provided item can be serialized and throws an 
-    exception if not. Item may be a list, dict, string, number, or datetime 
-    object. If the item is a list or dict, all of its elements must be a string, 
+    This function ensures the provided item can be serialized and throws an
+    exception if not. Item may be a list, dict, string, number, or datetime
+    object. If the item is a list or dict, all of its elements must be a string,
     number, or datetime object. Datetime objects are converted to strings of the
-    form  YYYY_mm_dd__HH_MM_SS. Furthermore, NaN float values are converted to 
+    form  YYYY_mm_dd__HH_MM_SS. Furthermore, NaN float values are converted to
     None. The cleaned item is then returned.
-    
+
     @param item: May be a list, dict, string, number, or datetime object.
     """
     if item is None:
@@ -231,15 +232,15 @@ def clean_item(item):
             item = None
     else:
         raise Exception("Unhandled type: %s" % type(item))
-    
+
     return item
 
 def get_archive_dirs(archive, min_num_images=1, extensions=VALID_HAM_IMAGE_EXTENSIONS):
     """
-    Recursively search an archive for all directories containing images and 
+    Recursively search an archive for all directories containing images and
     return a list of all paths relative to the top-level archive directory that
     contain images.
-    
+
     @param archive: Name of archive directory to be searched.
     @param min_num_images: Minimum number of images required in a directory for
                            it to be included in the returned archive directories.
@@ -259,8 +260,17 @@ def filter_files(files, extensions):
     """
     Return a list of files that only includes those files that have one of the
     provided file extensions.
-    
+
     @param files: list of file names
     @param extensions: list of extensions (e.g. txt, png, etc.)
     """
     return [f for f in files if f.endswith(tuple(extensions))]
+
+def get_results_folder():
+    date_folder = os.path.join(RESULTS_PATH, time.strftime('%Y_%m_%d'))
+    if not os.path.exists(date_folder):
+        os.makedirs(date_folder)
+    return date_folder
+
+def get_results_url(filename, results_folder=get_results_folder()):
+    return 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT, results_folder, filename)

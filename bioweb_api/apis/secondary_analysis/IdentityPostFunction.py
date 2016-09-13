@@ -32,12 +32,12 @@ from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TR
 from uuid import uuid4
 from datetime import datetime
 
-from bioweb_api.utilities.io_utilities import make_clean_response, silently_remove_file, safe_make_dirs
+from bioweb_api.utilities.io_utilities import make_clean_response, silently_remove_file, \
+    safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, \
-    HOSTNAME, PORT, RESULTS_PATH, TMP_PATH
+from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -271,10 +271,12 @@ class SaIdentityCallable(object):
         self.dye_levels            = map(list, dye_levels)
         self.num_probes            = num_probes
         self.training_factor       = training_factor
-        self.plot_path             = os.path.join(RESULTS_PATH, self.uuid + '.png')
-        self.plate_plot_path       = os.path.join(RESULTS_PATH, self.uuid + '_plate.png')
-        self.outfile_path          = os.path.join(RESULTS_PATH, self.uuid)
-        self.report_path           = os.path.join(RESULTS_PATH, self.uuid + '.yaml')
+
+        results_folder             = get_results_folder()
+        self.plot_path             = os.path.join(results_folder, self.uuid + '.png')
+        self.plate_plot_path       = os.path.join(results_folder, self.uuid + '_plate.png')
+        self.outfile_path          = os.path.join(results_folder, self.uuid)
+        self.report_path           = os.path.join(results_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
         self.fiducial_dye          = fiducial_dye
         self.ignored_dyes          = ignored_dyes
@@ -392,20 +394,13 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
             report_errors = check_report_for_errors(report_path)
             update_data = { STATUS: JOB_STATUS.succeeded,
                             RESULT: outfile_path,
-                            URL: "http://%s/results/%s/%s" %
-                                 (HOSTNAME, PORT,
-                                  os.path.basename(outfile_path)),
+                            URL: get_results_url(os.path.basename(outfile_path)),
                             PLOT: plot_path,
                             REPORT: report_path,
-                            PLOT_URL: "http://%s/results/%s/%s" %
-                                      (HOSTNAME, PORT,
-                                       os.path.basename(plot_path)),
-                            REPORT_URL: "http://%s/results/%s/%s" %
-                                        (HOSTNAME, PORT,
-                                         os.path.basename(report_path)),
-                            PLATE_PLOT_URL: "http://%s/results/%s/%s" %
-                                        (HOSTNAME, PORT,
-                                         os.path.basename(plate_plot_path)),
+                            PLOT_URL: get_results_url(os.path.basename(plot_path)),
+                            REPORT_URL: get_results_url(os.path.basename(report_path)),
+                            PLATE_PLOT_URL: get_results_url(
+                                                os.path.basename(plate_plot_path)),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
                 update_data[ERROR] = report_errors

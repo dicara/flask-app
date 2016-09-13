@@ -31,11 +31,11 @@ from datetime import datetime
 
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.utilities.io_utilities import make_clean_response, \
-    silently_remove_file, safe_make_dirs
+    silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
-from bioweb_api import TMP_PATH, RESULTS_PATH, HOSTNAME, PORT
+from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -62,7 +62,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return ASSAY_CALLER
@@ -78,10 +78,10 @@ class AssayCallerPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(AssayCallerPostFunction, self).response_messages()
         msgs.extend([
-                     { 'code': 403, 
+                     { 'code': 403,
                        'message': 'Job name already exists. Delete the ' \
                                   'existing job or pick a new name.'},
-                     { 'code': 404, 
+                     { 'code': 404,
                        'message': 'Submission unsuccessful. No primary ' \
                        'analysis jobs found matching input criteria.'},
                     ])
@@ -94,22 +94,22 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          'name to give this '
                                                          'job.')
         cls.exp_defs_param  = ParameterFactory.experiment_definition()
-        cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE, 
+        cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE,
                                                    'Fiducial dye.',
                                                    default=JOE,
                                                    required=True)
         cls.assay_dye_param = ParameterFactory.dye(ASSAY_DYE, 'Assay dye.',
                                                    default=FAM,
                                                    required=True)
-        cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES, 
+        cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES,
                                                        NUM_PROBES_DESCRIPTION,
                                                        default=1, minimum=1,
                                                        required=True)
-        cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR, 
+        cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR,
                                                        TRAINING_FACTOR_DESCRIPTION,
                                                        default=AC_TRAINING_FACTOR, minimum=1,
                                                        required=True)
-        cls.ctrl_thresh     = ParameterFactory.float(CTRL_THRESH, 
+        cls.ctrl_thresh     = ParameterFactory.float(CTRL_THRESH,
                                                      CTRL_THRESH_DESCRIPTION,
                                                      default=AC_CTRL_THRESHOLD,
                                                      minimum=0.0, maximum=100.0)
@@ -143,7 +143,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         try:
             criteria        = {UUID: {'$in': job_uuids}}
             projection      = {ID: 0, RESULT: 1, UUID: 1}
-            sa_identity_jobs = cls._DB_CONNECTOR.find(SA_IDENTITY_COLLECTION, 
+            sa_identity_jobs = cls._DB_CONNECTOR.find(SA_IDENTITY_COLLECTION,
                                                      criteria, projection)
         except:
             APP_LOGGER.exception(traceback.format_exc())
@@ -161,7 +161,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
 
             status_code = 200
 
-            if cur_job_name in cls._DB_CONNECTOR.distinct(SA_ASSAY_CALLER_COLLECTION, 
+            if cur_job_name in cls._DB_CONNECTOR.distinct(SA_ASSAY_CALLER_COLLECTION,
                                                           JOB_NAME):
                 status_code = 403
                 json_response[ASSAY_CALLER].append({ERROR: 'Job exists.'})
@@ -175,7 +175,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          exp_def_name,
                                                          assay_dye,
                                                          fiducial_dye,
-                                                         num_probes, 
+                                                         num_probes,
                                                          training_factor,
                                                          ctrl_thresh,
                                                          cls._DB_CONNECTOR,
@@ -225,12 +225,14 @@ class SaAssayCallerCallable(object):
         self.db_connector          = db_connector
         self.job_name              = job_name
         self.ctrl_thresh           = ctrl_thresh
-        self.outfile_path          = os.path.join(RESULTS_PATH, self.uuid)
-        self.scatter_plot_path     = os.path.join(RESULTS_PATH, self.uuid + '_scatter.png')
+
+        results_folder             = get_results_folder()
+        self.outfile_path          = os.path.join(results_folder, self.uuid)
+        self.scatter_plot_path     = os.path.join(results_folder, self.uuid + '_scatter.png')
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
-        self.tmp_outfile_path      = os.path.join(self.tmp_path, 
+        self.tmp_outfile_path      = os.path.join(self.tmp_path,
                                                   'assay_calls.txt')
-        self.tmp_scatter_plot_path = os.path.join(self.tmp_path, 
+        self.tmp_scatter_plot_path = os.path.join(self.tmp_path,
                                                   'assay_calls_scatter.png')
         self.document = {
                         EXP_DEF_NAME: exp_def_name,
@@ -266,7 +268,7 @@ class SaAssayCallerCallable(object):
             exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
             experiment = HotspotExperiment.from_dict(exp_def)
 
-            AssayCallManager(self.num_probes, in_file=self.analysis_file, 
+            AssayCallManager(self.num_probes, in_file=self.analysis_file,
                              out_file=self.tmp_outfile_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
@@ -289,7 +291,7 @@ class SaAssayCallerCallable(object):
 
 def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
     '''
-    Return a closure that is fired when the job finishes. This 
+    Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
 
@@ -302,16 +304,13 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
     def process_callback(future):
         try:
             _ = future.result()
-            update = { '$set': { 
+            update = { '$set': {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 URL: 'http://%s/results/%s/%s' % 
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(outfile_path)),
+                                 URL: get_results_url(os.path.basename(outfile_path)),
                                  SCATTER_PLOT: scatter_plot_path,
-                                 SCATTER_PLOT_URL: 'http://%s/results/%s/%s' % 
-                                           (HOSTNAME, PORT, 
-                                            os.path.basename(scatter_plot_path)),
+                                 SCATTER_PLOT_URL: get_results_url(
+                                                    os.path.basename(scatter_plot_path)),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }
@@ -342,4 +341,4 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
 #===============================================================================
 if __name__ == '__main__':
     function = AssayCallerPostFunction()
-    print function      
+    print function

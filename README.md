@@ -528,3 +528,9 @@ GnuBio Flask API.
    * Bugfix in getting the latest date of run reports
  * v3.36
    * Add HDF5 files to run reports
+ * v3.37
+   * Update secondary-analysis from v1.78 to v1.78.2
+     * v1.78.1
+       * Added assay caller positive/negative population publishing for live plots
+     * v1.78.2
+       * Handle missing barcode in assay caller plotting

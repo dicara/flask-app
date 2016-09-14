@@ -235,18 +235,16 @@ def update_run_reports():
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
-                        if len(log_data[IMAGE_STACKS]) > 0:
-                            continue
-                        else:
-                            run_id = log_data[RUN_ID]
-                            hdf5_path = os.path.join(RUN_REPORT_PATH, folder, sf,
-                                                     run_id + '.h5')
-                            hdf5_archives = _DB_CONNECTOR.find(
-                                                    HDF5_COLLECTION,
-                                                    {HDF5_PATH: hdf5_path},
-                                                    {HDF5_DATASET: 1})
-                            log_data[IMAGE_STACKS] = [a[HDF5_DATASET]
-                                                      for a in hdf5_archives]
+                        run_id = log_data[RUN_ID]
+                        hdf5_path = os.path.join(RUN_REPORT_PATH, folder, sf,
+                                                 run_id + '.h5')
+                        hdf5_archives = _DB_CONNECTOR.find(
+                                                HDF5_COLLECTION,
+                                                {HDF5_PATH: hdf5_path},
+                                                {HDF5_DATASET: 1})
+                        if hdf5_archives:
+                            for archive in hdf5_archives:
+                                log_data[IMAGE_STACKS].append(archive[HDF5_DATASET])
 
                     reports.append(log_data)
 

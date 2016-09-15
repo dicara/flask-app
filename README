@@ -537,3 +537,5 @@ GnuBio Flask API.
      * v1.78.3
        * Dyes are sorted alphabetically in IdentityModelFitter
        * Picoinjection KDE filter does not randomly sample training data
+ * v3.37.1
+   * Simplify ExpDef API, merge post function into get function

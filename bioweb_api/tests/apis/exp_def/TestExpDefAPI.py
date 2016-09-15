@@ -25,12 +25,10 @@ import unittest
 
 from bioweb_api import app, EXP_DEF_COLLECTION, HOSTNAME, PORT
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.tests.test_utils import post_data, get_data, \
-    add_url_argument
+from bioweb_api.tests.test_utils import get_data, add_url_argument
 # from bioweb_api.apis.ApiConstants import *
 
 from bioweb_api.apis.exp_def.ExpDefGetFunction import ExpDefGetFunction
-from bioweb_api.apis.exp_def.ExpDefPostFunction import ExpDefPostFunction
 
 #=============================================================================
 # Setup Logging
@@ -52,20 +50,19 @@ class TestExpDefAPI(unittest.TestCase):
     def setUp(self):
         self._client = app.test_client(self)
 
-    def test_post_exp_defs(self):
-        """
-        test ExpDefPostFunction
-        """
-        response = post_data(self, _EXP_DEF_URL + '/refresh', 200)
-
-        msg = "Failed to update EXP_DEF_COLLECTION."
-        self.assertIn("Number of Inserts/Updates", response, msg)
-
     def test_get_exp_defs(self):
         """
         test ExpDefGetFunction
         """
         response = get_data(self, _EXP_DEF_URL + '/ExpDef', 200)
+        len_expected_defs = len(_DB_CONNECTOR.find(EXP_DEF_COLLECTION, {}))
+        len_observed_defs = len(response['ExpDef'])
+
+        msg = "Numebr of observed definitions (%s) doesn't match expected number (%s)." \
+                % (len_observed_defs, len_expected_defs)
+        self.assertEqual(len_expected_defs, len_observed_defs, msg)
+
+        response = get_data(self, _EXP_DEF_URL + '/ExpDef?refresh=true', 200)
         len_expected_defs = len(_DB_CONNECTOR.find(EXP_DEF_COLLECTION, {}))
         len_observed_defs = len(response['ExpDef'])
 

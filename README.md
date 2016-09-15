@@ -534,3 +534,12 @@ GnuBio Flask API.
        * Added assay caller positive/negative population publishing for live plots
      * v1.78.2
        * Handle missing barcode in assay caller plotting
+ * v3.37
+   * Update secondary-analysis from v1.78 to v1.78.3
+     * v1.78.1
+       * Added assay caller positive/negative population publishing for live plots
+     * v1.78.2
+       * Handle missing barcode in assay caller plotting
+     * v1.78.3
+       * Dyes are sorted alphabetically in IdentityModelFitter
+       * Picoinjection KDE filter does not randomly sample training data

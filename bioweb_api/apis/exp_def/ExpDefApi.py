@@ -22,7 +22,6 @@ limitations under the License.
 #=============================================================================
 from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.exp_def.ExpDefGetFunction import ExpDefGetFunction
-from bioweb_api.apis.exp_def.ExpDefPostFunction import ExpDefPostFunction
 
 #=============================================================================
 # Class
@@ -31,7 +30,6 @@ class ExpDefApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
                   ExpDefGetFunction(),
-                  ExpDefPostFunction(),
                  ]
 
     @staticmethod

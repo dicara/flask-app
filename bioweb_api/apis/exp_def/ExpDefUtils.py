@@ -27,6 +27,9 @@ from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME
 
+from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from expdb.defs import HotspotExperiment
+
 #=============================================================================
 # Private Static Variables
 #=============================================================================
@@ -66,3 +69,27 @@ def get_experiment_defintions():
     APP_LOGGER.info('Retrieved %d experiment definitions.' \
                     % (len(exp_defs), ))
     return (exp_defs, column_names, None)
+
+def update_experiment_definitions():
+    """
+    Update EXP_DEF_COLLECTION with new experiment definitions.
+    """
+    exp_defs = ExperimentDefinitions()
+
+    db_uuids = set(_DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, UUID))
+    cur_uuids = set(exp_defs.experiment_uuids)
+    new_uuids = cur_uuids - db_uuids
+    obselete_uuids = db_uuids - cur_uuids
+    new_exp_defs = list()
+    for uuid in new_uuids:
+        name = exp_defs.get_experiment_name(uuid)
+        exp_def = exp_defs.get_experiment_defintion(uuid)
+        experiment = HotspotExperiment.from_dict(exp_def)
+        new_exp_defs.append({UUID: uuid,
+                             NAME: name,
+                             VARIANTS: format_variants(experiment)})
+    if new_exp_defs:
+        _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
+
+    if obselete_uuids:
+        _DB_CONNECTOR.remove(EXP_DEF_COLLECTION, {UUID: list(obselete_uuids)})

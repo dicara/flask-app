@@ -211,6 +211,10 @@ def update_run_reports():
         latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
     except TypeError:
         latest_date = None
+
+    # fetch utags in run report collection
+    db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
+
     if os.path.isdir(RUN_REPORT_PATH):
         date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
                         if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
@@ -229,8 +233,7 @@ def update_run_reports():
                 if report_file_path is None: continue
 
                 utag = set_utag(date_obj, sf)
-                doc = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
-                if doc is None: # if not exist, need to insert to collection
+                if utag not in db_utags: # if not exists, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}

@@ -76,23 +76,20 @@ def update_experiment_definitions():
     """
     exp_defs = ExperimentDefinitions()
 
+    db_uuids = set(_DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, UUID))
+    cur_uuids = set(exp_defs.experiment_uuids)
+    new_uuids = cur_uuids - db_uuids
+    obselete_uuids = db_uuids - cur_uuids
     new_exp_defs = list()
-    for uuid in exp_defs.experiment_uuids:
-        doc = _DB_CONNECTOR.find_one(EXP_DEF_COLLECTION, UUID, uuid)
-        if doc is None:
-            name = exp_defs.get_experiment_name(uuid)
-            exp_def = exp_defs.get_experiment_defintion(uuid)
-            experiment = HotspotExperiment.from_dict(exp_def)
-            new_exp_defs.append({UUID: uuid,
-                                 NAME: name,
-                                 VARIANTS: format_variants(experiment)})
-        else:
-            if NAME not in doc:
-                name = exp_defs.get_experiment_name(uuid)
-                update = { '$set': {NAME: name} }
-                _DB_CONNECTOR.update(EXP_DEF_COLLECTION,
-                                         {UUID: uuid},
-                                         update)
-
+    for uuid in new_uuids:
+        name = exp_defs.get_experiment_name(uuid)
+        exp_def = exp_defs.get_experiment_defintion(uuid)
+        experiment = HotspotExperiment.from_dict(exp_def)
+        new_exp_defs.append({UUID: uuid,
+                             NAME: name,
+                             VARIANTS: format_variants(experiment)})
     if new_exp_defs:
         _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
+
+    if obselete_uuids:
+        _DB_CONNECTOR.remove(EXP_DEF_COLLECTION, {UUID: list(obselete_uuids)})

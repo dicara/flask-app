@@ -267,10 +267,19 @@ def filter_files(files, extensions):
     return [f for f in files if f.endswith(tuple(extensions))]
 
 def get_results_folder():
+    """
+    Get the folder path for the results of an analysis job. Create a date folder
+    if not exists.
+    """
     date_folder = os.path.join(RESULTS_PATH, time.strftime('%Y_%m_%d'))
     if not os.path.exists(date_folder):
         os.makedirs(date_folder)
     return date_folder
 
 def get_results_url(filename, results_folder=get_results_folder()):
-    return 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT, results_folder, filename)
+    """
+    Get the url of a result of an analysis job. Combine hostname, port, date
+    string, and the filename.
+    """
+    date_str = os.path.basename(results_folder)
+    return 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT, date_str, filename)

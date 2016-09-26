@@ -133,8 +133,9 @@ def add_unified_pdf(fa_job):
     if not os.path.isfile(fa_pdf_path):
         raise Exception("Failed in making the unified pdf report.")
     else:
-        pdf_url = 'http://%s/results/%s/%s' % (HOSTNAME, PORT,
-                                               os.path.basename(fa_pdf_path))
+        pdf_url = 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT,
+                                                  os.path.basename(results_folder),
+                                                  os.path.basename(fa_pdf_path))
         fa_job[UNIFIED_PDF]      = fa_pdf_path
         fa_job[UNIFIED_PDF_URL]  = pdf_url
         update = { '$set' : {

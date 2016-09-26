@@ -545,3 +545,5 @@ GnuBio Flask API.
        * Picoinjection KDE filter does not randomly sample training data
  * v3.37.1
    * Simplify ExpDef API, merge post function into get function
+ * v3.37.2
+   * Bugfix in setting result urls

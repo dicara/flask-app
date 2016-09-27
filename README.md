@@ -547,3 +547,5 @@ GnuBio Flask API.
    * Simplify ExpDef API, merge post function into get function
  * v3.37.2
    * Bugfix in setting result urls
+ * v3.37.3
+   * Bugfix in setting url path of unified PDF

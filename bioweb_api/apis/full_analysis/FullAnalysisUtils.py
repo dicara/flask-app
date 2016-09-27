@@ -34,10 +34,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import utils
 
-from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, HOSTNAME, \
-     PORT, EXP_DEF_COLLECTION
+from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder
+from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder, \
+    get_results_url
 from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUMENT, \
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, \
      UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
@@ -133,9 +133,8 @@ def add_unified_pdf(fa_job):
     if not os.path.isfile(fa_pdf_path):
         raise Exception("Failed in making the unified pdf report.")
     else:
-        pdf_url = 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT,
-                                                  os.path.basename(results_folder),
-                                                  os.path.basename(fa_pdf_path))
+        pdf_url = get_results_url(fa_uuid + '.pdf', results_folder)
+
         fa_job[UNIFIED_PDF]      = fa_pdf_path
         fa_job[UNIFIED_PDF_URL]  = pdf_url
         update = { '$set' : {

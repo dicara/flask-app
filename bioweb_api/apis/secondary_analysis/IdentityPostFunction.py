@@ -394,13 +394,20 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
             report_errors = check_report_for_errors(report_path)
             update_data = { STATUS: JOB_STATUS.succeeded,
                             RESULT: outfile_path,
-                            URL: get_results_url(os.path.basename(outfile_path)),
+                            URL: get_results_url(
+                                    os.path.basename(outfile_path),
+                                    os.path.basename(os.path.dirname(outfile_path))),
                             PLOT: plot_path,
                             REPORT: report_path,
-                            PLOT_URL: get_results_url(os.path.basename(plot_path)),
-                            REPORT_URL: get_results_url(os.path.basename(report_path)),
+                            PLOT_URL: get_results_url(
+                                    os.path.basename(plot_path),
+                                    os.path.basename(os.path.dirname(plot_path))),
+                            REPORT_URL: get_results_url(
+                                    os.path.basename(report_path),
+                                    os.path.basename(os.path.dirname(report_path))),
                             PLATE_PLOT_URL: get_results_url(
-                                                os.path.basename(plate_plot_path)),
+                                    os.path.basename(plate_plot_path),
+                                    os.path.basename(os.path.dirname(plate_plot_path))),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
                 update_data[ERROR] = report_errors

@@ -270,6 +270,7 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             _ = future.result()
 
             dirname    = os.path.dirname(outfile_path)
+            date_string = os.path.basename(dirname)
             vcf_fn     = os.path.basename(outfile_path)
             basename   = os.path.splitext(vcf_fn)[0]
             pdf_fn     = '%s.%s' % (basename, PDF)
@@ -286,17 +287,21 @@ def make_process_callback(uuid, exp_def_name, ac_result_path, ignored_dyes,
             update = { "$set": {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 URL: get_results_url(vcf_fn),
+                                 URL: get_results_url(vcf_fn, date_string),
                                  PDF: os.path.join(dirname, pdf_fn),
-                                 PDF_URL: get_results_url(pdf_fn),
+                                 PDF_URL: get_results_url(pdf_fn, date_string),
                                  PNG: os.path.join(dirname, scatter_ind_pdf_fn),
-                                 PNG_URL: get_results_url(scatter_ind_pdf_fn),
+                                 PNG_URL: get_results_url(scatter_ind_pdf_fn,
+                                                          date_string),
                                  PNG_SUM: os.path.join(dirname, scatter_png_fn),
-                                 PNG_SUM_URL: get_results_url(scatter_png_fn),
+                                 PNG_SUM_URL: get_results_url(scatter_png_fn,
+                                                              date_string),
                                  KDE_PNG: os.path.join(dirname, kde_ind_pdf_fn),
-                                 KDE_PNG_URL: get_results_url(kde_ind_pdf_fn),
+                                 KDE_PNG_URL: get_results_url(kde_ind_pdf_fn,
+                                                              date_string),
                                  KDE_PNG_SUM: os.path.join(dirname, kde_png_fn),
-                                 KDE_PNG_SUM_URL: get_results_url(kde_png_fn),
+                                 KDE_PNG_SUM_URL: get_results_url(kde_png_fn,
+                                                                  date_string),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }

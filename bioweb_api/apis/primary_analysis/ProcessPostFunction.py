@@ -308,12 +308,8 @@ def make_process_callback(uuid, outfile_path, config_path, db_connector):
                                  RESULT: outfile_path,
                                  CONFIG: config_path,
                                  FINISH_DATESTAMP: datetime.today(),
-                                 URL: get_results_url(
-                                        uuid,
-                                        os.path.basename(os.path.dirname(outfile_path))),
-                                 CONFIG_URL: get_results_url(
-                                        uuid + '.cfg',
-                                        os.path.basename(os.path.dirname(config_path))),
+                                 URL: get_results_url(outfile_path),
+                                 CONFIG_URL: get_results_url(config_path),
                                }
                     }
             # If job has been deleted, then delete result and don't update DB.

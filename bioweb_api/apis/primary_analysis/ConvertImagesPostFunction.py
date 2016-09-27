@@ -205,9 +205,7 @@ def make_process_callback(uuid, outfile_path, db_connector):
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
                                  FINISH_DATESTAMP: datetime.today(),
-                                 URL: get_results_url(
-                                        os.path.basename(outfile_path),
-                                        os.path.basename(os.path.dirname(outfile_path))),
+                                 URL: get_results_url(outfile_path),
                                }
                     }
             # If job has been deleted, then delete result and don't update DB.

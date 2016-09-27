@@ -276,10 +276,11 @@ def get_results_folder():
         os.makedirs(date_folder)
     return date_folder
 
-def get_results_url(filename, results_folder=get_results_folder()):
+def get_results_url(filepath):
     """
     Get the url of a result of an analysis job. Combine hostname, port, date
     string, and the filename.
     """
-    date_str = os.path.basename(results_folder)
+    filename = os.path.basename(filepath)
+    date_str = os.path.basename(os.path.dirname(filepath))
     return 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT, date_str, filename)

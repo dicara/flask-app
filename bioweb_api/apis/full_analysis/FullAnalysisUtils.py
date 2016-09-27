@@ -133,7 +133,7 @@ def add_unified_pdf(fa_job):
     if not os.path.isfile(fa_pdf_path):
         raise Exception("Failed in making the unified pdf report.")
     else:
-        pdf_url = get_results_url(fa_uuid + '.pdf', results_folder)
+        pdf_url = get_results_url(fa_pdf_path)
 
         fa_job[UNIFIED_PDF]      = fa_pdf_path
         fa_job[UNIFIED_PDF_URL]  = pdf_url

@@ -203,8 +203,7 @@ def make_process_callback(uuid, outfile_path, db_connector):
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  PLOT: outfile_path,
                                  FINISH_DATESTAMP: datetime.today(),
-                                 PLOT_URL: get_results_url(
-                                                os.path.basename(outfile_path)),
+                                 PLOT_URL: get_results_url(outfile_path),
                                }
                     }
             # If job has been deleted, then delete result and don't update DB.

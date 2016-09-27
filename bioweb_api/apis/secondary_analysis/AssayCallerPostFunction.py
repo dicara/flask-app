@@ -307,10 +307,9 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
             update = { '$set': {
                                  STATUS: JOB_STATUS.succeeded, # @UndefinedVariable
                                  RESULT: outfile_path,
-                                 URL: get_results_url(os.path.basename(outfile_path)),
+                                 URL: get_results_url(outfile_path),
                                  SCATTER_PLOT: scatter_plot_path,
-                                 SCATTER_PLOT_URL: get_results_url(
-                                                    os.path.basename(scatter_plot_path)),
+                                 SCATTER_PLOT_URL: get_results_url(scatter_plot_path),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }

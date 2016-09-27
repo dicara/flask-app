@@ -549,3 +549,5 @@ GnuBio Flask API.
    * Bugfix in setting result urls
  * v3.37.3
    * Bugfix in setting url path of unified PDF
+ * v3.37.4
+   * Get date string from result file paths

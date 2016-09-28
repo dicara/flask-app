@@ -13,10 +13,10 @@ idt-analyzer>=0.3
 ncbi-utilities>=0.2
 probe-design>=0.3
 primary-analysis>=2.13
-predator==0.1
+predator==0.2
 secondary-analysis==1.78.3
 experiment-database==0.10.1
 PyPDF2>=1.25.1
 reportlab>=3.3.0
 gbutils>=1.5
-profile-db==0.4.1
+profile-db==0.6

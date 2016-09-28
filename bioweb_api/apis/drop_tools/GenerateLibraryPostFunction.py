@@ -106,7 +106,7 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
             design, dye_names, levels = ld.generate()
 
             if mix_vol > 0.0 and total_vol > 0.0:
-                bg = BarcodeGenerator.from_design({'barcode': design}, fiducial=False)
+                bg = BarcodeGenerator.from_design(design)
                 barcodes = bg.generate()
 
                 # determine the dye stocks needed based on the dyes in the library
@@ -125,7 +125,7 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                     (HOSTNAME, os.path.basename(output_zip_path))
 
             json_response[NBARCODES] = nbarcodes
-            json_response['design']  = design
+            json_response['design']  = dict(('%s, %s' % (design[dye]['lot_number'], dye), design[dye]['levels']) for dye in design)
             json_response['dyes']    = dye_names
             json_response['levels']  = levels
 

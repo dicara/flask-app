@@ -551,3 +551,13 @@ GnuBio Flask API.
    * Bugfix in setting url path of unified PDF
  * v3.37.4
    * Get date string from result file paths
+ * v3.38
+   * Updated profile-db from 0.5 to 0.6
+     * v0.6
+       * added ifluor dyes
+       * added profile extract command
+       * added conjugate field
+       * secondary peak not considered when calculating noise
+   * Updated predator from 0.1 to 0.2
+     * v0.2
+       * predator files track dye lot numbers

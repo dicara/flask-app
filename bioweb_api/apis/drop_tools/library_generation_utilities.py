@@ -9,24 +9,14 @@ from profile_database.datastore import Datastore
 from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
     DETECTION_UUID, INTENSITY_CONC_RATIO, DYE_594, DYE_CY5_5, DYE_PE, \
     DYE_ALEXA700, DYE_633, DYE_CY7, DYE_FAM, DYE_JOE, DYE_ALEXA660, \
-    DYE_DYLIGHT594, DYE_DYLIGHT633
+    DYE_DYLIGHT594, DYE_DYLIGHT633, DYE_IF700, DYE_IF660, DYE_IF633, \
+    DYE_IF594
 
 # the minimum and maximum number of dyes
 MIN_NDYES  = 1
 MAX_NDYES  = 6
 SATURATION_CAP = 65535
-MAX_INTEN = {
-    DYE_CY7: SATURATION_CAP,
-    DYE_CY5_5: SATURATION_CAP,
-    DYE_633: SATURATION_CAP,
-    DYE_594: SATURATION_CAP,
-    DYE_PE: SATURATION_CAP,
-    DYE_ALEXA700: SATURATION_CAP,
-    DYE_DYLIGHT594: SATURATION_CAP,
-    DYE_ALEXA660: SATURATION_CAP,
-    DYE_DYLIGHT633: SATURATION_CAP,
-}
-
+MAX_INTEN = SATURATION_CAP
 MIN_INTEN = 3000
 # the minimum number of levels per barcode dye, must be at least two
 MIN_NLEVELS = 2
@@ -42,6 +32,10 @@ MAX_NLEVELS = {
     DYE_DYLIGHT594: 4,
     DYE_ALEXA660: 4,
     DYE_DYLIGHT633: 4,
+    DYE_IF700: 4,
+    DYE_IF660: 4,
+    DYE_IF633: 4,
+    DYE_IF594: 4,
 }
 
 # Define a preferred order from the dyes that you would prefer to have the
@@ -49,15 +43,19 @@ MAX_NLEVELS = {
 # In this case 594 is at the end indicating that it is preferred to have
 # the most levels (if needed).
 PREFERED_ORDER = [
-    DYE_ALEXA700,
     DYE_PE,
+    DYE_ALEXA700,
     DYE_CY7,
+    DYE_IF700,
     DYE_DYLIGHT633,
+    DYE_IF633,
     DYE_633,
     DYE_ALEXA660,
+    DYE_IF660,
     DYE_CY5_5,
     DYE_DYLIGHT594,
     DYE_594,
+    DYE_IF594,
 ]
 
 
@@ -137,7 +135,8 @@ class LibraryDesign(object):
 
             # convert to ug/ml
             lvls_scaled_ug_ml = lvls_scaled_intensity / self.profiles[dye][INTENSITY_CONC_RATIO]
-            design[dye] = [lvl for lvl in lvls_scaled_ug_ml]
+            lot_number = [lot for name, lot in self.dyes_lots if name == dye][0]
+            design[dye] = {'levels': [lvl for lvl in lvls_scaled_ug_ml], 'lot_number': lot_number}
 
         return design, self.dye_names, map(int, self.nlvls)
 
@@ -192,7 +191,7 @@ class LibraryDesign(object):
         for percent_best in numpy.arange(2.5, 25, 2.5):
             try:
                 # make a group of scalars for each dye (dimension)
-                scalars = [numpy.linspace(10000.0, MAX_INTEN[dye], resolution).reshape(-1, 1) for dye in self.dye_names]
+                scalars = [numpy.linspace(10000.0, MAX_INTEN, resolution).reshape(-1, 1) for dye in self.dye_names]
 
                 # create barcode profiles by summing each combination of dyes profiles
                 # to find an optimal max barcode profile

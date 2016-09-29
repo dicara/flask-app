@@ -201,6 +201,7 @@ SUBMIT_DATESTAMP = "submit_datestamp"
 SUBMITTED        = 'submitted'
 SUCCEEDED        = 'succeeded'
 TARGETS          = "targets"
+TEMPORAL_PLOT_URL = 'temporal_plot_url'
 TOTAL_VOL        = "total_vol"
 TYPE             = "type"
 URL              = "url"

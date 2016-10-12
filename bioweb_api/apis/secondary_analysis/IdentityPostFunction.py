@@ -27,8 +27,6 @@ import sys
 import traceback
 import yaml
 
-from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
-
 from uuid import uuid4
 from datetime import datetime
 
@@ -45,14 +43,14 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
-    MAX_UI_RATIO_DESCRIPTION
-
-
-from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
-    UNINJECTED_THRESHOLD, UNINJECTED_RATIO
-from secondary_analysis.identity.identity import Identity
-
+    MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL
 from primary_analysis.command import InvalidFileError
+from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
+    UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
+    ID_TEMPORAL_PLOT_SUFFIX
+
+from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.identity.identity import Identity
 
 #=============================================================================
 # Public Static Variables
@@ -233,6 +231,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                      sai_callable.plot_path,
                                                      sai_callable.report_path,
                                                      sai_callable.plate_plot_path,
+                                                     sai_callable.temporal_plot_path,
                                                      cls._DB_CONNECTOR)
 
                     # Add to queue
@@ -275,6 +274,7 @@ class SaIdentityCallable(object):
         results_folder             = get_results_folder()
         self.plot_path             = os.path.join(results_folder, self.uuid + '.png')
         self.plate_plot_path       = os.path.join(results_folder, self.uuid + '_plate.png')
+        self.temporal_plot_path    = os.path.join(results_folder, self.uuid + '_temporal.png')
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.report_path           = os.path.join(results_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
@@ -289,8 +289,6 @@ class SaIdentityCallable(object):
 
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
-        self.tmp_plot_path         = os.path.join(self.tmp_path, "plot.png")
-        self.tmp_plate_plot_path   = os.path.join(self.tmp_path, "plate_plot.png")
         self.tmp_report_path       = os.path.join(self.tmp_path, "report.yaml")
         self.document              = {
                         FIDUCIAL_DYE: fiducial_dye,
@@ -344,8 +342,7 @@ class SaIdentityCallable(object):
             Identity(in_path=primary_analysis_doc[RESULT],
                      num_probes=self.num_probes,
                      factory_type=FACTORY_ORGANIC,
-                     plot_path=self.tmp_plot_path,
-                     plate_plot_path=self.tmp_plate_plot_path,
+                     plot_base_path=os.path.join(self.tmp_path, 'tmp_plot'),
                      out_file=self.tmp_outfile_path,
                      report_path=self.tmp_report_path,
                      assay_dye=self.assay_dye,
@@ -362,10 +359,15 @@ class SaIdentityCallable(object):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
-            if os.path.isfile(self.tmp_plot_path):
-                shutil.copy(self.tmp_plot_path, self.plot_path)
-            if os.path.isfile(self.tmp_plate_plot_path):
-                shutil.copy(self.tmp_plate_plot_path, self.plate_plot_path)
+            tmp_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_PLOT_SUFFIX)
+            tmp_plate_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_PLATES_PLOT_SUFFIX)
+            tmp_temporal_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_TEMPORAL_PLOT_SUFFIX)
+            if os.path.isfile(tmp_plot_path):
+                shutil.copy(tmp_plot_path, self.plot_path)
+            if os.path.isfile(tmp_plate_plot_path):
+                shutil.copy(tmp_plate_plot_path, self.plate_plot_path)
+            if os.path.isfile(tmp_temporal_plot_path):
+                shutil.copy(tmp_temporal_plot_path, self.temporal_plot_path)
             if os.path.isfile(self.tmp_report_path):
                 shutil.copy(self.tmp_report_path, self.report_path)
         finally:
@@ -374,7 +376,7 @@ class SaIdentityCallable(object):
 
 
 def make_process_callback(uuid, outfile_path, plot_path, report_path,
-                          plate_plot_path, db_connector):
+                          plate_plot_path, temporal_plot_path, db_connector):
     """
     Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
@@ -385,6 +387,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
     @param plot_path:    Path where the final PNG plot should live.
     @param report_path:    Path where the report should live.
     @param plate_plot_path:    Path where the plate plot should live.
+    @param temporal_plot_path:    Path where the temporal plot should live.
     @param db_connector: Object that handles communication with the DB
     """
     query = {UUID: uuid}
@@ -400,6 +403,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
                             PLOT_URL: get_results_url(plot_path),
                             REPORT_URL: get_results_url(report_path),
                             PLATE_PLOT_URL: get_results_url(plate_plot_path),
+                            TEMPORAL_PLOT_URL: get_results_url(temporal_plot_path),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
                 update_data[ERROR] = report_errors

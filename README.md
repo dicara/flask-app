@@ -592,3 +592,5 @@ GnuBio Flask API.
        * Added temporal plot to organic identity
        * Identity job will send metrics on a zmq stream.  Metrics include; percent identified
          median model distance, upper and lower quartile distance
+ * v3.39.1
+   * Version bump so docker can build

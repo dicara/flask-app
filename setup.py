@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = '3.38',
+      version          = '3.39',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com',
       entry_points     = {'console_scripts': [

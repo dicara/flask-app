@@ -561,3 +561,34 @@ GnuBio Flask API.
    * Updated predator from 0.1 to 0.2
      * v0.2
        * predator files track dye lot numbers
+ * v3.39
+   * Updated primary analysis from version v2.13 to v2.19
+     * v2.14
+       * Added exception for errors encountered in the identity job while finding a model
+     * v2.15
+       * Drops command saves compressed file with drop-y position
+     * v2.16
+       * Raise exception when fail to retrieve experiment definition
+     * v2.17
+       * Modified saturation data to be an int instead of a bool for more consistent logging
+     * v2.18
+       * Change DecompositionJob to use a multiprocessing event for pause/restart
+     * v2.19
+       * Update requirements for new docker image
+   * Identity make temporal data plot
+   * Updated secondary analysis from v1.78.3 to v1.83
+     * v1.79
+       * report generation feature added
+     * v1.80
+       * update requirements for new docker image
+     * v1.81
+       * Add HDF5 logging to assay caller
+     * v1.82
+       * Update assay scatter live plot stream data
+     * v1.83
+       * Identity has a single argument for plots.  This argument is the base path
+         for all identity plots.  When set, identity will save all plots to this path.
+       * Added dye levels plot to organic identity
+       * Added temporal plot to organic identity
+       * Identity job will send metrics on a zmq stream.  Metrics include; percent identified
+         median model distance, upper and lower quartile distance

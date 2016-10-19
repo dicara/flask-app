@@ -588,3 +588,6 @@ GnuBio Flask API.
          median model distance, upper and lower quartile distance
  * v3.39.1
    * Version bump so docker can build
+ * v3.39.2
+   * unit test fix to cope with new drop order in primary analysis
+   * gbutils updated to v1.6

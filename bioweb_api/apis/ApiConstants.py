@@ -99,6 +99,7 @@ CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"
+CTRL_FILTER      = 'ctrl_filter'
 CTRL_THRESH      = "ctrl_thresh"
 CONFIG           = "config"
 CONFIG_URL       = "config_url"
@@ -249,6 +250,7 @@ UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
     "below which a drop decomposition will be excluded from fiducial " \
     "pre-filter training."
 REQ_DROPS_DESCRIPTION = "Number of drops to use in genotyping (0 to use all available)."
+CTRL_FILTER_DESCRIPTION = "Use negative control drops to filter out false positives."
 CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
 CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \

@@ -34,7 +34,9 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
-    IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION
+    IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
+    IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION
+
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -158,6 +160,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                          MAX_UI_RATIO_DESCRIPTION,
                                                          default=DEFAULT_UNINJECTED_RATIO,
                                                          minimum=0.0)
+        cls.ignore_lowest_barcode = ParameterFactory.boolean(IGNORE_LOWEST_BARCODE,
+                                                             IGNORE_LOWEST_BARCODE_DESCRIPTION,
+                                                             default_value=True,
+                                                             required=False)
 
         # assay caller params
         cls.ac_training_param = ParameterFactory.integer(AC_TRAINING_FACTOR,
@@ -170,6 +176,11 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                      CTRL_THRESH_DESCRIPTION,
                                                      default=DEFAULT_AC_CTRL_THRESHOLD,
                                                      minimum=0.0, maximum=100.0)
+
+        cls.ctrl_filter     = ParameterFactory.boolean(CTRL_FILTER,
+                                                       CTRL_FILTER_DESCRIPTION,
+                                                       default_value=False,
+                                                       required=True)
 
         # genotyper params
         cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS,
@@ -201,8 +212,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,
                       cls.max_ui_ratio_param,
+                      cls.ignore_lowest_barcode,
                       cls.ac_training_param,
                       cls.ctrl_thresh,
+                      cls.ctrl_filter,
                       cls.req_drops_param,
                       cls.exp_def_param,
                       cls.fa_uuid_param,

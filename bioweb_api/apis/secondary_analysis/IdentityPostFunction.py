@@ -43,7 +43,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
-    MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL
+    MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
+    IGNORE_LOWEST_BARCODE_DESCRIPTION
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
@@ -127,6 +128,10 @@ class IdentityPostFunction(AbstractPostFunction):
                                                         MAX_UI_RATIO_DESCRIPTION,
                                                         default=UNINJECTED_RATIO,
                                                         minimum=0.0)
+        cls.ignore_lowest_barcode = ParameterFactory.boolean(IGNORE_LOWEST_BARCODE,
+                                                             IGNORE_LOWEST_BARCODE_DESCRIPTION,
+                                                             default_value=True,
+                                                             required=False)
 
         parameters = [
                       cls.job_uuid_param,
@@ -141,6 +146,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,
                       cls.max_ui_ratio_param,
+                      cls.ignore_lowest_barcode,
                      ]
         return parameters
 
@@ -174,6 +180,12 @@ class IdentityPostFunction(AbstractPostFunction):
             use_pico_thresh = True
         else:
             use_pico_thresh = False
+
+        if cls.ignore_lowest_barcode in params_dict and \
+           params_dict[cls.ignore_lowest_barcode][0]:
+            ignore_lowest_barcode = True
+        else:
+            ignore_lowest_barcode = False
 
         max_uninj_ratio = params_dict[cls.max_ui_ratio_param][0]
 
@@ -224,7 +236,8 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       max_uninj_ratio,
                                                       cls._DB_CONNECTOR,
                                                       job_name,
-                                                      use_pico_thresh)
+                                                      use_pico_thresh,
+                                                      ignore_lowest_barcode)
                     response = copy.deepcopy(sai_callable.document)
                     callback = make_process_callback(sai_callable.uuid,
                                                      sai_callable.outfile_path,
@@ -264,7 +277,7 @@ class SaIdentityCallable(object):
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, max_uninj_ratio, db_connector, job_name,
-                 use_pico_thresh):
+                 use_pico_thresh, ignore_lowest_barcode):
         self.uuid                  = str(uuid4())
         self.primary_analysis_uuid = primary_analysis_uuid
         self.dye_levels            = map(list, dye_levels)
@@ -286,6 +299,7 @@ class SaIdentityCallable(object):
         self.db_connector          = db_connector
         self.job_name              = job_name
         self.use_pico_thresh       = use_pico_thresh
+        self.ignore_lowest_barcode = ignore_lowest_barcode
 
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
@@ -307,6 +321,7 @@ class SaIdentityCallable(object):
                         JOB_TYPE_NAME: JOB_TYPE.sa_identity, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
                         CONTINUOUS_PHASE: use_pico_thresh,
+                        IGNORE_LOWEST_BARCODE: ignore_lowest_barcode,
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)
@@ -354,7 +369,8 @@ class SaIdentityCallable(object):
                      uninjected_threshold=self.ui_threshold,
                      require_perfect_id=False,
                      use_pico_thresh=self.use_pico_thresh,
-                     max_uninj_ratio=self.max_uninj_ratio).execute()
+                     max_uninj_ratio=self.max_uninj_ratio,
+                     ignore_lowest_barcode=self.ignore_lowest_barcode).execute()
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

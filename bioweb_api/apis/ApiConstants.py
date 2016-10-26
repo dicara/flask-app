@@ -99,6 +99,7 @@ CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
 CHR_STOP         = "chr_stop"
+CTRL_FILTER      = 'ctrl_filter'
 CTRL_THRESH      = "ctrl_thresh"
 CONFIG           = "config"
 CONFIG_URL       = "config_url"
@@ -138,6 +139,7 @@ HDF5_DATASET     = "hdf5_dataset"
 HDF5_PATH        = "hdf5_path"
 ID               = "_id"
 ID_DOCUMENT      = 'id_document'
+IGNORE_LOWEST_BARCODE = 'ignore_lowest_barcode'
 IS_HDF5          = 'is_hdf5'
 IGNORED_DYES     = "ignored_dyes"
 JOB_NAME         = "job_name"
@@ -238,6 +240,8 @@ TRAINING_FACTOR    = "training_factor"
 #=============================================================================
 # Secondary Analysis Parameter Descriptions
 #=============================================================================
+IGNORE_LOWEST_BARCODE_DESCRIPTION = "Ignore the data from the barcode with " \
+                                    "the lowest intenstisy"
 NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "the required training set."
 TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \
@@ -246,6 +250,7 @@ UI_THRESHOLD_DESCRIPTION = "Fiducial decomposition intensity threshold " \
     "below which a drop decomposition will be excluded from fiducial " \
     "pre-filter training."
 REQ_DROPS_DESCRIPTION = "Number of drops to use in genotyping (0 to use all available)."
+CTRL_FILTER_DESCRIPTION = "Use negative control drops to filter out false positives."
 CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
 CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \

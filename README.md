@@ -597,3 +597,7 @@ GnuBio Flask API.
  * v3.39.2
    * unit test fix to cope with new drop order in primary analysis
    * gbutils updated to v1.6
+ * v3.40
+   * Added option to toggle the negative control picoinjection 1 filter
+   * Added option to toggle the ignore lowest intensity barcode
+   * Updated secondary analysis from v1.83 to v1.87

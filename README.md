@@ -601,3 +601,6 @@ GnuBio Flask API.
    * Added option to toggle the negative control picoinjection 1 filter
    * Added option to toggle the ignore lowest intensity barcode
    * Updated secondary analysis from v1.83 to v1.87
+ * v3.40.1
+   * negative control threshold and ignore lowest barcode settings
+     are stored in the full analysis document

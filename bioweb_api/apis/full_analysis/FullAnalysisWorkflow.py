@@ -240,7 +240,8 @@ class FullAnalysisWorkFlowCallable(object):
                                  {"$set": {ID_DOCUMENT: {START_DATESTAMP: datetime.today(),
                                                          SA_IDENTITY_UUID: callable.uuid,
                                                          TRAINING_FACTOR: self.parameters[ID_TRAINING_FACTOR],
-                                                         UI_THRESHOLD: self.parameters[UI_THRESHOLD]}}})
+                                                         UI_THRESHOLD: self.parameters[UI_THRESHOLD],
+                                                         IGNORE_LOWEST_BARCODE: self.parameters[IGNORE_LOWEST_BARCODE]}}})
 
         # run identity job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -251,7 +252,7 @@ class FullAnalysisWorkFlowCallable(object):
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
                 FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, PLATE_PLOT_URL,
-                TEMPORAL_PLOT_URL]
+                TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
@@ -289,7 +290,8 @@ class FullAnalysisWorkFlowCallable(object):
                                  {"$set": {AC_DOCUMENT: {START_DATESTAMP: datetime.today(),
                                                          SA_ASSAY_CALLER_UUID: callable.uuid,
                                                          TRAINING_FACTOR: self.parameters[AC_TRAINING_FACTOR],
-                                                         CTRL_THRESH: self.parameters[CTRL_THRESH]}}})
+                                                         CTRL_THRESH: self.parameters[CTRL_THRESH],
+                                                         CTRL_FILTER: self.parameters[CTRL_FILTER]}}})
 
         # run assay caller job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -299,7 +301,7 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from assay caller
         result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH]
+                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {AC_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

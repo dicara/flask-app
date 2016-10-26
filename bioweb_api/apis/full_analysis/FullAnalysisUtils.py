@@ -34,7 +34,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import utils
 
-from bioweb_api import RESULTS_PATH, TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION
+from bioweb_api import TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder, \
     get_results_url
@@ -43,7 +43,8 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      UI_THRESHOLD, AC_TRAINING_FACTOR, CTRL_THRESH, \
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, \
-     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO
+     KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, \
+     IGNORE_LOWEST_BARCODE
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -63,7 +64,9 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              MAX_UNINJECTED_RATIO:  ID_DOCUMENT,
              AC_TRAINING_FACTOR:    AC_DOCUMENT,
              CTRL_THRESH:           AC_DOCUMENT,
-             REQUIRED_DROPS:        GT_DOCUMENT}
+             REQUIRED_DROPS:        GT_DOCUMENT,
+             CTRL_FILTER:           AC_DOCUMENT,
+             IGNORE_LOWEST_BARCODE: ID_DOCUMENT}
 
 DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             ID_TRAINING_FACTOR: DEFAULT_ID_TRAINING_FACTOR,
@@ -71,7 +74,9 @@ DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             MAX_UNINJECTED_RATIO: DEFAULT_UNINJECTED_RATIO,
             AC_TRAINING_FACTOR: DEFAULT_AC_TRAINING_FACTOR,
             CTRL_THRESH:        DEFAULT_AC_CTRL_THRESHOLD,
-            REQUIRED_DROPS:     0}
+            REQUIRED_DROPS:     0,
+            CTRL_FILTER:        False,
+            IGNORE_LOWEST_BARCODE: True}
 
 _DB_CONNECTOR = DbConnector.Instance()
 

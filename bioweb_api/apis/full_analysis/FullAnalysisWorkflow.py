@@ -17,7 +17,8 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     CONFIG_URL, ERROR, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, REPORT_URL, \
     PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
-    IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL
+    IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
+    IGNORE_LOWEST_BARCODE
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -224,7 +225,8 @@ class FullAnalysisWorkFlowCallable(object):
                                     max_uninj_ratio=self.parameters[MAX_UNINJECTED_RATIO],
                                     db_connector=self.db_connector,
                                     job_name=job_name,
-                                    use_pico_thresh=self.parameters[CONTINUOUS_PHASE])
+                                    use_pico_thresh=self.parameters[CONTINUOUS_PHASE],
+                                    ignore_lowest_barcode=self.parameters[IGNORE_LOWEST_BARCODE])
         callback = id_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             plot_path=callable.plot_path,

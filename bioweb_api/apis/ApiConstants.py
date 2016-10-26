@@ -138,6 +138,7 @@ HDF5_DATASET     = "hdf5_dataset"
 HDF5_PATH        = "hdf5_path"
 ID               = "_id"
 ID_DOCUMENT      = 'id_document'
+IGNORE_LOWEST_BARCODE = 'ignore_lowest_barcode'
 IS_HDF5          = 'is_hdf5'
 IGNORED_DYES     = "ignored_dyes"
 JOB_NAME         = "job_name"
@@ -238,6 +239,8 @@ TRAINING_FACTOR    = "training_factor"
 #=============================================================================
 # Secondary Analysis Parameter Descriptions
 #=============================================================================
+IGNORE_LOWEST_BARCODE_DESCRIPTION = "Ignore the data from the barcode with " \
+                                    "the lowest intenstisy"
 NUM_PROBES_DESCRIPTION = "Number of unique probes used to determine size of " \
     "the required training set."
 TRAINING_FACTOR_DESCRIPTION = "Used to compute the size of the training " \

@@ -598,3 +598,5 @@ GnuBio Flask API.
  * v3.40.1
    * negative control threshold and ignore lowest barcode settings
      are stored in the full analysis document
+ * v3.40.2
+   * updated secondary analysis to v1.87.3

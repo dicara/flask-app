@@ -608,3 +608,6 @@ GnuBio Flask API.
    * updated secondary analysis to v1.87.3
  * v3.40.3
    * Add more parameters to full analysis sub documents
+ * v3.40.4
+   * updated profile database to v0.7
+   * added atto633 and ifluor610 dyes to library design generator

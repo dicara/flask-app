@@ -251,8 +251,8 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from identity
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, PLATE_PLOT_URL,
-                TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE]
+                FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, MAX_UNINJECTED_RATIO,
+                PLATE_PLOT_URL, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
@@ -350,7 +350,7 @@ class FullAnalysisWorkFlowCallable(object):
         result = self.db_connector.find_one(SA_GENOTYPER_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, PDF_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL,
             KDE_PNG_SUM_URL, STATUS, ERROR, START_DATESTAMP, FINISH_DATESTAMP,
-            REQUIRED_DROPS]
+            REQUIRED_DROPS, VARIANT_MASK]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {GT_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

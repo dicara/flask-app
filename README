@@ -600,3 +600,5 @@ GnuBio Flask API.
      are stored in the full analysis document
  * v3.40.2
    * updated secondary analysis to v1.87.3
+ * v3.40.3
+   * Add more parameters to full analysis sub documents

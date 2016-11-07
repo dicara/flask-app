@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = '3.40.3',
+      version          = '3.40.4',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com',
       entry_points     = {'console_scripts': [
@@ -61,7 +61,7 @@ setup(
                           'experiment-database==0.10.1',
                           'PyPDF2>=1.25.1',
                           'reportlab>=3.3.0',
-                          'profile-db==0.6',
+                          'profile-db>=0.7',
                           'gbutils>=1.5',
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},

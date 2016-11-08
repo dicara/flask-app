@@ -607,3 +607,5 @@ GnuBio Flask API.
    * added atto633 and ifluor610 dyes to library design generator
  * v3.41
    * updated secondary-analysis to version 1.90
+ * v3.42
+   * library design generator uses minimum summed peak to find ideal library design

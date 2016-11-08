@@ -14,7 +14,7 @@ from profile_database.constants import DYE_NAME, PROFILE, LOT_NUMBER, \
 
 # the minimum and maximum number of dyes
 MIN_NDYES  = 1
-MAX_NDYES  = 6
+MAX_NDYES  = 7
 SATURATION_CAP = 65535
 MAX_INTEN = SATURATION_CAP
 MIN_INTEN = 3000
@@ -196,7 +196,6 @@ class LibraryDesign(object):
             try:
                 # make a group of scalars for each dye (dimension)
                 scalars = [numpy.linspace(10000.0, MAX_INTEN, resolution).reshape(-1, 1) for dye in self.dye_names]
-
                 # create barcode profiles by summing each combination of dyes profiles
                 # to find an optimal max barcode profile
                 scalar_combos = scalars.pop(0)
@@ -261,7 +260,16 @@ class LibraryDesign(object):
         if valid_lvl_combinations.size <= 0:
             raise Exception('Library cannot be made using specified inputs')
 
-        self.nlvls = valid_lvl_combinations[0]
+        # each valid combination of levels will have a maximum peak when summed
+        # use the summed maximum peak to pick the best combinations
+        # the best combination will have a low summed maximum peak
+        combination_maximum_peaks = list()
+        normalized_profiles = numpy.vstack([self.profiles[dye][PROFILE] for dye in self.dye_names])
+        for combo in valid_lvl_combinations:
+            maximum_peak = numpy.max(numpy.sum(normalized_profiles * combo.reshape(-1, 1), axis=0))
+            combination_maximum_peaks.append(maximum_peak)
+
+        self.nlvls = valid_lvl_combinations[numpy.argmin(combination_maximum_peaks)]
 
     def plot(self, scalers):
         """
@@ -304,12 +312,12 @@ class LibraryDesign(object):
 
 
 if __name__ == '__main__':
-    input_requested_nbarcodes = 24
-    input_dyes = [DYE_CY5_5, DYE_594, DYE_633, DYE_PE, ]
-    input_lots = ['CY5.5RP000-16-012', 'DY594RPE000-16-009', 'DY633RPE000-16-009', 'RPE000-15-026B', ]
+    input_requested_nbarcodes = 1024
+    input_dyes = [DYE_IF594, DYE_IF610, DYE_AT633, DYE_IF660, DYE_IF700, DYE_CY7]
+    input_lots = ['IF594-20161103-001',  'IF610-20161103-001', 'AT633-20161103-001', 'IF660-20161103-001', 'IF700-20161103-001', 'CY7-20161103-001']
 
     ld = LibraryDesign(list(zip(input_dyes, input_lots)), input_requested_nbarcodes)
     design, dyes, levels = ld.generate()
 
-    for dye, lvls in design.items():
-        print '%s: %s' % (dye, [round(l, 2) for l in lvls],)
+    for dye_name, data in design.items():
+        print '%s: %s' % (dye_name, [round(l, 2) for l in data['levels']],)

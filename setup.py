@@ -55,7 +55,7 @@ setup(
                           'idt-analyzer>=0.3',
                           'ncbi-utilities>=0.2',
                           'probe-design>=0.3',
-                          'primary-analysis==2.19',
+                          'primary-analysis==2.21',
                           'predator==0.2',
                           'secondary-analysis>=1.90',
                           'experiment-database==0.10.1',

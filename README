@@ -609,3 +609,5 @@ GnuBio Flask API.
    * updated secondary-analysis to version 1.90
  * v3.42
    * library design generator uses minimum summed peak to find ideal library design
+ * v3.43
+   * updated primary analysis to version 2.20

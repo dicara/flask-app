@@ -392,13 +392,11 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                     running     = job_details[STATUS] == 'running'
 
         # Copy result files to cwd for bamboo to ingest as artifacts
-        assay_caller_txt_path = None
         if RESULT in job_details:
             assay_caller_txt_path = job_details[RESULT]
             if os.path.isfile(assay_caller_txt_path):
                 shutil.copy(assay_caller_txt_path, "observed_assay_caller.txt")
 
-        scatter_plot_path = None
         if SCATTER_PLOT in job_details:
             scatter_plot_path = job_details[SCATTER_PLOT]
             if os.path.isfile(scatter_plot_path):

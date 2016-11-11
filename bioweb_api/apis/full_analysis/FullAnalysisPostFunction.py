@@ -20,7 +20,6 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from collections import defaultdict
 import copy
 from datetime import datetime
 import sys

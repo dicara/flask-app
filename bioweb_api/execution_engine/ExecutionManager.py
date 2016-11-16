@@ -25,8 +25,6 @@ import multiprocessing
 import threading
 import time
 
-from bioweb_api.utilities.logging_utilities import APP_LOGGER
-
 #===============================================================================
 # Class
 #===============================================================================
@@ -89,8 +87,6 @@ class ExecutionManager(object):
                 if self.done(future_uuid):
                     self.del_uuid(future_uuid)
             if len(self._JOB_QUEUE) <= 0 and self._pool is not None:
-                APP_LOGGER.info('Process pool was shutdown.  Queue Length: %d  Process Pool: %s'
-                                % (len(self._JOB_QUEUE), str(self._pool)))
                 self._pool.shutdown()
                 self._pool = None
 

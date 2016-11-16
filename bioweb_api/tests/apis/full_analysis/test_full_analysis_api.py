@@ -356,7 +356,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
         observed_variants = [ v['variant'] for v in response['Variants'] ]
         self.assertEqual(len(observed_variants), 17)
 
-        c = re.compile('([A-Z\d\|]+).(c.[\d]+)([A-Z]+)>([A-Z]+)')
+        c = re.compile('([A-Z\d\|]+).(c\.[\d]+):?([A-Z]+)>([A-Z]+)')
         variants = set()
         for variant in observed_variants:
             variant_match = c.match(variant)
@@ -373,7 +373,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
         observed_variants = [ v['variant'] for v in response['Variants'] ]
         self.assertEqual(len(observed_variants), 2)
 
-        c = re.compile('([A-Z\d\|]+).([\d]+)([A-Z]+)>([A-Z]+)')
+        c = re.compile('([A-Z\d\|]+).([\d]+):?([A-Z]+)>([A-Z]+)')
         variants = set()
         for variant in observed_variants:
             variant_match = c.match(variant)

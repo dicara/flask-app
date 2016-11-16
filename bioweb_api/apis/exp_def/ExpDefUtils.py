@@ -28,6 +28,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME
 
 from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from secondary_analysis.genotyping.genotyper_utils import get_target_id
 from expdb.defs import HotspotExperiment
 
 #=============================================================================
@@ -43,12 +44,9 @@ def format_variants(experiment):
     Return a list of formatted string of variants in an experiment definition.
     """
     variant_strings = list()
-    for variant in experiment.variants:
-        loc = variant.coding_pos if variant.coding_pos is not None else variant.location
-        variant_strings.append('{0} {1}{2}>{3}'.format(variant.reference,
-                                                       loc,
-                                                       variant.expected,
-                                                       variant.variation))
+    for reference in experiment.references:
+        for variant in reference.variants:
+            variant_strings.append(get_target_id(reference, variant))
     return variant_strings
 
 

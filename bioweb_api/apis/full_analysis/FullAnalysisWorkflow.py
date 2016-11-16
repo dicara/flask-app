@@ -18,7 +18,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
-    IGNORE_LOWEST_BARCODE, CTRL_FILTER
+    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -279,7 +279,8 @@ class FullAnalysisWorkFlowCallable(object):
                                         ctrl_thresh=self.parameters[CTRL_THRESH],
                                         db_connector=self.db_connector,
                                         job_name=job_name,
-                                        ctrl_filter=self.parameters[CTRL_FILTER])
+                                        ctrl_filter=self.parameters[CTRL_FILTER],
+                                        assay_caller_model=self.parameters[AC_MODEL])
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             scatter_plot_path=callable.scatter_plot_path,
@@ -301,7 +302,7 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from assay caller
         result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER]
+                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, AC_MODEL]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {AC_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

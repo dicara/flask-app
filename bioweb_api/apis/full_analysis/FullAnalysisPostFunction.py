@@ -34,7 +34,8 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
-    IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION
+    IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
+    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -180,6 +181,8 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        CTRL_FILTER_DESCRIPTION,
                                                        default_value=False,
                                                        required=True)
+        cls.assay_caller_model = ParameterFactory.assay_caller_model(AC_MODEL,
+                                                                     ASSAY_CALLER_MODEL_DESCRIPTION)
 
         # genotyper params
         cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS,
@@ -215,6 +218,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ac_training_param,
                       cls.ctrl_thresh,
                       cls.ctrl_filter,
+                      cls.assay_caller_model,
                       cls.req_drops_param,
                       cls.exp_def_param,
                       cls.fa_uuid_param,

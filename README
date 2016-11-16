@@ -611,3 +611,26 @@ GnuBio Flask API.
    * library design generator uses minimum summed peak to find ideal library design
  * v3.43
    * updated primary analysis to version 2.20
+ * v3.44.0
+   * Update experiment-database from 0.10.1 to 0.11.2
+     * v0.11
+       * Fix logging across modules
+       * Make HotspotExperiment validator standalone
+     * v0.11.1
+       * Update requirements.txt for new docker image
+     * v0.11.2
+       * Add cDNA_change to Variant data model
+   * Update secondary-analysis from 1.87.3 to 1.91.0
+     * v1.87.4
+       * reverting
+     * v1.87.5
+       * only log libdamage info
+     * v1.88.0
+       * Remove masked variants from list to prevent addition to VCF and calls.json
+     * v1.89.0
+       * automation tools
+     * v1.90.0
+       * Incoming drops use kdtree for nearest neighbor lookup * IdentifiedDrop stores clusterID, cluster status, and identity confidence.
+     * v1.91.0
+       * Create target id based either from cDNA change or coding position
+       * Add cDNA change to variant call

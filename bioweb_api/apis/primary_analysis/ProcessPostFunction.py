@@ -21,9 +21,11 @@ limitations under the License.
 # Imports
 #=============================================================================
 import copy
+import csv
 from datetime import datetime
 import os
 import sys
+import time
 import traceback
 import yaml
 
@@ -280,13 +282,63 @@ class PaProcessCallable(object):
                                      {"$set": {DYES: decomp_dyes}})
 
             # write data to disk
-            numpy.savetxt(self.outfile_path, dataset.value, fmt='%.1f',
-                          delimiter='\t', header='\t'.join(columns), comments='')
+            convert_hdf5_dataset_to_txt(hdf5_path=hdf5_path,
+                                        dataset=self.archive,
+                                        output_path=self.outfile_path)
         else:
             execute_process(self.archive, self.dyes, self.device, self.major,
                             self.minor, self.offsets, self.use_iid,
                             self.outfile_path, self.config_path,
                             self.uuid)
+
+
+def convert_hdf5_dataset_to_txt(hdf5_path, dataset, output_path, delimiter='\t'):
+    """
+    Utility function to convert and HDF5 dataset into a csv file
+
+    @param hdf5_path:   String, path of HDF5 file
+    @param dataset:     String, name of dataset in HDF5 file to convert
+    @param output_path: String, output path of text file
+    @param delimiter:   String, delimiting character
+    """
+    # data type conversions
+    conversions = {
+        'drop-y': '%d',
+        'total-intensity': '%d',
+        'saturated': '%d',
+        'av_sq_err': '%.8f',
+        'sum-err': '%.3f',
+        'capture_time': '%07.2f',
+        '-decomp': '%.1f'
+    }
+
+    # get HDF5 dataset
+    dataset = h5py.File(hdf5_path)[dataset]
+    columns = dataset.attrs['columns']
+    data = dataset.value
+
+    # append capture time if available
+    if 'capture_time' in columns:
+        creation_time = dataset.attrs['creation_time']
+        vfunc = numpy.vectorize(lambda x: float(time.strftime('%H%M.%S', time.localtime(x + creation_time))))
+        idx = numpy.where(columns == 'capture_time')[0][0]
+        data[:, [idx]] = vfunc(data[:, [idx]])
+
+    # create data types
+    data_types = list()
+    for col in columns:
+        if col in conversions:
+            data_types.append(conversions[col])
+        elif col.endswith('-decomp'):
+            data_types.append(conversions['-decomp'])
+        else:
+            raise Exception('Unable to determine datatype for %s' % col)
+
+    # save file
+    numpy.savetxt(output_path, data, fmt=data_types,
+                  delimiter=delimiter, header=delimiter.join(columns),
+                  comments='')
+
 
 def make_process_callback(uuid, outfile_path, config_path, db_connector):
     """

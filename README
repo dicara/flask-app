@@ -637,3 +637,10 @@ GnuBio Flask API.
  * v3.45.0
    * assay caller model argument exposed
    * hdf5 writing supports drop capture time
+ * v3.46.0
+   * User can filter picoinjeciton dye in identity
+   * User can turn picoinjection filtering on and off in full analysis
+   * Secondary-analysis updated to v1.92.0
+    *  User can specify picoinjection1 dye
+   * Experiment-database updated to v0.12
+    * Add pico1_dye field to HotspotExperiment object

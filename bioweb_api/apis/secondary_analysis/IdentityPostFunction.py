@@ -37,14 +37,14 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
-    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
+    ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, UI_THRESHOLD, REPORT, CONTINUOUS_PHASE, CONTINUOUS_PHASE_DESCRIPTION, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
-    IGNORE_LOWEST_BARCODE_DESCRIPTION
+    IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
@@ -101,8 +101,10 @@ class IdentityPostFunction(AbstractPostFunction):
         cls.job_name_param  = ParameterFactory.lc_string(JOB_NAME, "Unique "\
                                                          "name to give this "
                                                          "job.")
-        cls.fid_dye_param      = ParameterFactory.dye(FIDUCIAL_DYE,
-                                                      "Fiducial dye.")
+        cls.pico1_dye_param      = ParameterFactory.dye(PICO1_DYE,
+                                                      "Picoinjection 1 dye.")
+        cls.pico2_dye_param      = ParameterFactory.dye(PICO2_DYE,
+                                                      "Picoinjection 2 dye.")
         cls.assay_dye_param    = ParameterFactory.dye(ASSAY_DYE, "Assay dye.")
         cls.n_probes_param     = ParameterFactory.integer(NUM_PROBES,
                                                         NUM_PROBES_DESCRIPTION,
@@ -136,7 +138,8 @@ class IdentityPostFunction(AbstractPostFunction):
         parameters = [
                       cls.job_uuid_param,
                       cls.job_name_param,
-                      cls.fid_dye_param,
+                      cls.pico1_dye_param,
+                      cls.pico2_dye_param,
                       cls.assay_dye_param,
                       cls.n_probes_param,
                       cls.training_param,
@@ -155,9 +158,18 @@ class IdentityPostFunction(AbstractPostFunction):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
 
-        fiducial_dye=None
-        if cls.fid_dye_param in params_dict:
-            fiducial_dye    = params_dict[cls.fid_dye_param][0]
+        pico1_dye=None
+        if cls.pico1_dye_param in params_dict:
+            pico1_dye    = params_dict[cls.pico1_dye_param][0]
+
+        use_pico1_filter = True
+        if pico1_dye is None:
+            use_pico1_filter = False
+
+        pico2_dye=None
+        if cls.pico2_dye_param in params_dict:
+            pico2_dye    = params_dict[cls.pico2_dye_param][0]
+
         assay_dye = None
         if cls.assay_dye_param in params_dict:
             assay_dye       = params_dict[cls.assay_dye_param][0]
@@ -228,7 +240,9 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       num_probes,
                                                       training_factor,
                                                       assay_dye,
-                                                      fiducial_dye,
+                                                      use_pico1_filter,
+                                                      pico1_dye,
+                                                      pico2_dye,
                                                       dye_levels,
                                                       ignored_dyes,
                                                       filtered_dyes,
@@ -275,7 +289,7 @@ class SaIdentityCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
-                 fiducial_dye, dye_levels, ignored_dyes, filtered_dyes,
+                 use_pico1_filter, pico1_dye, pico2_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, max_uninj_ratio, db_connector, job_name,
                  use_pico_thresh, ignore_lowest_barcode):
         self.uuid                  = str(uuid4())
@@ -291,7 +305,9 @@ class SaIdentityCallable(object):
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.report_path           = os.path.join(results_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
-        self.fiducial_dye          = fiducial_dye
+        self.use_pico1_filter      = use_pico1_filter
+        self.pico1_dye             = pico1_dye
+        self.pico2_dye             = pico2_dye
         self.ignored_dyes          = ignored_dyes
         self.filtered_dyes         = filtered_dyes
         self.ui_threshold          = ui_threshold
@@ -305,7 +321,9 @@ class SaIdentityCallable(object):
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
         self.tmp_report_path       = os.path.join(self.tmp_path, "report.yaml")
         self.document              = {
-                        FIDUCIAL_DYE: fiducial_dye,
+                        USE_PICO1_FILTER: use_pico1_filter,
+                        PICO1_DYE: pico1_dye,
+                        PICO2_DYE: pico2_dye,
                         ASSAY_DYE: assay_dye,
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
@@ -353,6 +371,11 @@ class SaIdentityCallable(object):
         self.db_connector.update(SA_IDENTITY_COLLECTION, {UUID: self.uuid}, update)
 
         try:
+            # for full analysis the user may want to turn off picoinjection filtering
+            # even if there is a pico1 dye.  If use_pico1_filter is False, set pico1_dye to None
+            pico1_dye = self.pico1_dye
+            if pico1_dye is not None and not self.use_pico1_filter:
+                pico1_dye = None
             safe_make_dirs(self.tmp_path)
             Identity(in_path=primary_analysis_doc[RESULT],
                      num_probes=self.num_probes,
@@ -361,7 +384,8 @@ class SaIdentityCallable(object):
                      out_file=self.tmp_outfile_path,
                      report_path=self.tmp_report_path,
                      assay_dye=self.assay_dye,
-                     picoinjection_dye=self.fiducial_dye,
+                     pico1_dye=pico1_dye,
+                     pico2_dye=self.pico2_dye,
                      dye_levels=self.dye_levels,
                      show_figure=False,
                      ignored_dyes=self.ignored_dyes,

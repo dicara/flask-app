@@ -31,7 +31,7 @@ from datetime import datetime
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, add_url_argument
 from bioweb_api.utilities import io_utilities
-from bioweb_api.apis.ApiConstants import UUID, FIDUCIAL_DYE, ASSAY_DYE,\
+from bioweb_api.apis.ApiConstants import UUID, PICO2_DYE, ASSAY_DYE,\
     NUM_PROBES, TRAINING_FACTOR, DYE_LEVELS, PLOT, JOB_NAME, JOB_TYPE_NAME, \
     JOB_TYPE, ARCHIVE, DEVICE, DYES, STATUS, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, CONFIG_URL, REPORT, RESULT, \
@@ -155,7 +155,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         ########################################################################
         cls._identity_uuid = "fb549af2-d807-492c-8b73-4f8c41435917"
         cls._id_record = {
-                          FIDUCIAL_DYE: "joe",
+                          PICO2_DYE: "joe",
                           ASSAY_DYE: "fam",
                           NUM_PROBES: 8,
                           TRAINING_FACTOR: 1000,
@@ -193,7 +193,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                           JOB_TYPE_NAME : JOB_TYPE.sa_assay_calling, # @UndefinedVariable
                           UUID : cls._ac_uuid,
                           SA_IDENTITY_UUID: cls._identity_uuid,
-                          FIDUCIAL_DYE: JOE,
+                          PICO2_DYE: JOE,
                           ASSAY_DYE: FAM,
                           NUM_PROBES: 8,
                           TRAINING_FACTOR: 1000,
@@ -369,7 +369,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         url = add_url_argument(url, UUID, self._id_record[UUID], True)
         url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME)
         url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
-        url = add_url_argument(url, FIDUCIAL_DYE, _FIDUCIAL_DYE)
+        url = add_url_argument(url, PICO2_DYE, _FIDUCIAL_DYE)
         url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE)
         url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES)
         url = add_url_argument(url, TRAINING_FACTOR, AC_TRAINING_FACTOR)

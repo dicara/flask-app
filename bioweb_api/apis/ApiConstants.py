@@ -210,6 +210,7 @@ TYPE             = "type"
 URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
+USE_PICO1_FILTER = 'use_pico1_filter'
 VARIANT_MASK     = "variant_mask"
 VARIANTS         = "variants"
 VCF              = "vcf"
@@ -229,7 +230,8 @@ ASSAY_DYE          = "assay_dye"
 AC_TRAINING_FACTOR = 'ac_training_factor'
 COV_TYPE           = "cov_type"
 DYE_LEVELS         = "dye_levels"
-FIDUCIAL_DYE       = "fiducial_dye"
+PICO1_DYE          = "pico1_dye"
+PICO2_DYE          = "pico2_dye"
 ID_TRAINING_FACTOR = "id_training_factor"
 NUM_PROBES         = "num_probes"
 OUTLIERS           = "outliers"
@@ -260,6 +262,7 @@ MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
                             "for the pico KDE filter."
 ASSAY_CALLER_MODEL_DESCRIPTION = "The model used by assay caller to tag " \
                                  "positive/negative drops"
+USE_PICO1_FILTER_DESCRIPTION = "Turn on/off picoinjection 1 filtering"
 
 #=============================================================================
 # Probe Experiment Constants

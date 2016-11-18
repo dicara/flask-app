@@ -18,7 +18,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
-    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE
+    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -224,6 +224,7 @@ class FullAnalysisWorkFlowCallable(object):
                                     num_probes=self.parameters[NUM_PROBES],
                                     training_factor=self.parameters[ID_TRAINING_FACTOR],
                                     assay_dye=self.parameters[ASSAY_DYE],
+                                    use_pico1_filter = self.parameters[USE_PICO1_FILTER],
                                     pico1_dye=self.parameters[PICO1_DYE],
                                     pico2_dye=self.parameters[PICO2_DYE],
                                     dye_levels=self.parameters[DYE_LEVELS],
@@ -260,7 +261,8 @@ class FullAnalysisWorkFlowCallable(object):
         result = self.db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
                 FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, MAX_UNINJECTED_RATIO,
-                PLATE_PLOT_URL, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE]
+                PLATE_PLOT_URL, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, PICO1_DYE,
+                USE_PICO1_FILTER]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

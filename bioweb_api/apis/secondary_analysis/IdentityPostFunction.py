@@ -44,7 +44,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
-    IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE
+    IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
@@ -162,6 +162,10 @@ class IdentityPostFunction(AbstractPostFunction):
         if cls.pico1_dye_param in params_dict:
             pico1_dye    = params_dict[cls.pico1_dye_param][0]
 
+        use_pico1_filter = True
+        if pico1_dye is None:
+            use_pico1_filter = False
+
         pico2_dye=None
         if cls.pico2_dye_param in params_dict:
             pico2_dye    = params_dict[cls.pico2_dye_param][0]
@@ -236,6 +240,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       num_probes,
                                                       training_factor,
                                                       assay_dye,
+                                                      use_pico1_filter,
                                                       pico1_dye,
                                                       pico2_dye,
                                                       dye_levels,
@@ -284,7 +289,7 @@ class SaIdentityCallable(object):
     Callable that executes the absorption command.
     """
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
-                 pico1_dye, pico2_dye, dye_levels, ignored_dyes, filtered_dyes,
+                 use_pico1_filter, pico1_dye, pico2_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, max_uninj_ratio, db_connector, job_name,
                  use_pico_thresh, ignore_lowest_barcode):
         self.uuid                  = str(uuid4())
@@ -300,6 +305,7 @@ class SaIdentityCallable(object):
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.report_path           = os.path.join(results_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
+        self.use_pico1_filter      = use_pico1_filter
         self.pico1_dye             = pico1_dye
         self.pico2_dye             = pico2_dye
         self.ignored_dyes          = ignored_dyes
@@ -315,6 +321,7 @@ class SaIdentityCallable(object):
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
         self.tmp_report_path       = os.path.join(self.tmp_path, "report.yaml")
         self.document              = {
+                        USE_PICO1_FILTER: use_pico1_filter,
                         PICO1_DYE: pico1_dye,
                         PICO2_DYE: pico2_dye,
                         ASSAY_DYE: assay_dye,
@@ -364,6 +371,11 @@ class SaIdentityCallable(object):
         self.db_connector.update(SA_IDENTITY_COLLECTION, {UUID: self.uuid}, update)
 
         try:
+            # for full analysis the user may want to turn off picoinjection filtering
+            # even if there is a pico1 dye.  If use_pico1_filter is False, set pico1_dye to None
+            pico1_dye = self.pico1_dye
+            if pico1_dye is not None and not self.use_pico1_filter:
+                pico1_dye = None
             safe_make_dirs(self.tmp_path)
             Identity(in_path=primary_analysis_doc[RESULT],
                      num_probes=self.num_probes,
@@ -372,7 +384,7 @@ class SaIdentityCallable(object):
                      out_file=self.tmp_outfile_path,
                      report_path=self.tmp_report_path,
                      assay_dye=self.assay_dye,
-                     pico1_dye=self.pico1_dye,
+                     pico1_dye=pico1_dye,
                      pico2_dye=self.pico2_dye,
                      dye_levels=self.dye_levels,
                      show_figure=False,

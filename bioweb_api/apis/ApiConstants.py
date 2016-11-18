@@ -210,6 +210,7 @@ TYPE             = "type"
 URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
+USE_PICO1_FILTER = 'use_pico1_filter'
 VARIANT_MASK     = "variant_mask"
 VARIANTS         = "variants"
 VCF              = "vcf"
@@ -261,6 +262,7 @@ MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
                             "for the pico KDE filter."
 ASSAY_CALLER_MODEL_DESCRIPTION = "The model used by assay caller to tag " \
                                  "positive/negative drops"
+USE_PICO1_FILTER_DESCRIPTION = "Turn on/off picoinjection 1 filtering"
 
 #=============================================================================
 # Probe Experiment Constants

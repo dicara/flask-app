@@ -35,7 +35,8 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
-    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, PICO1_DYE
+    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, USE_PICO1_FILTER, \
+    USE_PICO1_FILTER_DESCRIPTION
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -164,6 +165,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                              IGNORE_LOWEST_BARCODE_DESCRIPTION,
                                                              default_value=True,
                                                              required=False)
+        cls.use_pico1_filter = ParameterFactory.boolean(USE_PICO1_FILTER,
+                                                        USE_PICO1_FILTER_DESCRIPTION,
+                                                        default_value=True,
+                                                        required=False)
 
         # assay caller params
         cls.ac_training_param = ParameterFactory.integer(AC_TRAINING_FACTOR,
@@ -210,6 +215,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.id_training_param,
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
+                      cls.use_pico1_filter,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,

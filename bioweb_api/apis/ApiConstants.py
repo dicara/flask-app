@@ -95,6 +95,7 @@ ABSORB           = "absorb"
 AC_DOCUMENT      = 'ac_document'
 ARCHIVE          = "archive"
 ARCHIVES         = "archives"
+AC_MODEL         = 'assay_caller_model'
 CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
@@ -255,8 +256,10 @@ CTRL_THRESH_DESCRIPTION = "Maximum percent that negative control drops can " \
     "intersect positive population."
 CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \
                               "continuous phase instead of slugs."
-MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio \
-                            for the pico KDE filter."
+MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
+                            "for the pico KDE filter."
+ASSAY_CALLER_MODEL_DESCRIPTION = "The model used by assay caller to tag " \
+                                 "positive/negative drops"
 
 #=============================================================================
 # Probe Experiment Constants

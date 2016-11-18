@@ -640,3 +640,6 @@ GnuBio Flask API.
      * v1.91.0
        * Create target id based either from cDNA change or coding position
        * Add cDNA change to variant call
+ * v3.45.0
+   * assay caller model argument exposed
+   * hdf5 writing supports drop capture time

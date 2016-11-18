@@ -26,11 +26,11 @@ from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_IDENTITY_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
-    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, CONFIG, \
+    ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
     IGNORED_DYES, UI_THRESHOLD, PLATE_PLOT_URL, \
-    REPORT_URL, REPORT, TEMPORAL_PLOT_URL
+    REPORT_URL, REPORT, TEMPORAL_PLOT_URL, PICO1_DYE
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 
 #=============================================================================
@@ -68,7 +68,8 @@ class IdentityGetFunction(AbstractGetFunction):
         columns[JOB_TYPE_NAME]      = 1
         columns[UUID]               = 1
         columns[PA_PROCESS_UUID]    = 1
-        columns[FIDUCIAL_DYE]       = 1
+        columns[PICO1_DYE]          = 1
+        columns[PICO2_DYE]          = 1
         columns[ASSAY_DYE]          = 1
         columns[NUM_PROBES]         = 1
         columns[TRAINING_FACTOR]    = 1

@@ -8,7 +8,7 @@ from uuid import uuid4
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
+from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
     MAJOR, MINOR, USE_IID, DYES, DEVICE, ARCHIVE, UUID, JOB_NAME, \
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, AC_TRAINING_FACTOR, REQUIRED_DROPS, EXP_DEF, JOB_TYPE_NAME, JOB_TYPE, \
@@ -18,7 +18,7 @@ from bioweb_api.apis.ApiConstants import FIDUCIAL_DYE, ASSAY_DYE, SUBMIT_DATESTA
     PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
-    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL
+    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -83,7 +83,8 @@ class FullAnalysisWorkFlowCallable(object):
         try:
             if DYES not in self.parameters or \
                DYE_LEVELS not in self.parameters or \
-               NUM_PROBES not in self.parameters:
+               NUM_PROBES not in self.parameters or \
+               PICO1_DYE not in self.parameters:
                 # get dyes and number of levels
                 exp_defs = ExperimentDefinitions()
                 exp_def_uuid = exp_defs.get_experiment_uuid(self.parameters[EXP_DEF])
@@ -93,6 +94,7 @@ class FullAnalysisWorkFlowCallable(object):
                 controls = exp_def['controls']
                 barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
                 dye_levels = defaultdict(int)
+                pico1_dye = exp_def.get('pico1_dye', None)
                 for barcode in barcodes + controls:
                     for dye_name, lvl in barcode['dye_levels'].items():
                         dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
@@ -102,6 +104,8 @@ class FullAnalysisWorkFlowCallable(object):
                     self.parameters[DYE_LEVELS] = dye_levels.items()
                 if NUM_PROBES not in self.parameters:
                     self.parameters[NUM_PROBES] = len(probes) + len(controls)
+                if PICO1_DYE not in self.parameters:
+                    self.parameters[PICO1_DYE] = pico1_dye
         except:
             APP_LOGGER.exception(traceback.format_exc())
 
@@ -163,7 +167,10 @@ class FullAnalysisWorkFlowCallable(object):
                     job is the only exception because it doesn't need a uuid to start.
         @return:    String, uuid of job, String, status of job
         """
-        dyes = self.parameters[DYES] + [self.parameters[ASSAY_DYE], self.parameters[FIDUCIAL_DYE]]
+        dyes = self.parameters[DYES] + [self.parameters[ASSAY_DYE], self.parameters[PICO2_DYE]]
+        if self.parameters[PICO1_DYE] is not None and self.parameters[PICO1_DYE] not in dyes:
+            dyes.append(self.parameters[PICO1_DYE])
+
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = PaProcessCallable(archive=self.parameters[ARCHIVE],
@@ -217,7 +224,8 @@ class FullAnalysisWorkFlowCallable(object):
                                     num_probes=self.parameters[NUM_PROBES],
                                     training_factor=self.parameters[ID_TRAINING_FACTOR],
                                     assay_dye=self.parameters[ASSAY_DYE],
-                                    fiducial_dye=self.parameters[FIDUCIAL_DYE],
+                                    pico1_dye=self.parameters[PICO1_DYE],
+                                    pico2_dye=self.parameters[PICO2_DYE],
                                     dye_levels=self.parameters[DYE_LEVELS],
                                     ignored_dyes=self.parameters[IGNORED_DYES],
                                     filtered_dyes=self.parameters[FILTERED_DYES],
@@ -275,7 +283,7 @@ class FullAnalysisWorkFlowCallable(object):
                                         num_probes=self.parameters[NUM_PROBES],
                                         training_factor=self.parameters[AC_TRAINING_FACTOR],
                                         assay_dye=self.parameters[ASSAY_DYE],
-                                        fiducial_dye=self.parameters[FIDUCIAL_DYE],
+                                        pico2_dye=self.parameters[PICO2_DYE],
                                         ctrl_thresh=self.parameters[CTRL_THRESH],
                                         db_connector=self.db_connector,
                                         job_name=job_name,

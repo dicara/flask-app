@@ -27,7 +27,7 @@ import traceback
 
 from bioweb_api import FA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
-    ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, FIDUCIAL_DYE, STATUS, \
+    ID, UUID, JOB_NAME, MAJOR, MINOR, OFFSETS, USE_IID, PICO2_DYE, STATUS, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, CONTINUOUS_PHASE, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
@@ -35,7 +35,7 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
-    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL
+    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, PICO1_DYE
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -48,7 +48,7 @@ from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import ASSAY_DYE as DEFAULT_ASSAY_DYE
-from secondary_analysis.constants import PICO_DYE as DEFAULT_PICO_DYE
+from secondary_analysis.constants import PICO2_DYE as DEFAULT_PICO2_DYE
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
@@ -130,10 +130,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        required=False)
         cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
                                                         required=False)
-        cls.fid_dye_param       = ParameterFactory.dye(FIDUCIAL_DYE,
-                                                      'Fiducial dye.',
+        cls.pico2_dye_param       = ParameterFactory.dye(PICO2_DYE,
+                                                      'picoinjection 2 dye.',
                                                       required=False,
-                                                      default=DEFAULT_PICO_DYE)
+                                                      default=DEFAULT_PICO2_DYE)
         cls.assay_dye_param     = ParameterFactory.dye(ASSAY_DYE,
                                                       'Assay dye.',
                                                       required=False,
@@ -204,7 +204,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.job_name_param,
                       cls.offset,
                       cls.use_iid_param,
-                      cls.fid_dye_param,
+                      cls.pico2_dye_param,
                       cls.assay_dye_param,
                       cls.n_probes_param,
                       cls.id_training_param,

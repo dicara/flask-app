@@ -37,7 +37,7 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
 from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
-    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
+    ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, SCATTER_PLOT, SCATTER_PLOT_URL, \
     JOE, FAM, EXP_DEF_NAME, CTRL_THRESH, NUM_PROBES_DESCRIPTION, \
@@ -95,8 +95,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          'name to give this '
                                                          'job.')
         cls.exp_defs_param  = ParameterFactory.experiment_definition()
-        cls.fid_dye_param   = ParameterFactory.dye(FIDUCIAL_DYE,
-                                                   'Fiducial dye.',
+        cls.pico2_dye_param = ParameterFactory.dye(PICO2_DYE,
+                                                   'picoinjection 2 dye.',
                                                    default=JOE,
                                                    required=True)
         cls.assay_dye_param = ParameterFactory.dye(ASSAY_DYE, 'Assay dye.',
@@ -125,7 +125,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.job_uuid_param,
                       cls.job_name_param,
                       cls.exp_defs_param,
-                      cls.fid_dye_param,
+                      cls.pico2_dye_param,
                       cls.assay_dye_param,
                       cls.n_probes_param,
                       cls.training_param,
@@ -140,7 +140,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
         exp_def_name    = params_dict[cls.exp_defs_param][0]
-        fiducial_dye    = params_dict[cls.fid_dye_param][0]
+        pico2_dye       = params_dict[cls.pico2_dye_param][0]
         assay_dye       = params_dict[cls.assay_dye_param][0]
         num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
@@ -184,7 +184,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     sac_callable = SaAssayCallerCallable(sa_identity_job[UUID],
                                                          exp_def_name,
                                                          assay_dye,
-                                                         fiducial_dye,
+                                                         pico2_dye,
                                                          num_probes,
                                                          training_factor,
                                                          ctrl_thresh,
@@ -223,7 +223,7 @@ class SaAssayCallerCallable(object):
     '''
     Callable that executes the assay caller command.
     '''
-    def __init__(self, identity_uuid, exp_def_name, assay_dye, fiducial_dye,
+    def __init__(self, identity_uuid, exp_def_name, assay_dye, pico2_dye,
                  num_probes, training_factor, ctrl_thresh, db_connector, job_name,
                  ctrl_filter, assay_caller_model):
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, identity_uuid)
@@ -234,7 +234,7 @@ class SaAssayCallerCallable(object):
         self.num_probes            = num_probes
         self.training_factor       = training_factor
         self.assay_dye             = assay_dye
-        self.fiducial_dye          = fiducial_dye
+        self.pico2_dye             = pico2_dye
         self.db_connector          = db_connector
         self.job_name              = job_name
         self.ctrl_thresh           = ctrl_thresh
@@ -251,7 +251,7 @@ class SaAssayCallerCallable(object):
                                                   'assay_calls_scatter.png')
         self.document = {
                         EXP_DEF_NAME: exp_def_name,
-                        FIDUCIAL_DYE: fiducial_dye,
+                        PICO2_DYE: pico2_dye,
                         ASSAY_DYE: assay_dye,
                         NUM_PROBES: num_probes,
                         TRAINING_FACTOR: training_factor,
@@ -289,7 +289,8 @@ class SaAssayCallerCallable(object):
                              out_file=self.tmp_outfile_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
                              training_factor=self.training_factor,
-                             assay=self.assay_dye, fiducial=self.fiducial_dye,
+                             assay=self.assay_dye,
+                             fiducial=self.pico2_dye,
                              controls=experiment.controls.barcodes,
                              ctrl_thresh=self.ctrl_thresh,
                              n_jobs=8,

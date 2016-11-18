@@ -26,7 +26,7 @@ from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
-    ID, FIDUCIAL_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
+    ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, SCATTER_PLOT, SCATTER_PLOT_URL, AC_MODEL, \
     FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID, CTRL_THRESH
@@ -69,7 +69,7 @@ class AssayCallerGetFunction(AbstractGetFunction):
         columns[EXP_DEF_NAME]     = 1
         columns[EXP_DEF_UUID]     = 1
         columns[SA_IDENTITY_UUID] = 1
-        columns[FIDUCIAL_DYE]     = 1
+        columns[PICO2_DYE]     = 1
         columns[ASSAY_DYE]        = 1
         columns[NUM_PROBES]       = 1
         columns[TRAINING_FACTOR]  = 1

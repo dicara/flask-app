@@ -29,7 +29,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, PLOT, PLOT_URL, FINISH_DATESTAMP, URL, DYE_LEVELS, \
-    IGNORED_DYES, UI_THRESHOLD, PLATE_PLOT_URL, \
+    IGNORED_DYES, UI_THRESHOLD, PLATE_PLOT_URL, USE_PICO1_FILTER, \
     REPORT_URL, REPORT, TEMPORAL_PLOT_URL, PICO1_DYE
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 
@@ -68,6 +68,7 @@ class IdentityGetFunction(AbstractGetFunction):
         columns[JOB_TYPE_NAME]      = 1
         columns[UUID]               = 1
         columns[PA_PROCESS_UUID]    = 1
+        columns[USE_PICO1_FILTER]   = 1
         columns[PICO1_DYE]          = 1
         columns[PICO2_DYE]          = 1
         columns[ASSAY_DYE]          = 1

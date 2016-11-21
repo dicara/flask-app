@@ -650,3 +650,5 @@ GnuBio Flask API.
     *  User can specify picoinjection1 dye
    * Experiment-database updated to v0.12
     * Add pico1_dye field to HotspotExperiment object
+ * v3.27
+   * picoinjection 1 dye is not considered a deviation from default and is not reported in diff params

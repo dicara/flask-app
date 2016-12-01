@@ -51,7 +51,7 @@ from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     ID_TEMPORAL_PLOT_SUFFIX
 
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
-from secondary_analysis.identity.identity import Identity
+from secondary_analysis.identity.offline_identity import OfflineIdentity
 
 #=============================================================================
 # Public Static Variables
@@ -377,7 +377,7 @@ class SaIdentityCallable(object):
             if pico1_dye is not None and not self.use_pico1_filter:
                 pico1_dye = None
             safe_make_dirs(self.tmp_path)
-            Identity(in_path=primary_analysis_doc[RESULT],
+            OfflineIdentity(in_path=primary_analysis_doc[RESULT],
                      num_probes=self.num_probes,
                      factory_type=FACTORY_ORGANIC,
                      plot_base_path=os.path.join(self.tmp_path, 'tmp_plot'),

@@ -644,5 +644,32 @@ GnuBio Flask API.
     *  User can specify picoinjection1 dye
    * Experiment-database updated to v0.12
     * Add pico1_dye field to HotspotExperiment object
- * v3.27
+ * v3.47
    * picoinjection 1 dye is not considered a deviation from default and is not reported in diff params
+ * v3.48
+   * Update secondary from 1.92.0 to 1.97.2
+     * v1.92.0
+       * User can specify picoinjection1 dye
+     * v1.92.1
+       * Updated genotyper progress to be positives only if the flag is set
+       * Remove dead code (serialize_calls) from genotype_analysis
+     * v1.93.0
+       * fixes INF-33 changing the way wt and variants are counted
+     * v1.93.1
+       * Bug fix where assay caller kde plot could not convert empty strings to floats
+     * v1.94.0
+       * Identity model metrics and identity throughput metrics are broadcast on
+       * identity_status and identity_model_state streams
+     * v1.95.0
+       * Add positive control subplots to genotyper plotting
+       * Bugfix in get target id
+       * Update experiment-database from 0.11.2 to 0.13
+     * v1.96.0
+       * pico1 dye as barcode is turned off by default
+       * pico1 dye filtered using threshold filter
+     * v1.97.0
+       * Identity model retrains when percent id throughput drops
+     * v1.97.1
+       * Plot positive control barcodes individually
+     * v1.97.2
+       * Bug fix in assign target id when strand of variation is undefined

@@ -21,7 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 import yaml
@@ -198,6 +198,24 @@ def get_run_info_path(path, sub_folder):
             return run_info_path
     return None
 
+def get_hdf5_datasets(log_data, date_folder, time_folder):
+    """
+    Fetch the HDF5 archives associated with a run report.
+
+    @param log_data:            the document of run report yaml
+    @param date_folder:         the date folder where run report lives
+    @param time_folder:         the time sub folder where run report lives
+    """
+    run_id = log_data[RUN_ID]
+    hdf5_path = os.path.join(RUN_REPORT_PATH, date_folder, time_folder,
+                             run_id + '.h5')
+    hdf5_archives = _DB_CONNECTOR.find(
+                                HDF5_COLLECTION,
+                                {HDF5_PATH: hdf5_path},
+                                {HDF5_DATASET: 1})
+    return [archive[HDF5_DATASET] for archive in hdf5_archives]
+
+
 def update_run_reports():
     '''
     Update the database with available run reports.  It is not an error
@@ -224,7 +242,8 @@ def update_run_reports():
         for folder in date_folders:
             path = os.path.join(RUN_REPORT_PATH, folder)
             date_obj = datetime.strptime(folder, '%m_%d_%y')
-            if latest_date is not None and date_obj < latest_date: continue
+            if latest_date is not None and date_obj < latest_date - timedelta(days=2):
+                continue
 
             report_files_utags = [(get_run_info_path(path, sf), sf)
                                    for sf in os.listdir(path)]
@@ -238,18 +257,22 @@ def update_run_reports():
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
-                        run_id = log_data[RUN_ID]
-                        hdf5_path = os.path.join(RUN_REPORT_PATH, folder, sf,
-                                                 run_id + '.h5')
-                        hdf5_archives = _DB_CONNECTOR.find(
-                                                HDF5_COLLECTION,
-                                                {HDF5_PATH: hdf5_path},
-                                                {HDF5_DATASET: 1})
-                        if hdf5_archives:
-                            for archive in hdf5_archives:
-                                log_data[IMAGE_STACKS].append(archive[HDF5_DATASET])
+                        hdf5_datasets= get_hdf5_datasets(log_data, folder, sf)
+
+                        log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)
+                else: # if exists, check HDF5 collection for new datasets
+                    log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
+                    if IMAGE_STACKS in log_data:
+                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
+                        exist_datasets = log_data[IMAGE_STACKS]
+
+                        if set(hdf5_datasets) - set(exist_datasets):
+                            updated_datasets = set(hdf5_datasets) | set(exist_datasets)
+                            _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                                 {UTAG, utag},
+                                                 {"$set": {IMAGE_STACKS: updated_datasets}})
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

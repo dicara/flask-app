@@ -673,3 +673,5 @@ GnuBio Flask API.
        * Plot positive control barcodes individually
      * v1.97.2
        * Bug fix in assign target id when strand of variation is undefined
+ * v3.49
+   * For run report refreshing, check HDF5 collection for run reports generated during the past three days    

@@ -54,13 +54,13 @@ tornado.options.parse_command_line()
 #===============================================================================
 _EXPECTED_BETA_VARIANTS = {
     (u'BRAF|15|F', u'c.1799', u'T', u'A'),
-    (u'KRAS|2|R', u'c.34', u'C', u'A'),
-    (u'KRAS|2|R', u'c.34', u'C', u'G'),
-    (u'KRAS|2|R', u'c.34', u'C', u'T'),
-    (u'KRAS|2|R', u'c.35', u'C', u'A'),
-    (u'KRAS|2|R', u'c.35', u'C', u'G'),
-    (u'KRAS|2|R', u'c.35', u'C', u'T'),
-    (u'KRAS|2|R', u'c.38', u'C', u'T'),
+    (u'KRAS|2|R', u'c.34', u'G', u'T'),
+    (u'KRAS|2|R', u'c.34', u'G', u'C'),
+    (u'KRAS|2|R', u'c.34', u'G', u'A'),
+    (u'KRAS|2|R', u'c.35', u'G', u'T'),
+    (u'KRAS|2|R', u'c.35', u'G', u'C'),
+    (u'KRAS|2|R', u'c.35', u'G', u'A'),
+    (u'KRAS|2|R', u'c.38', u'G', u'A'),
     (u'NRAS|2|F', u'c.34', u'G', u'A'),
     (u'NRAS|2|F', u'c.34', u'G', u'T'),
     (u'NRAS|2|F', u'c.35', u'G', u'A'),
@@ -72,8 +72,8 @@ _EXPECTED_BETA_VARIANTS = {
 }
 
 _EXPECTED_ABL_VARIANTS = {
-    (u'ALK25', u'28', u'G', u'A'),
-    (u'ABL16', u'35', u'C', u'T'),
+    (u'ALK25', u'28', u'C', u'T'),
+    (u'ABL16', u'35', u'G', u'A'),
 }
 
 _FA_JOB = {
@@ -96,7 +96,7 @@ _HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
 _FA_JOBNAME               = "test_full_analysis_job"
 _ARCHIVE_NAME             = "2016-08-17_1602.41-pilot5"
 _EXP_DEF_NAME             = "Beta_24b_V1"
-_BETA_EXP_DEF_NAME        = "Beta_24_V5"
+_BETA_EXP_DEF_NAME        = "Beta_24_V7"
 _ABL_EXP_DEF_NAME         = "ABL_24_V4"
 _OFFSETS                  = 30
 _UI_THRESHOLD             = 4000

@@ -681,3 +681,5 @@ GnuBio Flask API.
        * Bug fix in assign target id when strand of variation is undefined
  * v3.49
    * For run report refreshing, check HDF5 collection for run reports generated during the past three days  
+ * v3.49.1
+   * Bugfix in updating image stacks of run report documents

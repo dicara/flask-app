@@ -264,16 +264,16 @@ def update_run_reports():
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
-                    if IMAGE_STACKS in log_data:
-                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
-                        exist_datasets = log_data[IMAGE_STACKS]
+                    if len(log_data.keys()) == 3:
+                        log_data = read_report_file(report_file_path, date_obj, utag)
 
-                        if set(hdf5_datasets) - set(exist_datasets):
-                            updated_datasets = list(set(hdf5_datasets) | set(exist_datasets))
-                            _DB_CONNECTOR.update(
+                    if log_data is not None and IMAGE_STACKS in log_data:
+                        log_data[IMAGE_STACKS] = get_hdf5_datasets(log_data, folder, sf)
+
+                        _DB_CONNECTOR.update(
                                     RUN_REPORT_COLLECTION,
                                     {UTAG: utag},
-                                    {"$set": {IMAGE_STACKS: updated_datasets}})
+                                    log_data)
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

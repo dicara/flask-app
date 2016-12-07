@@ -683,3 +683,5 @@ GnuBio Flask API.
    * For run report refreshing, check HDF5 collection for run reports generated during the past three days  
  * v3.49.1
    * Bugfix in updating image stacks of run report documents
+ * v3.49.2
+   * Change $set to $push operator for updating image stacks

@@ -269,10 +269,11 @@ def update_run_reports():
                         exist_datasets = log_data[IMAGE_STACKS]
 
                         if set(hdf5_datasets) - set(exist_datasets):
-                            updated_datasets = set(hdf5_datasets) | set(exist_datasets)
-                            _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                                 {UTAG, utag},
-                                                 {"$set": {IMAGE_STACKS: list(updated_datasets)}})
+                            updated_datasets = list(set(hdf5_datasets) | set(exist_datasets))
+                            _DB_CONNECTOR.update(
+                                    RUN_REPORT_COLLECTION,
+                                    {UTAG: utag},
+                                    {"$set": {IMAGE_STACKS: updated_datasets}})
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

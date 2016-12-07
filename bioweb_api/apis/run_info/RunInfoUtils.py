@@ -264,16 +264,23 @@ def update_run_reports():
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
+
+                    # If previously a run report was not there or had wrong format,
+                    # the mongo documents only has three fields, _id, datetime, and
+                    # unique_tag. If this occurs, try reading the run report again.
                     if len(log_data.keys()) == 3:
                         log_data = read_report_file(report_file_path, date_obj, utag)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
-                        log_data[IMAGE_STACKS] = get_hdf5_datasets(log_data, folder, sf)
+                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
+                        exist_datasets = log_data[IMAGE_STACKS]
 
-                        _DB_CONNECTOR.update(
+                        if set(hdf5_datasets) - set(exist_datasets):
+                            updated_datasets = list(set(hdf5_datasets) | set(exist_datasets))
+                            _DB_CONNECTOR.update(
                                     RUN_REPORT_COLLECTION,
                                     {UTAG: utag},
-                                    log_data)
+                                    {"$set": {IMAGE_STACKS: updated_datasets}})
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

@@ -679,3 +679,5 @@ GnuBio Flask API.
    * Bugfix in updating image stacks of run report documents
  * v3.49.2
    * Change $set to $push operator for updating image stacks
+ * v3.49.3
+   * Read run reports generated during the past 3 days

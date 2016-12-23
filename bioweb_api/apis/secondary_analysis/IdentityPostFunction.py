@@ -50,7 +50,7 @@ from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
     UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
     ID_TEMPORAL_PLOT_SUFFIX
 
-from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.identity.offline_identity import OfflineIdentity
 
 #=============================================================================

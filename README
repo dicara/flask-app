@@ -681,3 +681,37 @@ GnuBio Flask API.
    * Change $set to $push operator for updating image stacks
  * v3.49.3
    * Read run reports generated during the past 3 days
+ * v3.50.0
+   * updated secondary-analysis from 1.97.3 to 1.100.3
+     * 1.97.2
+       * Bug fix in assign target id when strand of variation is undefined
+     * 1.98.0
+       * offline identity will continue to search for model after encountering IdentityModelException
+       * identity model exception message shows both missing and identity collisions
+       * offline identity unrecoverable exceptions in identity model fitting are not masked
+     * 1.98.1
+       * using numpy array for distance data calculation in offline identity
+     * 1.99.0
+       * offline identity model retrains when percent identity throughput drops below specified threshold
+     * 1.99.1
+       * bugfix mb-78  braf mutation probes
+     * 1.100.0
+       * offline identity writes output file in chunks instead of line by line
+     * 1.100.1
+        * more bugfix for mb-78 *
+     * 1.100.2
+        * Retrained assay caller model and added helper script for doing so
+     * 1.100.3
+       * bug fix, percent retrain log variable not properly renamed in IdentityJob
+   * updated primary-analysis from 2.21 to 2.25
+     * v2.21
+       * In-house dye names changed to lowercase
+     * v2.22
+       * Decomposition messages contain capture time of drops
+     * v2.23
+       * Drop messages use sum of error instead of average squared error
+     * v2.24
+       * Add image recording support for decomp model training
+     * v2.25
+       * updated gbdrops from 0.9 to 0.12
+       * sum method replaced with numpy.sum

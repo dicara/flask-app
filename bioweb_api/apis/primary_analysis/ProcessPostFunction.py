@@ -319,9 +319,10 @@ def convert_hdf5_dataset_to_txt(hdf5_path, dataset, output_path, delimiter='\t')
 
     # append capture time if available
     if 'capture_time' in columns:
+        idx = numpy.where(columns == 'capture_time')[0][0]
+        data = data[data[:, idx].argsort()]
         creation_time = dataset.attrs['creation_time']
         vfunc = numpy.vectorize(lambda x: float(time.strftime('%H%M.%S', time.localtime(x + creation_time))))
-        idx = numpy.where(columns == 'capture_time')[0][0]
         data[:, [idx]] = vfunc(data[:, [idx]])
 
     # create data types

@@ -21,7 +21,6 @@ limitations under the License.
 # Imports
 #=============================================================================
 import copy
-import csv
 from datetime import datetime
 import os
 import sys

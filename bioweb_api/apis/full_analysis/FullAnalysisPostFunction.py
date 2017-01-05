@@ -104,12 +104,12 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         required=True)
         cls.dyes_param     = ParameterFactory.dyes(required=False)
         cls.device_param   = ParameterFactory.device(required=False,
-                                                     default='beta7')
+                                                     default='katahdin')
         cls.major_param    = ParameterFactory.integer(MAJOR,
                                                       'Major dye version',
                                                       minimum=0,
                                                       required=False,
-                                                      default=2)
+                                                      default=1)
         cls.minor_param    = ParameterFactory.integer(MINOR,
                                                       'Minor dye version',
                                                       minimum=0,

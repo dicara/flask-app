@@ -715,3 +715,5 @@ GnuBio Flask API.
      * v2.25
        * updated gbdrops from 0.9 to 0.12
        * sum method replaced with numpy.sum
+ * v3.51.0
+   * updated primary-analysis to v2.27

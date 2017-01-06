@@ -56,7 +56,7 @@ _CONFIG                   = "config"
 _STATUS                   = "status"
 _PROCESS                  = "Process"
 _DYES                     = ['633', 'pe']
-_DEVICE                   = "beta8"
+_DEVICE                   = "katahdin"
 _JOB_NAME                 = "test_pa_process_job"
 
 io_utilities.safe_make_dirs(HOME_DIR)

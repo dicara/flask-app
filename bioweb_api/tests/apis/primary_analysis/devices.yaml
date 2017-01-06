@@ -1,3 +1,2 @@
-{!!python/unicode 'Devices': [{!!python/unicode 'device': !!python/unicode 'bb3'},
-    {!!python/unicode 'device': !!python/unicode 'beta'}, {!!python/unicode 'device': !!python/unicode 'beta7'},
-    {!!python/unicode 'device': !!python/unicode 'beta8'}]}
+{!!python/unicode 'Devices': [{!!python/unicode 'device': !!python/unicode 'beta7'},
+    {!!python/unicode 'device': !!python/unicode 'katahdin'}]}

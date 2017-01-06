@@ -344,7 +344,7 @@ def execute_process(archive, dyes, device, major, minor, offsets, use_iid,
         # Mac, so use a system command.
         io_utilities.safe_make_dirs(TMP_PATH)
         os.system("cp -fr %s %s" % (archive_path, tmp_path))
-        
+
         with open(tmp_config_path, "w") as f:
             print >>f, "dye_map:"
             print >>f, "  device: %s" % device

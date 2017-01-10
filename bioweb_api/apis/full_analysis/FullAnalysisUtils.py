@@ -101,16 +101,9 @@ def update_fa_docs(jobs):
     for job in jobs:
         if ID in job:
             del job[ID]
-        update_single_job(job)
+        if DIFF_PARAMS not in job:
+            add_diff_params(job)
     return jobs
-
-def update_single_job(fa_job):
-    fa_uuid = fa_job[UUID]
-    fa_job = _DB_CONNECTOR.find_one(FA_PROCESS_COLLECTION, UUID, fa_uuid)
-    if not fa_job:
-        raise Exception("Job with uuid %s is not found." % fa_uuid)
-
-    add_diff_params(fa_job)
 
 def add_diff_params(fa_job):
     diff_params = dict()

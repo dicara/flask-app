@@ -723,3 +723,5 @@ GnuBio Flask API.
        * sum method replaced with numpy.sum
  * v3.51.0
    * updated primary-analysis to v2.27
+ * v3.52.0
+   * Reduce the frequency of updating full analysis jobs with non-default input parameters

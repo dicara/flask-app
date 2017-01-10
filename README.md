@@ -725,3 +725,5 @@ GnuBio Flask API.
    * updated primary-analysis to v2.27
  * v3.52.0
    * Reduce the frequency of updating full analysis jobs with non-default input parameters
+ * v3.53.0
+   * Add date range parameters to GET run report API, allowing refresh/re-read reports in any date range

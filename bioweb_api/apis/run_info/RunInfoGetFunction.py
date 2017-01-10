@@ -35,7 +35,7 @@ def daterange(start_date, end_date):
     """
     Generator function to iterate over a range of dates.
     """
-    for i in xrange(int((end_date - start_date).days)):
+    for i in xrange(int((end_date - start_date).days) + 1):
         yield start_date + timedelta(i)
 
 #=============================================================================

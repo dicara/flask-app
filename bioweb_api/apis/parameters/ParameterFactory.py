@@ -313,6 +313,18 @@ class ParameterFactory(object):
                              required=required, enum=enum)
 
     @classmethod
+    def start_date(cls, required=False, enum=None):
+        ''' Start date of a date range. '''
+        return DateParameter("start", "Start date of the form YYYY_MM_DD.",
+                             allow_multiple=False, required=required, enum=enum)
+
+    @classmethod
+    def end_date(cls, required=False, enum=None):
+        ''' End date of a date range. '''
+        return DateParameter("end", "End date of the form YYYY_MM_DD.",
+                             allow_multiple=False, required=required, enum=enum)
+
+    @classmethod
     def experiment_definition(cls):
         exp_defs = cls._DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, EXP_DEF_NAME)
         return cls.cs_string(EXP_DEF, "Experiment definition.", required=True,

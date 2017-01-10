@@ -20,11 +20,23 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from datetime import timedelta, datetime
+
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import ID, RUN_REPORT
 from bioweb_api.apis.run_info.RunInfoUtils import get_run_reports, update_run_reports
+
+#=============================================================================
+# Function
+#=============================================================================
+def daterange(start_date, end_date):
+    """
+    Generator function to iterate over a range of dates.
+    """
+    for i in xrange(int((end_date - start_date).days)):
+        yield start_date + timedelta(i)
 
 #=============================================================================
 # Class
@@ -54,9 +66,14 @@ class RunInfoGetFunction(AbstractGetFunction):
                                                          "run reports.",
                                                          default_value=False)
         cls.cart_sn_parameter = ParameterFactory.cartridge_sn()
+        cls.start_date = ParameterFactory.start_date()
+        cls.end_date = ParameterFactory.end_date()
+
         parameters = [
                       cls.cart_sn_parameter,
                       cls.refresh_parameter,
+                      cls.start_date,
+                      cls.end_date,
                       ParameterFactory.format(),
                      ]
         return parameters
@@ -65,7 +82,17 @@ class RunInfoGetFunction(AbstractGetFunction):
     def process_request(cls, params_dict):
         if cls.refresh_parameter in params_dict and \
            params_dict[cls.refresh_parameter][0]:
-            update_run_reports()
+            if cls.start_date in params_dict and params_dict[cls.start_date][0]:
+                start_date = params_dict[cls.start_date][0]
+                if cls.end_date in params_dict and params_dict[cls.end_date][0]:
+                    end_date = params_dict[cls.end_date][0]
+                else:
+                    end_date = datetime.now()
+                date_folders = [d.strftime("%m_%d_%y")
+                                for d in daterange(start_date, end_date)]
+            else:
+                date_folders = None
+            update_run_reports(date_folders)
 
         if cls.cart_sn_parameter in params_dict and \
             params_dict[cls.cart_sn_parameter][0]:

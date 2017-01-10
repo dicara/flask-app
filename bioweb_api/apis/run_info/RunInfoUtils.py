@@ -216,7 +216,7 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     return [archive[HDF5_DATASET] for archive in hdf5_archives]
 
 
-def update_run_reports():
+def update_run_reports(date_folders=None):
     '''
     Update the database with available run reports.  It is not an error
     if zero reports are available at this moment.
@@ -225,24 +225,32 @@ def update_run_reports():
     '''
     APP_LOGGER.info("Updating database with available run reports...")
 
-    try:
-        latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
-    except TypeError:
-        latest_date = None
+    if date_folders is None:
+        folder_specified = False
+        try:
+            latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+        except TypeError:
+            latest_date = None
+    else:
+        folder_specified = True
 
     # fetch utags in run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
     if os.path.isdir(RUN_REPORT_PATH):
-        date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
-                        if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
-                        and re.match('\d+_\d+_\d+', folder)]
+        if date_folders is None:
+            date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
+                            if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
+                            and re.match('\d+_\d+_\d+', folder)]
 
         reports = list()
         for folder in date_folders:
             path = os.path.join(RUN_REPORT_PATH, folder)
+            if not os.path.isdir(path): continue
+
             date_obj = datetime.strptime(folder, '%m_%d_%y')
-            if latest_date is not None and date_obj < latest_date - timedelta(days=2):
+            if not folder_specified and latest_date is not None and \
+                    date_obj < latest_date - timedelta(days=2):
                 continue
 
             report_files_utags = [(get_run_info_path(path, sf), sf)

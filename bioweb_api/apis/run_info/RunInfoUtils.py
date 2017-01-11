@@ -241,11 +241,10 @@ def update_run_reports(date_folders=None):
                 return date_obj >= latest_date - timedelta(days=2)
 
             date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
-                            if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
-                            and re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
+                            if re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
 
         date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
-        date_folders = filter(lambda x: os.path.isdir(x), date_folders)
+        date_folders = [f for f in date_folders if os.path.isdir(f)]
 
         reports = list()
         for folder in date_folders:

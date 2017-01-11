@@ -24,6 +24,7 @@ from datetime import timedelta, datetime
 
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
+from bioweb_api.apis.parameters.DateParameter import DateParameter
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import ID, RUN_REPORT
 from bioweb_api.apis.run_info.RunInfoUtils import get_run_reports, update_run_reports
@@ -66,8 +67,12 @@ class RunInfoGetFunction(AbstractGetFunction):
                                                          "run reports.",
                                                          default_value=False)
         cls.cart_sn_parameter = ParameterFactory.cartridge_sn()
-        cls.start_date = ParameterFactory.start_date()
-        cls.end_date = ParameterFactory.end_date()
+        cls.start_date = DateParameter("start", "Start date of the form YYYY_MM_DD.",
+                                       allow_multiple=False,
+                                       required=False)
+        cls.end_date = DateParameter("end", "End date of the form YYYY_MM_DD.",
+                                     allow_multiple=False,
+                                     required=False)
 
         parameters = [
                       cls.cart_sn_parameter,

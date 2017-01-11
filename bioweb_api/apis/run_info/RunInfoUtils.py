@@ -198,18 +198,21 @@ def get_run_info_path(path, sub_folder):
             return run_info_path
     return None
 
-def get_hdf5_datasets(log_data, date_folder, time_folder, exist_hdf5_paths):
+def update_hdf5_datasets(log_data, date_folder, time_folder):
     """
     Fetch the HDF5 archives associated with a run report.
 
     @param log_data:            the document of run report yaml
     @param date_folder:         the date folder where run report lives
     @param time_folder:         the time sub folder where run report lives
-    @param exist_hdf5_paths:    existing HDF5 paths in database
     """
     run_id = log_data[RUN_ID]
     hdf5_path = os.path.join(RUN_REPORT_PATH, date_folder, time_folder,
                              run_id + '.h5')
+
+    # fetch HDF5 path from HDF5 collection
+    exist_hdf5_paths = _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH)
+
     if hdf5_path in exist_hdf5_paths: return []
 
     new_records = list()
@@ -243,9 +246,6 @@ def update_run_reports(date_folders=None):
     # fetch utags from run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
-    # fetch HDF5 path from HDF5 collection
-    db_hdf5_paths = _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH)
-
     if os.path.isdir(RUN_REPORT_PATH):
         if date_folders is None:
             try:
@@ -277,8 +277,7 @@ def update_run_reports(date_folders=None):
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
-                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf,
-                                                          db_hdf5_paths)
+                        hdf5_datasets = update_hdf5_datasets(log_data, folder, sf)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)
@@ -292,8 +291,7 @@ def update_run_reports(date_folders=None):
                         log_data = read_report_file(report_file_path, date_obj, utag)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
-                        new_datasets = set(get_hdf5_datasets(log_data, folder, sf,
-                                                             db_hdf5_paths))
+                        new_datasets = set(update_hdf5_datasets(log_data, folder, sf))
                         if new_datasets:
                             exist_datasets = set(log_data[IMAGE_STACKS])
 

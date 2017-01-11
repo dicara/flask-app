@@ -225,40 +225,35 @@ def update_run_reports(date_folders=None):
     '''
     APP_LOGGER.info("Updating database with available run reports...")
 
-    if date_folders is None:
-        folder_specified = False
-        try:
-            latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
-        except TypeError:
-            latest_date = None
-    else:
-        folder_specified = True
-
     # fetch utags in run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
     if os.path.isdir(RUN_REPORT_PATH):
         if date_folders is None:
+            try:
+                latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+            except TypeError:
+                latest_date = None
+
+            def valid_date(folder):
+                if latest_date is None: return True
+                date_obj = datetime.strptime(folder, '%m_%d_%y')
+                return date_obj >= latest_date - timedelta(days=2)
+
             date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
                             if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
-                            and re.match('\d+_\d+_\d+', folder)]
+                            and re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
+
+        date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
+        date_folders = filter(lambda x: os.path.isdir(x), date_folders)
 
         reports = list()
         for folder in date_folders:
-            path = os.path.join(RUN_REPORT_PATH, folder)
-            if not os.path.isdir(path): continue
-
-            date_obj = datetime.strptime(folder, '%m_%d_%y')
-            if not folder_specified and latest_date is not None and \
-                    date_obj < latest_date - timedelta(days=2):
-                continue
-
-            report_files_utags = [(get_run_info_path(path, sf), sf)
-                                   for sf in os.listdir(path)]
-            for sf in os.listdir(path):
-                report_file_path = get_run_info_path(path, sf)
+            for sf in os.listdir(folder):
+                report_file_path = get_run_info_path(folder, sf)
                 if report_file_path is None: continue
 
+                date_obj = datetime.strptime(os.path.basename(folder), '%m_%d_%y')
                 utag = set_utag(date_obj, sf)
                 if utag not in db_utags: # if not exists, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)

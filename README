@@ -724,3 +724,5 @@ GnuBio Flask API.
  * v3.54.0
    * updated secondary-analysis to version 2.0.0
    * updated primary-analysis to version 2.28
+ * v3.55.0
+   * Combine GET HDF5 API into GET run report API

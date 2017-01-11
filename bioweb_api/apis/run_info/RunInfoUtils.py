@@ -278,7 +278,7 @@ def update_run_reports(date_folders=None):
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
                         hdf5_datasets = get_hdf5_datasets(log_data, folder, sf,
-                                                          exist_hdf5_paths)
+                                                          db_hdf5_paths)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)

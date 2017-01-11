@@ -33,7 +33,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVIS
     RUN_DESCRIPTION, RUN_REPORT_PATH, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
     CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
     APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
-    CUSTOMER_APP_NAME
+    CUSTOMER_APP_NAME, DATETIME
 from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.apis.run_info.RunInfoUtils import read_report_file, \
         get_run_reports, update_run_reports
@@ -48,6 +48,8 @@ _RUN_REPORT_YAMLFILE        = 'run_info.yaml'
 _RUN_REPORT_CLIENTUI        = 'run_info_clientUI.yaml'
 _RUN_INFO_URL               = '/api/v1/RunInfo'
 _RUN_INFO_GET_URL           = os.path.join(_RUN_INFO_URL, 'run_report')
+_START_DATE                 = datetime.datetime(2017, 1, 1)
+_END_DATE                   = datetime.datetime(2017, 1, 10)
 
 #=============================================================================
 # TestCase
@@ -120,6 +122,40 @@ class TestRunReportAPI(unittest.TestCase):
                                                                                              '$not': {'$size': 0}}}))
         len_observed_reports = len(response['run_report'])
 
+        msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \
+                % (len_observed_reports, len_expected_reports)
+        self.assertEqual(len_expected_reports, len_observed_reports, msg)
+
+    def test_update_report_by_dates(self):
+        """
+        test RunInfoGetFunction with start and end parameters
+        """
+        # test when both start and end dates are specified
+        param_str = '?refresh=true&start={0}&end={1}'.format(
+                                            _START_DATE.strftime("%Y_%m_%d"),
+                                            _END_DATE.strftime("%Y_%m_%d"))
+        response = get_data(self, _RUN_INFO_GET_URL + param_str, 200)
+        len_expected_reports = len(_DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
+                                            {UUID: {'$exists': True},
+                                             DEVICE_NAME: {'$ne': ''},
+                                             EXP_DEF_NAME: {'$ne': None},
+                                             IMAGE_STACKS: {'$ne': None,
+                                                            '$not': {'$size': 0}}}))
+        len_observed_reports = len(response['run_report'])
+        msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \
+                % (len_observed_reports, len_expected_reports)
+        self.assertEqual(len_expected_reports, len_observed_reports, msg)
+
+        # test when only start date is specified
+        param_str = '?refresh=true&start={0}'.format(_START_DATE.strftime("%Y_%m_%d"))
+        response = get_data(self, _RUN_INFO_GET_URL + param_str, 200)
+        len_expected_reports = len(_DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
+                                            {UUID: {'$exists': True},
+                                             DEVICE_NAME: {'$ne': ''},
+                                             EXP_DEF_NAME: {'$ne': None},
+                                             IMAGE_STACKS: {'$ne': None,
+                                                            '$not': {'$size': 0}}}))
+        len_observed_reports = len(response['run_report'])
         msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \
                 % (len_observed_reports, len_expected_reports)
         self.assertEqual(len_expected_reports, len_observed_reports, msg)

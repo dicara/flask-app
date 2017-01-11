@@ -93,8 +93,6 @@ def get_run_reports(cartridge_sn=None):
                     % (len(reports), ))
     return (reports, column_names, None)
 
-strip_str = lambda str : str.rstrip().lstrip()
-
 def set_utag(date_obj, sf):
     date_str = "%s_%s_%s" % (date_obj.year, date_obj.month, date_obj.day)
     return '_'.join([date_str, sf])
@@ -114,14 +112,14 @@ def read_report_file_txt(report_file, date_obj, utag):
             if line.strip():
                 try:
                     key, value = line.split(':')
-                    key, value = strip_str(key), strip_str(value)
+                    key, value = key.strip(), value.strip()
                     if key == USER_TXT and value:
-                        data[key] = [strip_str(user) for user in value.split(',')]
+                        data[key] = [user.strip() for user in value.split(',')]
                     elif key in [RUN_DESCRIPTION_TXT, EXIT_NOTES_TXT, TDI_STACKS_TXT]:
                         values = [value]
                         j = i + 1
                         while j < len(lines) and ':' not in lines[j]:
-                            values.append(strip_str(lines[j]))
+                            values.append(lines[j].strip())
                             j += 1
                         if key == TDI_STACKS_TXT:
                             regex = ARCHIVES_PATH + '/[^/]+'
@@ -155,7 +153,7 @@ def read_report_file_yaml(report_file, date_obj, utag):
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
-        data[USER] = [strip_str(user) for user in data[USER].split(',')]
+        data[USER] = [user.strip() for user in data[USER].split(',')]
         report_obj = RunReportWebUI.from_dict(**data)
         return report_obj.as_dict()
     except KeyError as e:
@@ -216,7 +214,7 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     return [archive[HDF5_DATASET] for archive in hdf5_archives]
 
 
-def update_run_reports():
+def update_run_reports(date_folders=None):
     '''
     Update the database with available run reports.  It is not an error
     if zero reports are available at this moment.
@@ -225,32 +223,34 @@ def update_run_reports():
     '''
     APP_LOGGER.info("Updating database with available run reports...")
 
-    try:
-        latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
-    except TypeError:
-        latest_date = None
-
     # fetch utags in run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
     if os.path.isdir(RUN_REPORT_PATH):
-        date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
-                        if os.path.isdir(os.path.join(RUN_REPORT_PATH, folder))
-                        and re.match('\d+_\d+_\d+', folder)]
+        if date_folders is None:
+            try:
+                latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+            except TypeError:
+                latest_date = None
+
+            def valid_date(folder):
+                if latest_date is None: return True
+                date_obj = datetime.strptime(folder, '%m_%d_%y')
+                return date_obj >= latest_date - timedelta(days=2)
+
+            date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
+                            if re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
+
+        date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
+        date_folders = [f for f in date_folders if os.path.isdir(f)]
 
         reports = list()
         for folder in date_folders:
-            path = os.path.join(RUN_REPORT_PATH, folder)
-            date_obj = datetime.strptime(folder, '%m_%d_%y')
-            if latest_date is not None and date_obj < latest_date - timedelta(days=2):
-                continue
-
-            report_files_utags = [(get_run_info_path(path, sf), sf)
-                                   for sf in os.listdir(path)]
-            for sf in os.listdir(path):
-                report_file_path = get_run_info_path(path, sf)
+            for sf in os.listdir(folder):
+                report_file_path = get_run_info_path(folder, sf)
                 if report_file_path is None: continue
 
+                date_obj = datetime.strptime(os.path.basename(folder), '%m_%d_%y')
                 utag = set_utag(date_obj, sf)
                 if utag not in db_utags: # if not exists, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)

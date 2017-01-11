@@ -93,8 +93,6 @@ def get_run_reports(cartridge_sn=None):
                     % (len(reports), ))
     return (reports, column_names, None)
 
-strip_str = lambda str : str.rstrip().lstrip()
-
 def set_utag(date_obj, sf):
     date_str = "%s_%s_%s" % (date_obj.year, date_obj.month, date_obj.day)
     return '_'.join([date_str, sf])
@@ -114,14 +112,14 @@ def read_report_file_txt(report_file, date_obj, utag):
             if line.strip():
                 try:
                     key, value = line.split(':')
-                    key, value = strip_str(key), strip_str(value)
+                    key, value = key.strip(), value.strip()
                     if key == USER_TXT and value:
-                        data[key] = [strip_str(user) for user in value.split(',')]
+                        data[key] = [user.strip() for user in value.split(',')]
                     elif key in [RUN_DESCRIPTION_TXT, EXIT_NOTES_TXT, TDI_STACKS_TXT]:
                         values = [value]
                         j = i + 1
                         while j < len(lines) and ':' not in lines[j]:
-                            values.append(strip_str(lines[j]))
+                            values.append(lines[j].strip())
                             j += 1
                         if key == TDI_STACKS_TXT:
                             regex = ARCHIVES_PATH + '/[^/]+'
@@ -155,7 +153,7 @@ def read_report_file_yaml(report_file, date_obj, utag):
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
-        data[USER] = [strip_str(user) for user in data[USER].split(',')]
+        data[USER] = [user.strip() for user in data[USER].split(',')]
         report_obj = RunReportWebUI.from_dict(**data)
         return report_obj.as_dict()
     except KeyError as e:

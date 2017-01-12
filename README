@@ -723,3 +723,4 @@ GnuBio Flask API.
    * Add date range parameters to GET run report API, allowing refresh/re-read reports in any date range
  * v3.54.0
    * updated secondary-analysis to version 2.0.0
+   * updated primary-analysis to version 2.28

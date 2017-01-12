@@ -26,6 +26,8 @@ import os
 import re
 import yaml
 
+import h5py
+
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
     HDF5_COLLECTION
 from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET
@@ -196,7 +198,7 @@ def get_run_info_path(path, sub_folder):
             return run_info_path
     return None
 
-def get_hdf5_datasets(log_data, date_folder, time_folder):
+def update_hdf5_datasets(log_data, date_folder, time_folder):
     """
     Fetch the HDF5 archives associated with a run report.
 
@@ -207,11 +209,29 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     run_id = log_data[RUN_ID]
     hdf5_path = os.path.join(RUN_REPORT_PATH, date_folder, time_folder,
                              run_id + '.h5')
-    hdf5_archives = _DB_CONNECTOR.find(
-                                HDF5_COLLECTION,
-                                {HDF5_PATH: hdf5_path},
-                                {HDF5_DATASET: 1})
-    return [archive[HDF5_DATASET] for archive in hdf5_archives]
+
+    # fetch HDF5 path from HDF5 collection
+    exist_hdf5_paths = _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH)
+
+    if hdf5_path in exist_hdf5_paths: return []
+
+    new_records = list()
+    try:
+        with h5py.File(hdf5_path) as h5_file:
+            dataset_names = h5_file.keys()
+        for dsname in dataset_names:
+            if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
+                new_records.append({
+                    HDF5_PATH: hdf5_path,
+                    HDF5_DATASET: dsname,
+                })
+    except:
+        APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % hdf5_path)
+
+    if new_records:
+        APP_LOGGER.info('Found %d datasets from HDF5 file: %s' % (len(new_records), hdf5_path))
+        _DB_CONNECTOR.insert(HDF5_COLLECTION, new_records)
+    return [r[HDF5_DATASET] for r in new_records]
 
 
 def update_run_reports(date_folders=None):
@@ -223,7 +243,7 @@ def update_run_reports(date_folders=None):
     '''
     APP_LOGGER.info("Updating database with available run reports...")
 
-    # fetch utags in run report collection
+    # fetch utags from run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
     if os.path.isdir(RUN_REPORT_PATH):
@@ -236,7 +256,7 @@ def update_run_reports(date_folders=None):
             def valid_date(folder):
                 if latest_date is None: return True
                 date_obj = datetime.strptime(folder, '%m_%d_%y')
-                return date_obj >= latest_date - timedelta(days=2)
+                return date_obj >= latest_date - timedelta(days=6)
 
             date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
                             if re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
@@ -257,8 +277,7 @@ def update_run_reports(date_folders=None):
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
-                        hdf5_datasets= get_hdf5_datasets(log_data, folder, sf)
-
+                        hdf5_datasets = update_hdf5_datasets(log_data, folder, sf)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)
@@ -272,15 +291,18 @@ def update_run_reports(date_folders=None):
                         log_data = read_report_file(report_file_path, date_obj, utag)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
-                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
-                        exist_datasets = log_data[IMAGE_STACKS]
+                        new_datasets = set(update_hdf5_datasets(log_data, folder, sf))
+                        if new_datasets:
+                            exist_datasets = set(log_data[IMAGE_STACKS])
 
-                        if set(hdf5_datasets) - set(exist_datasets):
-                            updated_datasets = list(set(hdf5_datasets) | set(exist_datasets))
-                            _DB_CONNECTOR.update(
-                                    RUN_REPORT_COLLECTION,
-                                    {UTAG: utag},
-                                    {"$set": {IMAGE_STACKS: updated_datasets}})
+                            if new_datasets - exist_datasets:
+                                updated_datasets = list(new_datasets | exist_datasets)
+                                _DB_CONNECTOR.update(
+                                        RUN_REPORT_COLLECTION,
+                                        {UTAG: utag},
+                                        {"$set": {IMAGE_STACKS: updated_datasets}})
+                                APP_LOGGER.info('Updated run report utag=%s with %d datasets'
+                                                % (utag, len(updated_datasets)))
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:

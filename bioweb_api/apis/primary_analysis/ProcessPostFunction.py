@@ -308,6 +308,7 @@ def convert_hdf5_dataset_to_txt(hdf5_path, dataset, output_path, delimiter='\t')
         'av_sq_err': '%.8f',
         'sum-err': '%.3f',
         'capture_time': '%07.2f',
+        'img_creation_time': '%07.2f',
         '-decomp': '%.1f'
     }
 
@@ -320,6 +321,13 @@ def convert_hdf5_dataset_to_txt(hdf5_path, dataset, output_path, delimiter='\t')
     if 'capture_time' in columns:
         idx = numpy.where(columns == 'capture_time')[0][0]
         data = data[data[:, idx].argsort()]
+        creation_time = dataset.attrs['creation_time']
+        vfunc = numpy.vectorize(lambda x: float(time.strftime('%H%M.%S', time.localtime(x + creation_time))))
+        data[:, [idx]] = vfunc(data[:, [idx]])
+
+    # append capture time if available
+    if 'img_creation_time' in columns:
+        idx = numpy.where(columns == 'img_creation_time')[0][0]
         creation_time = dataset.attrs['creation_time']
         vfunc = numpy.vectorize(lambda x: float(time.strftime('%H%M.%S', time.localtime(x + creation_time))))
         data[:, [idx]] = vfunc(data[:, [idx]])

@@ -391,7 +391,7 @@ class SaIdentityCallable(object):
                      ignored_dyes=self.ignored_dyes,
                      filtered_dyes=self.filtered_dyes,
                      uninjected_threshold=self.ui_threshold,
-                     require_perfect_id=False,
+                     dev_mode=True,
                      use_pico_thresh=self.use_pico_thresh,
                      max_uninj_ratio=self.max_uninj_ratio,
                      ignore_lowest_barcode=self.ignore_lowest_barcode).execute()
@@ -446,7 +446,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
                             TEMPORAL_PLOT_URL: get_results_url(temporal_plot_path),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
-                update_data[ERROR] = report_errors
+                update_data[ERROR] = '\n'.join(report_errors)
 
             update = {"$set": update_data}
             # If job has been deleted, then delete result and don't update DB.
@@ -487,15 +487,27 @@ def check_report_for_errors(report_path):
     if os.path.exists(report_path):
         report_errors = list()
         with open(report_path) as fh:
-            id_model_errors = yaml.load(fh)[ID_MODEL_METRICS]['PROBLEMS']
-            id_collisions = id_model_errors['id_collisions']
-            missing = id_model_errors['missing']
-            if missing:
-                report_errors.append('Missing barcodes: %s' % str(missing))
-            if id_collisions:
-                report_errors.append('Identity collisions: %s' % str(id_collisions))
+            id_model_errors = yaml.load(fh)['ID_RESULT']['ERRORS']
+            if 'failed_background' in id_model_errors:
+                report_errors.append('Failed background filter.')
+            if 'merged_drops' in id_model_errors:
+                report_errors.append('Merged drops detected.')
+            if 'merged_clusters' in id_model_errors:
+                report_errors.append('%d merged.' % len(id_model_errors['merged_clusters']))
+            if 'missing' in id_model_errors:
+                report_errors.append('%d missing.' % len(id_model_errors['missing']))
+            if 'id_collisions' in id_model_errors:
+                ncollisions = len(id_model_errors['id_collisions'])
+                if ncollisions > 1:
+                    msg = '%d ID collisions.' % ncollisions
+                else:
+                    msg = '%d ID collision.' % ncollisions
+                report_errors.append(msg)
+            if 'retrain' in id_model_errors:
+                report_errors.append('Retrained %d times.' % len(id_model_errors['retrain']))
+
         if report_errors:
-            return ', '.join(report_errors)
+            return report_errors
 
 
 #===============================================================================

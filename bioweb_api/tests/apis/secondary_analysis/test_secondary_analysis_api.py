@@ -339,8 +339,8 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         with open(self._exp_abl_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
             exp_report = yaml.load(f_exp)
             obs_report = yaml.load(f_obs)
-        exp_clusters = exp_report[ID_MODEL_METRICS]['CLUSTERS']
-        obs_clusters = obs_report[ID_MODEL_METRICS]['CLUSTERS']
+        exp_clusters = exp_report[ID_MODEL_METRICS][0]['CLUSTERS']
+        obs_clusters = obs_report[ID_MODEL_METRICS][0]['CLUSTERS']
 
         exp_clus_ids = exp_clusters.keys()
         exp_clus_ids.sort()

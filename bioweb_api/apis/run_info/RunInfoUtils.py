@@ -210,10 +210,9 @@ def update_hdf5_datasets(log_data, date_folder, time_folder):
     hdf5_path = os.path.join(RUN_REPORT_PATH, date_folder, time_folder,
                              run_id + '.h5')
 
-    # fetch HDF5 path from HDF5 collection
-    exist_hdf5_paths = _DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH)
-
-    if hdf5_path in exist_hdf5_paths: return []
+    exist_records = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_PATH: hdf5_path})
+    if exist_records:
+        return [r[HDF5_DATASET] for r in exist_records]
 
     new_records = list()
     try:

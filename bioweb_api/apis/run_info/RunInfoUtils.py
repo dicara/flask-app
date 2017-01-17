@@ -198,7 +198,7 @@ def get_run_info_path(path, sub_folder):
             return run_info_path
     return None
 
-def update_hdf5_datasets(log_data, date_folder, time_folder):
+def get_hdf5_datasets(log_data, date_folder, time_folder):
     """
     Fetch the HDF5 archives associated with a run report.
 
@@ -276,7 +276,7 @@ def update_run_reports(date_folders=None):
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
-                        hdf5_datasets = update_hdf5_datasets(log_data, folder, sf)
+                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)
@@ -290,7 +290,7 @@ def update_run_reports(date_folders=None):
                         log_data = read_report_file(report_file_path, date_obj, utag)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
-                        new_datasets = set(update_hdf5_datasets(log_data, folder, sf))
+                        new_datasets = set(get_hdf5_datasets(log_data, folder, sf))
                         if new_datasets:
                             exist_datasets = set(log_data[IMAGE_STACKS])
 

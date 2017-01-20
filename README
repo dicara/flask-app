@@ -728,3 +728,5 @@ GnuBio Flask API.
    * Combine GET HDF5 API into GET run report API
  * v3.55.1
    * Solve out-of-sync issue between RunInfoGet and HDFsGet APIs
+ * v3.55.2
+   * Bugfix in displaying non-default values for full analysis parameters

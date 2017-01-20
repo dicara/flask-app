@@ -43,7 +43,7 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, \
      KDE_PNG_SUM_URL, PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, \
-     IGNORE_LOWEST_BARCODE, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER
+     IGNORE_LOWEST_BARCODE, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -101,7 +101,7 @@ def update_fa_docs(jobs):
     for job in jobs:
         if ID in job:
             del job[ID]
-        if DIFF_PARAMS not in job:
+        if DIFF_PARAMS not in job or job[STATUS] == RUNNING:
             add_diff_params(job)
     return jobs
 

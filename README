@@ -730,3 +730,7 @@ GnuBio Flask API.
    * Solve out-of-sync issue between RunInfoGet and HDFsGet APIs
  * v3.55.2
    * Bugfix in displaying non-default values for full analysis parameters
+ * v3.56.0
+   * Updated secondary analysis to v2.1.0 which includes:
+     * A run report analysis tool that parses run reports files and generates an HTML summary table
+     * Improved assay caller plots

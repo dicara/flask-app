@@ -483,15 +483,15 @@ GnuBio Flask API.
    * Fetch single run report using cartridge serial number
  * v3.31
    * Update secondary-analysis from v1.69.3 to v1.72
-     * v1.69.4
-       * Handle cDNA change of deletions and insertions
-     * v1.70
-       * Add picoinjection status reporting
-     * v1.71
-       * Fix unit tests hanging due to permissions on runs server
-       * Fix picoinjection status reporting for offline
-     * v1.72
-       * offline identity uses csv generator instead of pandas dataframe
+   * v1.69.4
+     * Handle cDNA change of deletions and insertions
+   * v1.70
+     * Add picoinjection status reporting
+   * v1.71
+     * Fix unit tests hanging due to permissions on runs server
+     * Fix picoinjection status reporting for offline
+   * v1.72
+     * offline identity uses csv generator instead of pandas dataframe
  * v3.32
    * Updated secondary-analysis from v1.72 to v1.75
      * v1.73
@@ -528,12 +528,6 @@ GnuBio Flask API.
    * Bugfix in getting the latest date of run reports
  * v3.36
    * Add HDF5 files to run reports
- * v3.37
-   * Update secondary-analysis from v1.78 to v1.78.2
-     * v1.78.1
-       * Added assay caller positive/negative population publishing for live plots
-     * v1.78.2
-       * Handle missing barcode in assay caller plotting
  * v3.37
    * Update secondary-analysis from v1.78 to v1.78.3
      * v1.78.1
@@ -680,7 +674,7 @@ GnuBio Flask API.
      * v1.97.2
        * Bug fix in assign target id when strand of variation is undefined
  * v3.49
-   * For run report refreshing, check HDF5 collection for run reports generated during the past three days  
+   * For run report refreshing, check HDF5 collection for run reports generated during the past three days
  * v3.49.1
    * Bugfix in updating image stacks of run report documents
  * v3.49.2
@@ -736,3 +730,7 @@ GnuBio Flask API.
    * Solve out-of-sync issue between RunInfoGet and HDFsGet APIs
  * v3.55.2
    * Bugfix in displaying non-default values for full analysis parameters
+ * v3.56.0
+   * Updated secondary analysis to v2.1.0 which includes:
+     * A run report analysis tool that parses run reports files and generates an HTML summary table
+     * Improved assay caller plots

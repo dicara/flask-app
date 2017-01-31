@@ -18,5 +18,5 @@ secondary-analysis==2.1.0
 experiment-database==0.13
 PyPDF2>=1.25.1
 reportlab>=3.3.0
-gbutils>=1.8
+gbutils>=2.0.0
 profile-db==0.7

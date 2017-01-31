@@ -734,3 +734,6 @@ GnuBio Flask API.
    * Updated secondary analysis to v2.1.0 which includes:
      * A run report analysis tool that parses run reports files and generates an HTML summary table
      * Improved assay caller plots
+ * v3.57.0
+   * Update gbutils to v2.0.0 which includes:
+     * Wrap text in table cells of VCF PDF

@@ -737,3 +737,4 @@ GnuBio Flask API.
  * v3.57.0
    * Update gbutils to v2.0.0 which includes:
      * Wrap text in table cells of VCF PDF
+   * Do not add non-default parameter information to database

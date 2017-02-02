@@ -101,8 +101,8 @@ def update_fa_docs(jobs):
     for job in jobs:
         if ID in job:
             del job[ID]
-        if DIFF_PARAMS not in job or job[STATUS] == RUNNING:
-            add_diff_params(job)
+
+        add_diff_params(job)
     return jobs
 
 def add_diff_params(fa_job):
@@ -114,10 +114,8 @@ def add_diff_params(fa_job):
             val = fa_job[doc_name][param_name]
             if val != DEFAULTS[param]:
                 diff_params[param] = val
+
     fa_job[DIFF_PARAMS] = diff_params
-    update = { '$set': {DIFF_PARAMS: diff_params} }
-    _DB_CONNECTOR.update(FA_PROCESS_COLLECTION, {UUID: fa_job[UUID]}, update)
-    return True
 
 def add_unified_pdf(fa_job):
     if UNIFIED_PDF_URL in fa_job and fa_job[UNIFIED_PDF_URL] \

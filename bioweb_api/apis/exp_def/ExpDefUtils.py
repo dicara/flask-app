@@ -80,12 +80,13 @@ def update_experiment_definitions():
     new_exp_defs = list()
     for uuid in new_uuids:
         experiment = exp_def_fetcher.get_experiment_definition_obj(uuid)
-        if experiment.exp_type == 'HOTSPOT':
-            update = {UUID: uuid, NAME: experiment.name,
-                      VARIANTS: format_variants(experiment)}
-        else:
-            update = {UUID: uuid, NAME: name}
-        new_exp_defs.append(update)
+        if experiment is not None:
+            if experiment.exp_type == 'HOTSPOT':
+                update = {UUID: uuid, NAME: experiment.name,
+                          VARIANTS: format_variants(experiment)}
+            else:
+                update = {UUID: uuid, NAME: name}
+            new_exp_defs.append(update)
     if new_exp_defs:
         _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
 

@@ -742,5 +742,6 @@ GnuBio Flask API.
    * Update to new version of experiment definition fetcher
    * Update gbutils to v2.1.1 which includes:
      * Migrate experiment definition fetcher to gbutils
+     * Update parameters for slug window video generation
    * Update secondary-analysis to v2.2.0 which includes:
      * Handle new types of experiment definitions using exp def fetcher in gbutils

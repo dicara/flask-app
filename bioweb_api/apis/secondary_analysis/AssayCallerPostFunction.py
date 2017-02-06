@@ -44,9 +44,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     TRAINING_FACTOR_DESCRIPTION, CTRL_THRESH_DESCRIPTION, CTRL_FILTER, \
     CTRL_FILTER_DESCRIPTION, AC_MODEL, ASSAY_CALLER_MODEL_DESCRIPTION
 
-from expdb import HotspotExperiment
 from primary_analysis.command import InvalidFileError
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from gbutils.expdb_fetcher import ExperimentDefinitions
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 
@@ -281,9 +280,7 @@ class SaAssayCallerCallable(object):
             safe_make_dirs(self.tmp_path)
 
             exp_def_fetcher = ExperimentDefinitions()
-            exp_def_uuid = exp_def_fetcher.get_experiment_uuid(self.exp_def_name)
-            exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
-            experiment = HotspotExperiment.from_dict(exp_def)
+            experiment = exp_def_fetcher.get_experiment_definition_obj(self.exp_def_name)
 
             AssayCallManager(self.num_probes, in_file=self.analysis_file,
                              out_file=self.tmp_outfile_path,
@@ -291,7 +288,7 @@ class SaAssayCallerCallable(object):
                              training_factor=self.training_factor,
                              assay=self.assay_dye,
                              fiducial=self.pico2_dye,
-                             controls=experiment.controls.barcodes,
+                             controls=experiment.negative_controls.barcodes,
                              ctrl_thresh=self.ctrl_thresh,
                              n_jobs=8,
                              controls_filtering=self.ctrl_filter,

@@ -27,9 +27,8 @@ from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME
 
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from gbutils.expdb_fetcher import ExperimentDefinitions
 from secondary_analysis.genotyping.genotyper_utils import get_target_id
-from expdb.defs import HotspotExperiment
 
 #=============================================================================
 # Private Static Variables
@@ -72,20 +71,21 @@ def update_experiment_definitions():
     """
     Update EXP_DEF_COLLECTION with new experiment definitions.
     """
-    exp_defs = ExperimentDefinitions()
+    exp_def_fetcher = ExperimentDefinitions()
 
     db_uuids = set(_DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, UUID))
-    cur_uuids = set(exp_defs.experiment_uuids)
+    cur_uuids = set(exp_def_fetcher.experiment_uuids)
     new_uuids = cur_uuids - db_uuids
     obselete_uuids = db_uuids - cur_uuids
     new_exp_defs = list()
     for uuid in new_uuids:
-        name = exp_defs.get_experiment_name(uuid)
-        exp_def = exp_defs.get_experiment_defintion(uuid)
-        experiment = HotspotExperiment.from_dict(exp_def)
-        new_exp_defs.append({UUID: uuid,
-                             NAME: name,
-                             VARIANTS: format_variants(experiment)})
+        experiment = exp_def_fetcher.get_experiment_definition_obj(uuid)
+        if experiment.exp_type == 'HOTSPOT':
+            update = {UUID: uuid, NAME: experiment.name,
+                      VARIANTS: format_variants(experiment)}
+        else:
+            update = {UUID: uuid, NAME: name}
+        new_exp_defs.append(update)
     if new_exp_defs:
         _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
 

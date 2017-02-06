@@ -44,8 +44,7 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
-from expdb import HotspotExperiment
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from gbutils.expdb_fetcher import ExperimentDefinitions
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.genotyping.genotype_analysis import GenotypeProcessor
 from secondary_analysis.assay_calling.assay_caller_plotting import generate_plots
@@ -223,9 +222,7 @@ class SaGenotyperCallable(object):
             safe_make_dirs(self.tmp_path)
 
             exp_def_fetcher = ExperimentDefinitions()
-            exp_def_uuid = exp_def_fetcher.get_experiment_uuid(self.exp_def_name)
-            exp_def = exp_def_fetcher.get_experiment_defintion(exp_def_uuid)
-            experiment = HotspotExperiment.from_dict(exp_def)
+            experiment = exp_def_fetcher.get_experiment_definition_obj(self.exp_def_name)
             GenotypeProcessor(experiment, None, self.tmp_outfile_path,
                               required_drops=self.required_drops,
                               in_file=self.ac_result_path,

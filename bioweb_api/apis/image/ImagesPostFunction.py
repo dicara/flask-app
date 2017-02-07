@@ -40,7 +40,7 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from gbutils.expdb_fetcher import ExperimentDefinitions
 
 #=============================================================================
 # Public Static Variables
@@ -54,15 +54,15 @@ class ImagesPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
-    #===========================================================================    
+    #===========================================================================
     @staticmethod
     def name():
         return IMAGES
-   
+
     @staticmethod
     def summary():
         return "Add TDI images."
-    
+
     @staticmethod
     def notes():
         return ""
@@ -70,25 +70,25 @@ class ImagesPostFunction(AbstractPostFunction):
     def response_messages(self):
         msgs = super(ImagesPostFunction, self).response_messages()
         msgs.extend([
-                     { "code": 403, 
+                     { "code": 403,
                        "message": "Image stack already exists. Delete the " \
                                   "existing image stack and retry."},
-                     { "code": 404, 
+                     { "code": 404,
                        "message": "Submission unsuccessful. No experiment " \
                        "definition found matching input criteria."},
-                     { "code": 415, 
+                     { "code": 415,
                        "message": "File is not a valid image stack " \
                                   "tarball."},
                     ])
         return msgs
-    
+
     @classmethod
     def parameters(cls):
         cls._file_param       = ParameterFactory.file("Image stack tgz file.")
         cls._exp_defs_param   = ParameterFactory.experiment_definition()
         cls._name_param       = ParameterFactory.cs_string(NAME,
             "Unique name to give this image stack.")
-        cls._short_desc_param = ParameterFactory.cs_string(DESCRIPTION, 
+        cls._short_desc_param = ParameterFactory.cs_string(DESCRIPTION,
             "Short description of image stack.")
 
         parameters = [
@@ -98,7 +98,7 @@ class ImagesPostFunction(AbstractPostFunction):
                       cls._short_desc_param,
                      ]
         return parameters
-    
+
     @classmethod
     def process_request(cls, params_dict):
         image_stack_tgz  = params_dict[cls._file_param][0]
@@ -109,7 +109,7 @@ class ImagesPostFunction(AbstractPostFunction):
         uuid             = str(uuid4())
         tmp_archive_path = os.path.join(TMP_PATH, uuid + ".tar.gz")
         archive_path     = os.path.join(RESULTS_PATH, uuid + ".tar.gz")
-        json_response    = { 
+        json_response    = {
                             FILENAME: image_stack_tgz.filename,
                             UUID: uuid,
                             DATESTAMP: datetime.today(),
@@ -127,8 +127,8 @@ class ImagesPostFunction(AbstractPostFunction):
                                                      [NAME])
 
             # check for exp def
-            exp_defs     = ExperimentDefinitions()
-            exp_def_uuid = exp_defs.get_experiment_uuid(exp_def_name)
+            exp_def_fetcher = ExperimentDefinitions()
+            exp_def_uuid = exp_def_fetcher.get_experiment_uuid(exp_def_name)
 
             if existing_stacks:
                 http_status_code = 403
@@ -168,12 +168,12 @@ class ImagesPostFunction(AbstractPostFunction):
             if ID in json_response:
                 del json_response[ID]
             silently_remove_file(tmp_archive_path)
-        
+
         return make_clean_response(json_response, http_status_code)
-    
+
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
     function = ImagesPostFunction()
-    print function        
+    print function

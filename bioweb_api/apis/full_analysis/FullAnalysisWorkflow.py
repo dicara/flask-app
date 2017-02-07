@@ -30,7 +30,7 @@ from bioweb_api.apis.primary_analysis.ProcessPostFunction import make_process_ca
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process_callback as id_make_process_callback
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
-from primary_analysis.experiment.experiment_definitions import ExperimentDefinitions
+from gbutils.expdb_fetcher import ExperimentDefinitions
 
 DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
 
@@ -86,26 +86,20 @@ class FullAnalysisWorkFlowCallable(object):
                NUM_PROBES not in self.parameters or \
                PICO1_DYE not in self.parameters:
                 # get dyes and number of levels
-                exp_defs = ExperimentDefinitions()
-                exp_def_uuid = exp_defs.get_experiment_uuid(self.parameters[EXP_DEF])
-                exp_def = exp_defs.get_experiment_defintion(exp_def_uuid)
-
-                probes = exp_def['probes']
-                controls = exp_def['controls']
-                barcodes = [barcode for probe in probes for barcode in probe['barcodes']]
+                exp_def_fetcher = ExperimentDefinitions()
+                experiment = exp_def_fetcher.get_experiment_definition_obj(self.parameters[EXP_DEF])
                 dye_levels = defaultdict(int)
-                pico1_dye = exp_def.get('pico1_dye', None)
-                for barcode in barcodes + controls:
-                    for dye_name, lvl in barcode['dye_levels'].items():
+                for barcode in experiment.barcodes:
+                    for dye_name, lvl in barcode.dye_levels.items():
                         dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
                 if DYES not in self.parameters:
                     self.parameters[DYES] = dye_levels.keys()
                 if DYE_LEVELS not in self.parameters:
                     self.parameters[DYE_LEVELS] = dye_levels.items()
                 if NUM_PROBES not in self.parameters:
-                    self.parameters[NUM_PROBES] = len(probes) + len(controls)
+                    self.parameters[NUM_PROBES] = len(experiment.barcodes)
                 if PICO1_DYE not in self.parameters:
-                    self.parameters[PICO1_DYE] = pico1_dye
+                    self.parameters[PICO1_DYE] = None
         except:
             APP_LOGGER.exception(traceback.format_exc())
 

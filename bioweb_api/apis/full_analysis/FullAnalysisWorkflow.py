@@ -88,9 +88,8 @@ class FullAnalysisWorkFlowCallable(object):
                 # get dyes and number of levels
                 exp_def_fetcher = ExperimentDefinitions()
                 experiment = exp_def_fetcher.get_experiment_definition_obj(self.parameters[EXP_DEF])
-                probes, barcodes = experiment.probes, experiment.barcodes
                 dye_levels = defaultdict(int)
-                for barcode in barcodes:
+                for barcode in experiment.barcodes:
                     for dye_name, lvl in barcode.dye_levels.items():
                         dye_levels[dye_name] = max(dye_levels[dye_name], int(lvl+1))
                 if DYES not in self.parameters:
@@ -98,7 +97,7 @@ class FullAnalysisWorkFlowCallable(object):
                 if DYE_LEVELS not in self.parameters:
                     self.parameters[DYE_LEVELS] = dye_levels.items()
                 if NUM_PROBES not in self.parameters:
-                    self.parameters[NUM_PROBES] = len(barcodes)
+                    self.parameters[NUM_PROBES] = len(experiment.barcodes)
                 if PICO1_DYE not in self.parameters:
                     self.parameters[PICO1_DYE] = None
         except:

@@ -1,5 +1,5 @@
 '''
-Copyright 2015 Bio-Rad Laboratories, Inc.
+Copyright 2017 Bio-Rad Laboratories, Inc.
 
 Licensed under the Apache License, Version 2.0 (the 'License');
 you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Nathan Brown
-@date:   May 22, 2015
+@date:   Feb 8, 2017
 '''
 
 #=============================================================================
 # Imports
 #=============================================================================
 
-import os
 import sys
-import tempfile
 import traceback
 
 from datetime import datetime
@@ -31,28 +29,32 @@ from datetime import datetime
 from bioweb_api import TMP_PATH, HOSTNAME
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES, MIX_VOL, TOTAL_VOL
+from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, MIX_VOL, TOTAL_VOL
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.drop_tools.library_generation_utilities import LibraryDesign
+from predator.barcode import BarcodeGenerator
+from predator.dye import DyeStockLibraryGenerator
+from predator.csvgenerator import CsvGenerator
+from predator.predatorplate import PredatorPlateGenerator
 
 
 #=============================================================================
 # Public Static Variables
 #=============================================================================
-GENERATE_LIBRARY = 'GenerateLibrary'
+GENERATE_SCRIPTS = 'GenerateScripts'
 
 #=============================================================================
 # Class
 #=============================================================================
-class GenerateLibraryPostFunction(AbstractPostFunction):
+class PredatorFileGeneratorPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================    
     @staticmethod
     def name():
-        return GENERATE_LIBRARY
+        return GENERATE_SCRIPTS
    
     @staticmethod
     def summary():
@@ -65,9 +67,7 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
     @classmethod
     def parameters(cls):
         cls._dyes_lots_param = ParameterFactory.dyes_lots()
-        cls._nbarcodes_param = ParameterFactory.integer(NBARCODES,
-                                                'Integer specifying the number of barcodes to generate',
-                                                required=True)
+
         cls._mix_volume_param = ParameterFactory.float(MIX_VOL,
                                                 'Float specifying the mix volume in ul',
                                                 default=0.0,
@@ -79,7 +79,6 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
 
         parameters = [
                       cls._dyes_lots_param,
-                      cls._nbarcodes_param,
                       cls._mix_volume_param,
                       cls._total_volume_param
                      ]
@@ -89,7 +88,6 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
 
         dyes_lots        = params_dict[cls._dyes_lots_param]
-        nbarcodes        = params_dict[cls._nbarcodes_param][0]
         mix_vol          = params_dict[cls._mix_volume_param][0]
         total_vol        = params_dict[cls._total_volume_param][0]
         http_status_code = 200
@@ -98,19 +96,27 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                            }
 
         try:
-            dyes_lots = [(dye, lot, None) for dye, lot in dyes_lots]
-            ld = LibraryDesign(requested_dye_lots=dyes_lots, requested_nbarcodes=nbarcodes)
-            designs = ld.generate()
+            pass
 
-            if designs:
-                if mix_vol > 0.0 and total_vol > 0.0:
-                    for design in designs:
-                        design['mix_vol'] = mix_vol
-                        design['total_vol'] = total_vol
 
-                json_response['designs'] = designs
-            else:
-                json_response[ERROR] = 'Unable to generate design.'
+            # if mix_vol > 0.0 and total_vol > 0.0:
+            #     bg = BarcodeGenerator.from_design(dye_info)
+            #     barcodes = bg.generate()
+            #
+            #     # determine the dye stocks needed based on the dyes in the library
+            #     dslg = DyeStockLibraryGenerator(mix_vol, total_vol, barcodes)
+            #     ds_lib = dslg.generate()
+            #
+            #     # convert the library to a list of predator plate objects
+            #     ppg = PredatorPlateGenerator(mix_vol, total_vol, barcodes, ds_lib)
+            #     pplates = ppg.generate()
+            #
+            #     # convert the information in the predator plates into csv files
+            #     cg = CsvGenerator(ds_lib, pplates)
+            #     output_dir_path = tempfile.mkdtemp(dir=TMP_PATH, prefix='predator_files')
+            #     output_zip_path = cg.generate(output_path=output_dir_path)
+            #     json_response['predator_files_url'] = "http://%s/tmp/%s" % \
+            #         (HOSTNAME, os.path.basename(output_zip_path))
 
         except IOError:
             APP_LOGGER.exception(traceback.format_exc())

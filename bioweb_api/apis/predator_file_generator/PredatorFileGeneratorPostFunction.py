@@ -20,19 +20,21 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-
+import os
 import sys
+import tempfile
 import traceback
 
 from datetime import datetime
+import numpy
 
-from bioweb_api import TMP_PATH, HOSTNAME
+from bioweb_api import RESULTS_PATH, HOSTNAME, PORT
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, MIX_VOL, TOTAL_VOL
+from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, MIX_VOL, \
+    TOTAL_VOL, NBARCODES
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.drop_tools.library_generation_utilities import LibraryDesign
 from predator.barcode import BarcodeGenerator
 from predator.dye import DyeStockLibraryGenerator
 from predator.csvgenerator import CsvGenerator
@@ -66,8 +68,8 @@ class PredatorFileGeneratorPostFunction(AbstractPostFunction):
     
     @classmethod
     def parameters(cls):
-        cls._dyes_lots_param = ParameterFactory.dyes_lots()
-
+        cls._design_param = ParameterFactory.design('Library design data.',
+                                                          required=True)
         cls._mix_volume_param = ParameterFactory.float(MIX_VOL,
                                                 'Float specifying the mix volume in ul',
                                                 default=0.0,
@@ -76,47 +78,69 @@ class PredatorFileGeneratorPostFunction(AbstractPostFunction):
                                                 'Float specifying total volume in ul',
                                                 default=0.0,
                                                 required=False)
+        cls._nbarcodes_param = ParameterFactory.integer(NBARCODES,
+                                                'Integer specifying the number of barcodes to generate',
+                                                required=True)
 
         parameters = [
-                      cls._dyes_lots_param,
+                      cls._design_param,
                       cls._mix_volume_param,
-                      cls._total_volume_param
+                      cls._total_volume_param,
+                      cls._nbarcodes_param,
                      ]
         return parameters
     
     @classmethod
     def process_request(cls, params_dict):
 
-        dyes_lots        = params_dict[cls._dyes_lots_param]
+        design_data      = params_dict[cls._design_param]
         mix_vol          = params_dict[cls._mix_volume_param][0]
         total_vol        = params_dict[cls._total_volume_param][0]
-        http_status_code = 200
+        nbarcodes        = params_dict[cls._nbarcodes_param][0]
         json_response    = {
                             DATESTAMP: datetime.today(),
                            }
+        http_status_code = 200
+
+        def parse_design(design_data):
+            design_dict = dict()
+            for dye in design_data:
+                dye_data = dye.split(':')
+                name = dye_data[0]
+                lot = dye_data[1]
+                potency = float(dye_data[2])
+                intensities = map(int, dye_data[3:])
+                design_dict[name] = {'lot_number': lot, 'levels': [i/potency for i in intensities]}
+            return design_dict
 
         try:
-            pass
+            design = parse_design(design_data)
 
+            requested_nbarcodes = numpy.product([len(design[dye]['levels']) for dye in design])
+            if nbarcodes != requested_nbarcodes:
+                raise Exception('Requested number of barcodes: %d does not match specified number: %d'
+                                % (requested_nbarcodes, nbarcodes))
 
-            # if mix_vol > 0.0 and total_vol > 0.0:
-            #     bg = BarcodeGenerator.from_design(dye_info)
-            #     barcodes = bg.generate()
-            #
-            #     # determine the dye stocks needed based on the dyes in the library
-            #     dslg = DyeStockLibraryGenerator(mix_vol, total_vol, barcodes)
-            #     ds_lib = dslg.generate()
-            #
-            #     # convert the library to a list of predator plate objects
-            #     ppg = PredatorPlateGenerator(mix_vol, total_vol, barcodes, ds_lib)
-            #     pplates = ppg.generate()
-            #
-            #     # convert the information in the predator plates into csv files
-            #     cg = CsvGenerator(ds_lib, pplates)
-            #     output_dir_path = tempfile.mkdtemp(dir=TMP_PATH, prefix='predator_files')
-            #     output_zip_path = cg.generate(output_path=output_dir_path)
-            #     json_response['predator_files_url'] = "http://%s/tmp/%s" % \
-            #         (HOSTNAME, os.path.basename(output_zip_path))
+            bg = BarcodeGenerator.from_design(design)
+            barcodes = bg.generate()
+
+            # determine the dye stocks needed based on the dyes in the library
+            dslg = DyeStockLibraryGenerator(mix_vol, total_vol, barcodes)
+            ds_lib = dslg.generate()
+
+            # convert the library to a list of predator plate objects
+            ppg = PredatorPlateGenerator(mix_vol, total_vol, barcodes, ds_lib)
+            pplates = ppg.generate()
+
+            # convert the information in the predator plates into csv files
+            cg = CsvGenerator(ds_lib, pplates)
+            predator_files_dir = os.path.join(RESULTS_PATH, 'predator_files')
+            if not os.path.exists(predator_files_dir):
+                os.makedirs(predator_files_dir)
+            output_dir_path = tempfile.mkdtemp(dir=predator_files_dir, prefix='predator_files')
+            output_zip_path = cg.generate(output_path=output_dir_path)
+            json_response['predator_files_url'] = "http://%s:%d/tmp/%s" % \
+                (HOSTNAME, PORT, os.path.basename(output_zip_path))
 
         except IOError:
             APP_LOGGER.exception(traceback.format_exc())
@@ -133,5 +157,5 @@ class PredatorFileGeneratorPostFunction(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == '__main__':
-    function = GenerateLibraryPostFunction()
+    function = PredatorFileGeneratorPostFunction()
     print function        

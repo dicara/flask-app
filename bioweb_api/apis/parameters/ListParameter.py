@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Dan DiCara
-@date:   Feb 4, 2015
+@date:   Feb 10, 2017
 '''
 
 #=============================================================================
@@ -26,26 +26,25 @@ from bioweb_api.apis.ApiConstants import SWAGGER_TYPES
 #=============================================================================
 # Class
 #=============================================================================
-class KeyValueParameter(AbstractParameter):
+class ListParameter(AbstractParameter):
     ''' 
-    This parameter parses a string value provided in the api call and translates
-    it into a dictionary.
+    This parameter parses each element of a list into the specified parameter
+    type..
     '''
 
     #===========================================================================
     # Constructor
     #===========================================================================    
-    def __init__(self, name, description, keys_parameter, values_parameter, 
+    def __init__(self, name, description, parameter,
                  alias=None, required=False):
          
         if alias is None:
             alias = name
              
-        super(KeyValueParameter, self).__init__(name, alias, description, 
+        super(ListParameter, self).__init__(name, alias, description,
                                                 required=required, 
                                                 allow_multiple=True)
-        self._keys_parameter   = keys_parameter
-        self._values_parameter = values_parameter
+        self._parameter   = parameter
  
     #===========================================================================
     # Overriden Methods
@@ -55,42 +54,17 @@ class KeyValueParameter(AbstractParameter):
         return SWAGGER_TYPES.string                         # @UndefinedVariable
     
     def _convert_args(self, raw_args):
-        num_args = len(raw_args)
-        keys     = list()
-        values   = list()
-        
-        for raw_arg in raw_args:
-            fields = raw_arg.split(":")
-            if len(fields) != 2:
-                raise Exception("Expected two components of argument ",
-                                "separated by a colon, but found %s", raw_arg)
-            keys.append(fields[0])
-            values.append(fields[1])
-            
-        converted_keys   = self._keys_parameter._convert_args(keys)
-        converted_values = self._values_parameter._convert_args(values)
-        
-        if num_args != len(converted_keys):
-            raise Exception("Invalid arguments found: original (%s) converted (%s)",
-                            keys, converted_keys)
-        if num_args != len(converted_values):
-            raise Exception("Invalid arguments found: original (%s) converted (%s)",
-                            values, converted_values)
-        
-        return [(converted_keys[i], converted_values[i]) 
-                for i in range(num_args)]
+        converted_args   = self._parameter._convert_args(raw_args)
+        return converted_args
         
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
     from ParameterFactory import ParameterFactory
-    keys_parameter      = ParameterFactory.dyes()
-    values_parameter    = ParameterFactory.integer("foo", "bar", minimum=1)
-    key_value_parameter = KeyValueParameter("KeyValueParameter",
+    parameter      = ParameterFactory.lc_string("foo", "bar")
+    list_parameter = ListParameter("KeyValueParameter",
                                             "KeyValueParameter description.",
-                                            keys_parameter,
-                                            values_parameter,
-                                            )
-    print key_value_parameter
-    print key_value_parameter._convert_args(["594:2", "633:2", "cy5.5:3"])
+                                            parameter)
+
+    print list_parameter._convert_args(["594:2", "DY633:2", "cY5.5:3"])

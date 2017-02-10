@@ -32,7 +32,7 @@ class LibraryDesign(object):
     def __init__(self, requested_nbarcodes, requested_dye_lots=None,
                  requested_ndyes=None, min_peak_difference=3,
                  assay_dye=DYE_FAM, assay_intensity=15000,
-                 pico1_dye=DYE_IF555, pico1_intensity=15000,
+                 pico1_dye=None, pico1_intensity=15000,
                  pico2_dye=DYE_JOE, pico2_intensity=15000,
                  intensity_scaler=1.25):
         """
@@ -348,7 +348,8 @@ class LibraryDesign(object):
         nlvl_products = nlvl_products[numpy.product(nlvl_products, axis=1) == self._requested_nbarcodes]
 
         if nlvl_products.size <= 0:
-            raise Exception('Cannot make %d barcodes from selected dyes.' % self._requested_nbarcodes)
+            raise Exception('Cannot make %d barcodes from: %s' %
+                            (self._requested_nbarcodes, ', '.join(self._barcode_dyes[dye_idxs])))
 
         # tile the barcode profiles based on the number of valid nlvl combinations
         normalized_profiles = numpy.tile(self._barcode_profiles[dye_idxs], (len(nlvl_products), 1, 1))

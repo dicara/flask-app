@@ -70,7 +70,7 @@ class RunReportWebUI(object):
             try:
                 self._exp_purpose = _ExperimentPurpose(exp_purpose)
             except ValueError:
-                raise Exception("Unsupported experiment purpose %s." % (exp_purpose,))
+                self._exp_purpose = None
         else:
             self._exp_purpose = _ExperimentPurpose('HOTSPOT')
 
@@ -203,7 +203,7 @@ class RunReportWebUI(object):
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
                 UTAG:               self._utag,
-                EXPERIMENT_PURPOSE: self._exp_purpose.value,
+                EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
         }
 
 class RunReportClientUI(object):
@@ -233,7 +233,7 @@ class RunReportClientUI(object):
             try:
                 self._exp_purpose = _ExperimentPurpose(exp_purpose)
             except ValueError:
-                raise Exception("Unsupported experiment purpose %s." % (exp_purpose,))
+                self._exp_purpose = None
         else:
             self._exp_purpose = _ExperimentPurpose('HOTSPOT')
 
@@ -287,5 +287,5 @@ class RunReportClientUI(object):
                     SYRINGE_BC:         self._syringe_bc.as_dict(),
                     TDI_STACKS:         self._tdi_stacks,
                     IMAGE_STACKS:       self._image_stack_names,
-                    EXPERIMENT_PURPOSE: self._exp_purpose.value,
+                    EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
                }

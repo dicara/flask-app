@@ -23,6 +23,8 @@ limitations under the License.
 import datetime
 from uuid import uuid4
 
+from enum import Enum
+
 from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.model.gnubio_part import Cartridge, Kit, Syringe
@@ -32,7 +34,14 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     TDI_STACKS_TXT, USER_TXT, CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, RUN_DESCRIPTION, \
     TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, FA_UUID_MAP, CARTRIDGE_BC, \
-    EXP_DEF_UUID, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, FAIL_REASON
+    EXP_DEF_UUID, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, FAIL_REASON, \
+    EXPERIMENT_PURPOSE
+
+#=============================================================================
+# Private Classes
+#=============================================================================
+class _ExperimentPurpose(Enum):
+    HOTSPOT, SEQUENCING, EXPLORATORY = 'HOTSPOT', 'SEQUENCING', 'EXPLORATORY'
 
 #=============================================================================
 # Classes
@@ -41,7 +50,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
 class RunReportWebUI(object):
     def __init__(self, datetime, utag, run_id, cartridge_sn, chip_sn, run_description,
                  user_list, reagent_info, chip_rev, exp_def_name, device_name,
-                 exit_notes, tdi_stacks):
+                 exit_notes, tdi_stacks, exp_purpose):
         self._uuid              = str(uuid4())
         self._datetime          = datetime
         self._utag              = utag
@@ -56,6 +65,14 @@ class RunReportWebUI(object):
         self._device_name       = device_name
         self._exit_notes        = exit_notes
         self._tdi_stacks        = tdi_stacks
+
+        if exp_purpose is not None:
+            try:
+                self._exp_purpose = _ExperimentPurpose(exp_purpose)
+            except ValueError:
+                raise Exception("Unsupported experiment purpose %s." % (exp_purpose,))
+        else:
+            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
 
         self.verify()
 
@@ -80,7 +97,8 @@ class RunReportWebUI(object):
                        kwargs.get(EXP_DEF_NAME_TXT),
                        kwargs.get(DEVICE_NAME_TXT),
                        kwargs.get(EXIT_NOTES_TXT),
-                       kwargs.get(TDI_STACKS_TXT))
+                       kwargs.get(TDI_STACKS_TXT),
+                       None)
         elif kwargs.get(FILE_TYPE) == 'yaml':
             return cls(kwargs.get(DATETIME),
                        kwargs.get(UTAG),
@@ -94,7 +112,8 @@ class RunReportWebUI(object):
                        kwargs.get(EXP_DEF_NAME),
                        kwargs.get(DEVICE_NAME),
                        kwargs.get(EXIT_NOTES),
-                       kwargs.get(TDI_STACKS))
+                       kwargs.get(TDI_STACKS),
+                       kwargs.get(EXPERIMENT_PURPOSE))
         else:
             raise Exception("Unknown type of log file.")
 
@@ -184,13 +203,14 @@ class RunReportWebUI(object):
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
                 UTAG:               self._utag,
-                FA_UUID_MAP:        self._fa_uuid_map,
+                EXPERIMENT_PURPOSE: self._exp_purpose.value,
         }
 
 class RunReportClientUI(object):
     def __init__(self, datetime, utag, cartridge_bc, chip_rev, device_name,
                  fail_reason, exp_def_name, exp_def_uuid, kit_bc, mcp_mode,
-                 run_id, sample_name, sample_type, syringe_bc, tdi_stacks):
+                 run_id, sample_name, sample_type, syringe_bc, tdi_stacks,
+                 exp_purpose):
         self._uuid                  = str(uuid4())
         self._datetime              = datetime
         self._utag                  = utag
@@ -208,6 +228,14 @@ class RunReportClientUI(object):
         self._sample_type           = sample_type
         self._syringe_bc            = syringe_bc
         self._tdi_stacks            = tdi_stacks
+
+        if exp_purpose is not None:
+            try:
+                self._exp_purpose = _ExperimentPurpose(exp_purpose)
+            except ValueError:
+                raise Exception("Unsupported experiment purpose %s." % (exp_purpose,))
+        else:
+            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
 
         self._image_stack_names     = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
@@ -237,7 +265,8 @@ class RunReportClientUI(object):
                    kwargs.get(SAMPLE_NAME),
                    kwargs.get(SAMPLE_TYPE),
                    Syringe.from_dict(kwargs.get(SYRINGE_BC)),
-                   kwargs.get(TDI_STACKS))
+                   kwargs.get(TDI_STACKS),
+                   kwargs.get(EXPERIMENT_PURPOSE))
 
     def as_dict(self):
         return {
@@ -258,5 +287,5 @@ class RunReportClientUI(object):
                     SYRINGE_BC:         self._syringe_bc.as_dict(),
                     TDI_STACKS:         self._tdi_stacks,
                     IMAGE_STACKS:       self._image_stack_names,
-                    FA_UUID_MAP:        self._fa_uuid_map,
+                    EXPERIMENT_PURPOSE: self._exp_purpose.value,
                }

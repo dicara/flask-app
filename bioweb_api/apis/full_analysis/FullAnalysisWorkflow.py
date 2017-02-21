@@ -18,7 +18,8 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     PLOT_URL, SCATTER_PLOT_URL, PDF_URL, PNG_URL, PNG_SUM_URL, \
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
-    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER
+    IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, \
+    HOTSPOT, EXPLORATORY, SEQUENCING, EP_DOCUMENT, SQ_DOCUMENT
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -32,8 +33,11 @@ from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_proc
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
 from gbutils.expdb_fetcher import ExperimentDefinitions
 
-DOCUMENT_LIST = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT]
 
+# lookup dictionary for last step in workflow
+WORKFLOW_LOOKUP = {HOTSPOT: GENOTYPER, EXPLORATORY: EXPLORATORY, SEQUENCING: SEQUENCING}
+# lookup dictionary for last element in document list
+DOCUMENT_LOOKUP = {HOTSPOT: GT_DOCUMENT, EXPLORATORY: EP_DOCUMENT, SEQUENCING: SQ_DOCUMENT}
 
 class FullAnalysisWorkFlowCallable(object):
     def __init__(self, parameters, db_connector):
@@ -58,7 +62,6 @@ class FullAnalysisWorkFlowCallable(object):
         }
 
         self.uuid_container = [None]
-        self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER, GENOTYPER]
         self.db_connector.insert(FA_PROCESS_COLLECTION, [self.document])
 
     def __call__(self):
@@ -78,16 +81,27 @@ class FullAnalysisWorkFlowCallable(object):
     def set_defaults(self):
         """
         There are certain parameters that the user may not have sent
-        but that can come from the experiment definition, set them here
+        but that can come from the experiment definition, set them here.
+
+        Set workflow based on experiment type. The first 3 stages in each workflow are
+        primary analysis, identity, and assay caller. The 4th stage depends on the
+        type of experiment, i.e., genotyper API for hotspot experiment, exploratory API
+        for exploratory experiment, and sequencing API for sequencing experiment.
         """
         try:
+            exp_def_fetcher = ExperimentDefinitions()
+            experiment = exp_def_fetcher.get_experiment_definition_obj(self.parameters[EXP_DEF])
+
+            exp_type = experiment.exp_type
+            self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER] + [WORKFLOW_LOOKUP[exp_type]]
+            self.document_list = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] + \
+                                 [DOCUMENT_LOOKUP[exp_type]]
+
             if DYES not in self.parameters or \
                DYE_LEVELS not in self.parameters or \
                NUM_PROBES not in self.parameters or \
                PICO1_DYE not in self.parameters:
                 # get dyes and number of levels
-                exp_def_fetcher = ExperimentDefinitions()
-                experiment = exp_def_fetcher.get_experiment_definition_obj(self.parameters[EXP_DEF])
                 dye_levels = defaultdict(int)
                 for barcode in experiment.barcodes:
                     for dye_name, lvl in barcode.dye_levels.items():
@@ -124,7 +138,7 @@ class FullAnalysisWorkFlowCallable(object):
         # find the job it failed on
         failed_subjob = None
         last_successful_subjob_uuid = None
-        for subjob_name in DOCUMENT_LIST:
+        for subjob_name in self.document_list:
             if subjob_name not in previous_fa_job_document or \
                previous_fa_job_document[subjob_name].get(STATUS, None) != SUCCEEDED or \
                is_param_diff(previous_fa_job_document[subjob_name], subjob_name, self.parameters):
@@ -139,10 +153,10 @@ class FullAnalysisWorkFlowCallable(object):
 
         if failed_subjob is None:
             self.workflow = []
-            succeeded_subjobs = DOCUMENT_LIST
+            succeeded_subjobs = self.document_list
         else:
-            self.workflow = self.workflow[DOCUMENT_LIST.index(failed_subjob):]
-            succeeded_subjobs = DOCUMENT_LIST[:DOCUMENT_LIST.index(failed_subjob)]
+            self.workflow = self.workflow[self.document_list.index(failed_subjob):]
+            succeeded_subjobs = self.document_list[:self.document_list.index(failed_subjob)]
 
         update_query = dict()
         for subjob_name in succeeded_subjobs:

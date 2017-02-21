@@ -745,3 +745,7 @@ GnuBio Flask API.
      * Update parameters for slug window video generation
    * Update secondary-analysis to v2.2.0 which includes:
      * Handle new types of experiment definitions using exp def fetcher in gbutils
+ * v3.59.0
+   * Add experiment purpose to run report model
+   * Add pico1 dye as full analysis input parameter
+   * Add list of dyes to experiment definition collection

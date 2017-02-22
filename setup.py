@@ -57,7 +57,7 @@ setup(
                           'probe-design>=0.3',
                           'primary-analysis>=2.28',
                           'predator==0.2',
-                          'secondary-analysis>=2.2.0',
+                          'secondary-analysis>=2.4.0',
                           'experiment-database>=0.14.4',
                           'PyPDF2>=1.25.1',
                           'reportlab>=3.3.0',

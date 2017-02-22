@@ -98,7 +98,7 @@ class RunReportWebUI(object):
                        kwargs.get(DEVICE_NAME_TXT),
                        kwargs.get(EXIT_NOTES_TXT),
                        kwargs.get(TDI_STACKS_TXT),
-                       None)
+                       kwargs.get(EXPERIMENT_PURPOSE))
         elif kwargs.get(FILE_TYPE) == 'yaml':
             return cls(kwargs.get(DATETIME),
                        kwargs.get(UTAG),

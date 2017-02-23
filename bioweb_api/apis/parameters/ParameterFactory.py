@@ -39,7 +39,8 @@ from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices, get_hdf5_dataset_names
 from bioweb_api import IMAGES_COLLECTION, EXP_DEF_COLLECTION
-from secondary_analysis.constants import AC_MODEL_NAIVE_BAYES, AC_MODEL_GMM
+from secondary_analysis.constants import AC_MODEL_NAIVE_BAYES, AC_MODEL_GMM, \
+    AC_MODEL_CUTPOINT
 
 
 #=============================================================================
@@ -204,7 +205,8 @@ class ParameterFactory(object):
         return CaseSensitiveStringParameter(name, description,
                                             required=required,
                                             allow_multiple=False,
-                                            enum=[AC_MODEL_GMM, AC_MODEL_NAIVE_BAYES],
+                                            enum=[AC_MODEL_GMM, AC_MODEL_NAIVE_BAYES,
+                                                  AC_MODEL_CUTPOINT],
                                             default=default)
 
     @staticmethod

@@ -753,3 +753,4 @@ GnuBio Flask API.
    * Treat experiment purpose in run report different from experiment definition type
    * Add experiment definition type to ExpDefGET response
    * Fix assay caller mode enum
+   * Add pico1 dye to run report model

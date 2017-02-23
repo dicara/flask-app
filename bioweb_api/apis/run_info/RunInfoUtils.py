@@ -37,7 +37,8 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
     IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME, \
-    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, EXPERIMENT_PURPOSE
+    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, EXPERIMENT_PURPOSE, \
+    PICO1_DYE
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -69,6 +70,7 @@ def get_run_reports(cartridge_sn=None):
     columns[IMAGE_STACKS]       = 1
     columns[FA_UUID_MAP]        = 1
     columns[EXPERIMENT_PURPOSE] = 1
+    columns[PICO1_DYE]          = 1
 
     column_names = columns.keys()
     column_names.remove(ID)

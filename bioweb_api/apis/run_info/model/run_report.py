@@ -38,12 +38,6 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     EXPERIMENT_PURPOSE
 
 #=============================================================================
-# Private Classes
-#=============================================================================
-class _ExperimentPurpose(Enum):
-    HOTSPOT, SEQUENCING, EXPLORATORY = 'HOTSPOT', 'SEQUENCING', 'EXPLORATORY'
-
-#=============================================================================
 # Classes
 #=============================================================================
 
@@ -65,14 +59,7 @@ class RunReportWebUI(object):
         self._device_name       = device_name
         self._exit_notes        = exit_notes
         self._tdi_stacks        = tdi_stacks
-
-        if exp_purpose is not None:
-            try:
-                self._exp_purpose = _ExperimentPurpose(exp_purpose)
-            except ValueError:
-                self._exp_purpose = None
-        else:
-            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
+        self._exp_purpose       = exp_purpose
 
         self.verify()
 
@@ -203,7 +190,7 @@ class RunReportWebUI(object):
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
                 UTAG:               self._utag,
-                EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
+                EXPERIMENT_PURPOSE: self._exp_purpose,
         }
 
 class RunReportClientUI(object):
@@ -228,14 +215,7 @@ class RunReportClientUI(object):
         self._sample_type           = sample_type
         self._syringe_bc            = syringe_bc
         self._tdi_stacks            = tdi_stacks
-
-        if exp_purpose is not None:
-            try:
-                self._exp_purpose = _ExperimentPurpose(exp_purpose)
-            except ValueError:
-                self._exp_purpose = None
-        else:
-            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
+        self._exp_purpose           = exp_purpose
 
         self._image_stack_names     = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
@@ -287,5 +267,5 @@ class RunReportClientUI(object):
                     SYRINGE_BC:         self._syringe_bc.as_dict(),
                     TDI_STACKS:         self._tdi_stacks,
                     IMAGE_STACKS:       self._image_stack_names,
-                    EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
+                    EXPERIMENT_PURPOSE: self._exp_purpose,
                }

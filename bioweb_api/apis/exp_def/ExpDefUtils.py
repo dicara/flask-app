@@ -25,7 +25,8 @@ from collections import OrderedDict
 from bioweb_api import EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME, DYES
+from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME, DYES, \
+    TYPE
 
 from gbutils.expdb_fetcher import ExperimentDefinitions
 from secondary_analysis.genotyping.genotyper_utils import get_target_id
@@ -59,6 +60,7 @@ def get_experiment_defintions():
     columns[NAME]               = 1
     columns[VARIANTS]           = 1
     columns[DYES]               = 1
+    columns[TYPE]               = 1
 
     column_names = columns.keys()
     column_names.remove(ID)
@@ -82,22 +84,13 @@ def update_experiment_definitions():
     for uuid in new_uuids:
         experiment = exp_def_fetcher.get_experiment_definition_obj(uuid)
         if experiment is not None:
+            update = {UUID: uuid, NAME: experiment.name, DYES: list(experiment.dyes),
+                      TYPE: experiment.exp_type}
             if experiment.exp_type == 'HOTSPOT':
-                update = {UUID: uuid, NAME: experiment.name,
-                          VARIANTS: format_variants(experiment)}
-            else:
-                update = {UUID: uuid, NAME: name}
+                update[VARIANTS] = format_variants(experiment)
             new_exp_defs.append(update)
     if new_exp_defs:
         _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
 
     if obselete_uuids:
         _DB_CONNECTOR.remove(EXP_DEF_COLLECTION, {UUID: list(obselete_uuids)})
-
-    # add list of dyes to documents
-    for uuid in db_uuids:
-        exp_record = _DB_CONNECTOR.find_one(EXP_DEF_COLLECTION, UUID, uuid)
-        if DYES not in exp_record:
-            experiment = exp_def_fetcher.get_experiment_definition_obj(uuid)
-            _DB_CONNECTOR.update(EXP_DEF_COLLECTION, {UUID: uuid},
-                                 {"$set": {DYES: list(experiment.dyes)}})

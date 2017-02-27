@@ -35,13 +35,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, RUN_DESCRIPTION, \
     TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, FA_UUID_MAP, CARTRIDGE_BC, \
     EXP_DEF_UUID, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, FAIL_REASON, \
-    EXPERIMENT_PURPOSE
-
-#=============================================================================
-# Private Classes
-#=============================================================================
-class _ExperimentPurpose(Enum):
-    HOTSPOT, SEQUENCING, EXPLORATORY = 'HOTSPOT', 'SEQUENCING', 'EXPLORATORY'
+    EXPERIMENT_PURPOSE, EXPERIMENT_CONFIGS, PICO1_DYE
 
 #=============================================================================
 # Classes
@@ -50,7 +44,7 @@ class _ExperimentPurpose(Enum):
 class RunReportWebUI(object):
     def __init__(self, datetime, utag, run_id, cartridge_sn, chip_sn, run_description,
                  user_list, reagent_info, chip_rev, exp_def_name, device_name,
-                 exit_notes, tdi_stacks, exp_purpose):
+                 exit_notes, tdi_stacks, exp_purpose, pico1_dye):
         self._uuid              = str(uuid4())
         self._datetime          = datetime
         self._utag              = utag
@@ -65,14 +59,8 @@ class RunReportWebUI(object):
         self._device_name       = device_name
         self._exit_notes        = exit_notes
         self._tdi_stacks        = tdi_stacks
-
-        if exp_purpose is not None:
-            try:
-                self._exp_purpose = _ExperimentPurpose(exp_purpose)
-            except ValueError:
-                self._exp_purpose = None
-        else:
-            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
+        self._exp_purpose       = exp_purpose
+        self._pico1_dye         = pico1_dye
 
         self.verify()
 
@@ -98,7 +86,8 @@ class RunReportWebUI(object):
                        kwargs.get(DEVICE_NAME_TXT),
                        kwargs.get(EXIT_NOTES_TXT),
                        kwargs.get(TDI_STACKS_TXT),
-                       kwargs.get(EXPERIMENT_PURPOSE))
+                       kwargs.get(EXPERIMENT_PURPOSE),
+                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
         elif kwargs.get(FILE_TYPE) == 'yaml':
             return cls(kwargs.get(DATETIME),
                        kwargs.get(UTAG),
@@ -113,7 +102,8 @@ class RunReportWebUI(object):
                        kwargs.get(DEVICE_NAME),
                        kwargs.get(EXIT_NOTES),
                        kwargs.get(TDI_STACKS),
-                       kwargs.get(EXPERIMENT_PURPOSE))
+                       kwargs.get(EXPERIMENT_PURPOSE),
+                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
         else:
             raise Exception("Unknown type of log file.")
 
@@ -203,14 +193,15 @@ class RunReportWebUI(object):
                 TDI_STACKS:         self._tdi_stacks,
                 IMAGE_STACKS:       self._image_stack_names,
                 UTAG:               self._utag,
-                EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
+                EXPERIMENT_PURPOSE: self._exp_purpose,
+                PICO1_DYE:          self._pico1_dye,
         }
 
 class RunReportClientUI(object):
     def __init__(self, datetime, utag, cartridge_bc, chip_rev, device_name,
                  fail_reason, exp_def_name, exp_def_uuid, kit_bc, mcp_mode,
                  run_id, sample_name, sample_type, syringe_bc, tdi_stacks,
-                 exp_purpose):
+                 exp_purpose, pico1_dye):
         self._uuid                  = str(uuid4())
         self._datetime              = datetime
         self._utag                  = utag
@@ -228,14 +219,8 @@ class RunReportClientUI(object):
         self._sample_type           = sample_type
         self._syringe_bc            = syringe_bc
         self._tdi_stacks            = tdi_stacks
-
-        if exp_purpose is not None:
-            try:
-                self._exp_purpose = _ExperimentPurpose(exp_purpose)
-            except ValueError:
-                self._exp_purpose = None
-        else:
-            self._exp_purpose = _ExperimentPurpose('HOTSPOT')
+        self._exp_purpose           = exp_purpose
+        self._pico1_dye             = pico1_dye
 
         self._image_stack_names     = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
@@ -266,7 +251,8 @@ class RunReportClientUI(object):
                    kwargs.get(SAMPLE_TYPE),
                    Syringe.from_dict(kwargs.get(SYRINGE_BC)),
                    kwargs.get(TDI_STACKS),
-                   kwargs.get(EXPERIMENT_PURPOSE))
+                   kwargs.get(EXPERIMENT_PURPOSE),
+                   kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
 
     def as_dict(self):
         return {
@@ -287,5 +273,6 @@ class RunReportClientUI(object):
                     SYRINGE_BC:         self._syringe_bc.as_dict(),
                     TDI_STACKS:         self._tdi_stacks,
                     IMAGE_STACKS:       self._image_stack_names,
-                    EXPERIMENT_PURPOSE: self._exp_purpose.value if self._exp_purpose is not None else None,
+                    EXPERIMENT_PURPOSE: self._exp_purpose,
+                    PICO1_DYE:          self._pico1_dye,
                }

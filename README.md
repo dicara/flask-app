@@ -749,3 +749,8 @@ GnuBio Flask API.
    * Add experiment purpose to run report model
    * Add pico1 dye as full analysis input parameter
    * Add list of dyes to experiment definition collection
+ * v3.60.0
+   * Treat experiment purpose in run report different from experiment definition type
+   * Add experiment definition type to ExpDefGET response
+   * Fix assay caller mode enum
+   * Add pico1 dye to run report model

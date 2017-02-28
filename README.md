@@ -754,3 +754,5 @@ GnuBio Flask API.
    * Add experiment definition type to ExpDefGET response
    * Fix assay caller mode enum
    * Add pico1 dye to run report model
+ * v3.61.0
+   * Add pico1 dye parameter

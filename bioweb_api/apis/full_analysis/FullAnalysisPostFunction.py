@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
     ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, USE_PICO1_FILTER, \
-    USE_PICO1_FILTER_DESCRIPTION
+    USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -131,6 +131,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        required=False)
         cls.filtered_dyes_param = ParameterFactory.dyes(name=FILTERED_DYES,
                                                         required=False)
+        cls.pico1_dye_param       = ParameterFactory.dye(PICO1_DYE,
+                                                      'picoinjection 1 dye.',
+                                                      required=False,
+                                                      default="pe-cy7")
         cls.pico2_dye_param       = ParameterFactory.dye(PICO2_DYE,
                                                       'picoinjection 2 dye.',
                                                       required=False,
@@ -209,6 +213,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.job_name_param,
                       cls.offset,
                       cls.use_iid_param,
+                      cls.pico1_dye_param,
                       cls.pico2_dye_param,
                       cls.assay_dye_param,
                       cls.n_probes_param,

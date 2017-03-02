@@ -134,7 +134,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         cls.pico1_dye_param       = ParameterFactory.dye(PICO1_DYE,
                                                       'picoinjection 1 dye.',
                                                       required=False,
-                                                      default="pe-cy7")
+                                                      default=None)
         cls.pico2_dye_param       = ParameterFactory.dye(PICO2_DYE,
                                                       'picoinjection 2 dye.',
                                                       required=False,

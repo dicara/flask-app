@@ -763,3 +763,5 @@ GnuBio Flask API.
  * v3.63.0
    * Libarary design generator refactored
    * Predator script generator is in its own separate api
+ * v3.64.0
+   * Display select parameters while job is running

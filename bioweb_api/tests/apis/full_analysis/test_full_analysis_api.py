@@ -22,7 +22,6 @@ limitations under the License.
 #=============================================================================
 from datetime import datetime
 import os
-import re
 import time
 import unittest
 
@@ -41,7 +40,6 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
-from bioweb_api.apis.full_analysis.VariantsGetFunction import VARIANTS
 
 #=============================================================================
 # Setup Logging
@@ -343,44 +341,6 @@ class TestFullAnalysisAPI(unittest.TestCase):
 
         os.unlink(_OUTPUT_SA_PATH)
         os.unlink(_OUTPUT_PDF_PATH)
-
-    def test_get_variants(self):
-        """
-        test VariantsGetFunction, get list of variants from an experiment definition
-        """
-        # Construct url for testing Beta definition
-        url = os.path.join("/api/v1/FullAnalysis", VARIANTS)
-        url = add_url_argument(url, EXP_DEF, _BETA_EXP_DEF_NAME, True)
-
-        response   = get_data(self, url, 200)
-        observed_variants = [ v['variant'] for v in response['Variants'] ]
-        self.assertEqual(len(observed_variants), 17)
-
-        c = re.compile('([A-Z\d\|]+).(c\.[\d]+):?([A-Z]+)>([A-Z]+)')
-        variants = set()
-        for variant in observed_variants:
-            variant_match = c.match(variant)
-            if variant_match:
-                reference, location, expected, variation = variant_match.groups()
-                variants.add((reference, location, expected, variation))
-        self.assertEqual(variants, _EXPECTED_BETA_VARIANTS)
-
-        # Construct url for testing ABL definition
-        url = os.path.join("/api/v1/FullAnalysis", VARIANTS)
-        url = add_url_argument(url, EXP_DEF, _ABL_EXP_DEF_NAME, True)
-
-        response   = get_data(self, url, 200)
-        observed_variants = [ v['variant'] for v in response['Variants'] ]
-        self.assertEqual(len(observed_variants), 2)
-
-        c = re.compile('([A-Z\d\|]+).([\d]+):?([A-Z]+)>([A-Z]+)')
-        variants = set()
-        for variant in observed_variants:
-            variant_match = c.match(variant)
-            if variant_match:
-                reference, location, expected, variation = variant_match.groups()
-                variants.add((reference, location, expected, variation))
-        self.assertEqual(variants, _EXPECTED_ABL_VARIANTS)
 
 if __name__ == '__main__':
     unittest.main()

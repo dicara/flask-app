@@ -24,7 +24,6 @@ from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FullAnalysisPostFunction
 from bioweb_api.apis.full_analysis.FullAnalysisGetFunction import FullAnalysisGetFunction
 from bioweb_api.apis.full_analysis.FullAnalysisDeleteFunction import FullAnalysisDeleteFunction
-from bioweb_api.apis.full_analysis.VariantsGetFunction import VariantsGetFunction
 
 #=============================================================================
 # Class
@@ -35,7 +34,6 @@ class FullAnalysisApiV1(AbstractApiV1):
                   FullAnalysisPostFunction(),
                   FullAnalysisGetFunction(),
                   FullAnalysisDeleteFunction(),
-                  VariantsGetFunction(),
                  ]
 
     @staticmethod

@@ -756,3 +756,7 @@ GnuBio Flask API.
    * Add pico1 dye to run report model
  * v3.61.0
    * Add pico1 dye parameter
+ * v3.62.0
+   * Update secondary_analysis to 2.4.2 which includes:
+     * bugfix for training kde in offline mode
+     * entry point bugfix

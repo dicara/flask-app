@@ -22,6 +22,9 @@ DEFAULT_MIN_NLEVELS = 2
 DEFAULT_MAX_NLEVELS = 4
 
 # based on pdms chip data, 40 mW laser power, Gain 0
+# by default PE should be restriced to two levels
+# any dyes that must have a restricted number of levels below the default are set here
+# user requests can override these setting (if user requests 3 levels of PE they will get 3 levels)
 MAX_NLEVELS = {
     DYE_PE: 2,
 }
@@ -244,10 +247,16 @@ class LibraryDesign(object):
 
         # too many dyes were selected
         if min_nbarcodes > self._requested_nbarcodes:
+            APP_LOGGER.info('Cannot generate requested number of barcodes (%d).  '
+                            'Smallest library would have %d barcodes.' %
+                            (self._requested_nbarcodes, min_nbarcodes))
             return
 
         # too few dyes were selected
         if max_nbarcodes < self._requested_nbarcodes:
+            APP_LOGGER.info('Cannot generate requested number of barcodes (%d).  '
+                            'Largest library would have %d barcodes.' %
+                            (self._requested_nbarcodes, max_nbarcodes))
             return
 
         # find the optimal number of levels for each dye combination
@@ -258,8 +267,8 @@ class LibraryDesign(object):
 
             # ignore combinations that do not include requested dyes
             if self.need_additional_db_dyes and \
-               self._requested_dye_lots and \
-               not requested_dye_idxs.issubset(dye_idxs):
+                    self._requested_dye_lots and \
+                    not requested_dye_idxs.issubset(dye_idxs):
                 continue
 
             # ignore combinations in which the peaks are too close

@@ -30,7 +30,7 @@ from bioweb_api import HOSTNAME, PORT
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, NBARCODES, MIX_VOL, \
-    TOTAL_VOL, DESIGN, NDYES
+    TOTAL_VOL, DESIGN, NDYES, PICO1_DYE
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.drop_tools.library_generation_utilities import LibraryDesign
@@ -76,13 +76,16 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                                                 'Float specifying total volume in ul',
                                                 default=0.0,
                                                 required=False)
-
+        cls._pico1_dye_param = ParameterFactory.cs_string(PICO1_DYE,
+                                                          'Picoinjection 1 dye',
+                                                          required=False)
         parameters = [
                       cls._dyes_lots_param,
                       cls._ndyes_param,
                       cls._nbarcodes_param,
                       cls._mix_volume_param,
-                      cls._total_volume_param
+                      cls._total_volume_param,
+                      cls._pico1_dye_param,
                      ]
         return parameters
     
@@ -108,6 +111,7 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
                 dl_data = dl.split(':')
                 name = dl_data[0]
                 lot = dl_data[1]
+                # user may not have specified number of levels
                 try:
                     nlvls = int(dl_data[2])
                 except:
@@ -120,16 +124,20 @@ class GenerateLibraryPostFunction(AbstractPostFunction):
         if cls._ndyes_param in params_dict:
             requested_ndyes = params_dict[cls._ndyes_param][0]
 
-        dyes_lots        = parse_dye_lots(params_dict[cls._dyes_lots_param])
-        nbarcodes        = params_dict[cls._nbarcodes_param][0]
-        mix_vol          = params_dict[cls._mix_volume_param][0]
-        total_vol        = params_dict[cls._total_volume_param][0]
+        dyes_lots = parse_dye_lots(params_dict[cls._dyes_lots_param])
+        nbarcodes = params_dict[cls._nbarcodes_param][0]
+        mix_vol = params_dict[cls._mix_volume_param][0]
+        total_vol = params_dict[cls._total_volume_param][0]
+        pico1_dye=None
+        if cls._pico1_dye_param in params_dict:
+            pico1_dye = params_dict[cls._pico1_dye_param][0]
+
         http_status_code = 200
         json_response    = {DATESTAMP: datetime.today()}
 
         try:
             ld = LibraryDesign(requested_dye_lots=dyes_lots, requested_nbarcodes=nbarcodes,
-                               requested_ndyes=requested_ndyes)
+                               requested_ndyes=requested_ndyes, pico1_dye=pico1_dye)
             designs = ld.generate()
 
             if designs:

@@ -1,5 +1,5 @@
 '''
-Copyright 2016 Bio-Rad Laboratories, Inc.
+Copyright 2017 Bio-Rad Laboratories, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,51 +14,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Nathan Brown
-@date:   March 28, 2016
+@date:   Feb 8, 2017
 '''
 
 #=============================================================================
 # Imports
 #=============================================================================
 from bioweb_api.apis.AbstractApi import AbstractApiV1
-from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FullAnalysisPostFunction
-from bioweb_api.apis.full_analysis.FullAnalysisGetFunction import FullAnalysisGetFunction
-from bioweb_api.apis.full_analysis.FullAnalysisDeleteFunction import FullAnalysisDeleteFunction
+from bioweb_api.apis.predator_file_generator.PredatorFileGeneratorPostFunction import PredatorFileGeneratorPostFunction
+
+
 
 #=============================================================================
 # Class
 #=============================================================================
-class FullAnalysisApiV1(AbstractApiV1):
+class PredatorFileGeneratorApiV1(AbstractApiV1):
 
     _FUNCTIONS = [
-                  FullAnalysisPostFunction(),
-                  FullAnalysisGetFunction(),
-                  FullAnalysisDeleteFunction(),
+                  PredatorFileGeneratorPostFunction(),
                  ]
 
     @staticmethod
     def name():
-        return "FullAnalysis"
-
+        return "PredatorFileGenerator"
+   
     @staticmethod
     def description():
-        return "Functions for running a full analysis of an image stack"
-
+        return "Functions for generating Predator scripts."
+    
     @staticmethod
     def preferred():
         return True
-
+    
     @staticmethod
     def consumes():
         return ["multipart/form-data"]
-
+    
     @property
     def functions(self):
         return self._FUNCTIONS
-
+    
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    api = FullAnalysisApiV1()
+    api = PredatorFileGeneratorApiV1()
     print api

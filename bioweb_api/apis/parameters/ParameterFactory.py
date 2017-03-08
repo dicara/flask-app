@@ -29,12 +29,13 @@ from bioweb_api.apis.parameters.UpperCaseStringParameter import UpperCaseStringP
 from bioweb_api.apis.parameters.CaseSensitiveStringParameter import CaseSensitiveStringParameter
 from bioweb_api.apis.parameters.FileParameter import FileParameter
 from bioweb_api.apis.parameters.KeyValueParameter import KeyValueParameter
+from bioweb_api.apis.parameters.ListParameter import ListParameter
 from bioweb_api.apis.parameters.MultipleValueParameter import MultipleValueParameter
 from bioweb_api.apis.ApiConstants import PARAMETER_TYPES, FORMAT, FORMATS, SEQUENCE, \
     SEQUENCE_NAME, PROBE, EQUALITY, FILE, FILENAMES, UUID, CHR_NUM, CHR_START, \
     CHR_STOP, SNP_SEARCH_NAME, ARCHIVE, DYES, DEVICE, DATE, DYE_LEVELS, EXP_DEF, \
     STACK_TYPE, MONITOR1, MONITOR2, NAME, DYE_METRICS, FILTERED_DYES, DYES_LOTS, \
-    PA_DATA_SOURCE, EXP_DEF_NAME, CARTRIDGE_SN
+    PA_DATA_SOURCE, EXP_DEF_NAME, CARTRIDGE_SN, DESIGN
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_archives, \
     get_dyes, get_devices, get_hdf5_dataset_names
@@ -260,6 +261,13 @@ class ParameterFactory(object):
                                allow_multiple=allow_multiple)
 
     @classmethod
+    def design(cls, description, required=True,
+                  allow_multiple=False, enum=None):
+        _parameter = cls.cs_string("name", "description")
+        return ListParameter(DESIGN, description, _parameter,
+                             required=required)
+
+    @classmethod
     def dye_levels(cls, required=True):
         keys_parameter   = cls.dyes()
         values_parameter = cls.integer("name", "description", minimum=1)
@@ -270,12 +278,11 @@ class ParameterFactory(object):
 
     @classmethod
     def dyes_lots(cls, required=True):
-        keys_parameter   = cls.cs_string("name", "description")
-        values_parameter = cls.cs_string("name", "description")
-        description      = "Comma separated list of dye:lot# pairs " \
-                           "(e.g. pe:RPE000-15-026,cy5.5:CY5.5RP000-16-011)."
-        return KeyValueParameter(DYES_LOTS, description, keys_parameter,
-                                 values_parameter, required=required)
+        _parameter = cls.cs_string("name", "description")
+        description      = "Comma separated list of dye:lot#:#level strings " \
+                           "(e.g. pe:RPE000-15-026:3,cy5.5:CY5.5RP000-16-011:4)."
+        return ListParameter(DYES_LOTS, description, _parameter,
+                                 required=required)
 
     @classmethod
     def filter_dyes(cls, required=True):

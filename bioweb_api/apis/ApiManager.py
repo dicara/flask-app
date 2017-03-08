@@ -30,6 +30,7 @@ from bioweb_api.apis.full_analysis.FullAnalysisApi import FullAnalysisApiV1
 from bioweb_api.apis.secondary_analysis.SecondaryAnalysisApi import SecondaryAnalysisAPIV1
 from bioweb_api.apis.drop_tools.DropToolsApi import DropToolsAPIV1
 from bioweb_api.apis.dye_profiles_database.DyeProfilesDatabaseApi import DyeProfilesDatabaseAPIV1
+from bioweb_api.apis.predator_file_generator.PredatorFileGeneratorApi import PredatorFileGeneratorApiV1
 from bioweb_api.apis.image.ImageApi import ImageAPIV1
 from bioweb_api.apis.run_info.RunInfoApi import RunInfoAPIV1
 from bioweb_api.apis.exp_def.ExpDefApi import ExpDefApiV1
@@ -56,6 +57,7 @@ _APIS = [
          DyeProfilesDatabaseAPIV1(),
          RunInfoAPIV1(),
          ExpDefApiV1(),
+         PredatorFileGeneratorApiV1(),
         ]
 
 _APIS_DICT = defaultdict(dict)

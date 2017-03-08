@@ -463,20 +463,20 @@ class LibraryDesign(object):
         """
         fig = plt.figure()
         profiles = list()
-        for dye in design['dyes']:
-            intensities = design['dyes'][dye]['intensities']
+        for dye in design['barcode_dyes']:
+            intensities = design['barcode_dyes'][dye]['intensities']
             max_intensity = max(intensities)
             profile = self._barcode_profile_map[dye] * max_intensity
             profiles.append(profile)
             plt.plot(range(len(profile)), profile, label='%s, %d levels' % (dye, len(intensities)))
 
-        for dye in self._non_barcode_profile_map:
-            max_intensity = self._non_barcode_intensity_map[dye]
+        for dye in design['fiducial_dyes']:
+            max_intensity = design['fiducial_dyes'][dye]['intensity']
             profile = self._non_barcode_profile_map[dye] * max_intensity
             profiles.append(profile)
             plt.plot(range(len(profile)), profile, label=dye)
 
-        plt.title('%d Dyes, Separability: %d' % (len(design['dyes']), design['separability']))
+        plt.title('%d Dyes, Separability: %d' % (len(design['barcode_dyes']), design['separability']))
         max_profile = numpy.sum(numpy.array(profiles), axis=0)
         plt.plot(range(len(max_profile)), max_profile, 'k--', label='Max Profile')
         plt.plot(range(len(max_profile)), [SATURATION_CAP] * len(max_profile), 'y--', label='Saturation')

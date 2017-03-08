@@ -258,7 +258,10 @@ class FullAnalysisWorkFlowCallable(object):
                                                          SA_IDENTITY_UUID: callable.uuid,
                                                          TRAINING_FACTOR: self.parameters[ID_TRAINING_FACTOR],
                                                          UI_THRESHOLD: self.parameters[UI_THRESHOLD],
-                                                         IGNORE_LOWEST_BARCODE: self.parameters[IGNORE_LOWEST_BARCODE]}}})
+                                                         IGNORE_LOWEST_BARCODE: self.parameters[IGNORE_LOWEST_BARCODE],
+                                                         PICO1_DYE: self.parameters[PICO1_DYE],
+                                                         MAX_UNINJECTED_RATIO: self.parameters[MAX_UNINJECTED_RATIO],
+                                                         USE_PICO1_FILTER: self.parameters[USE_PICO1_FILTER]}}})
 
         # run identity job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -310,7 +313,8 @@ class FullAnalysisWorkFlowCallable(object):
                                                          SA_ASSAY_CALLER_UUID: callable.uuid,
                                                          TRAINING_FACTOR: self.parameters[AC_TRAINING_FACTOR],
                                                          CTRL_THRESH: self.parameters[CTRL_THRESH],
-                                                         CTRL_FILTER: self.parameters[CTRL_FILTER]}}})
+                                                         CTRL_FILTER: self.parameters[CTRL_FILTER],
+                                                         AC_MODEL: self.parameters[AC_MODEL]}}})
 
         # run assay caller job
         with ThreadPoolExecutor(max_workers=1) as executor:

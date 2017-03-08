@@ -760,3 +760,6 @@ GnuBio Flask API.
    * Update secondary_analysis to 2.4.2 which includes:
      * bugfix for training kde in offline mode
      * entry point bugfix
+ * v3.63
+   * Libarary design generator refactored
+   * Predator script generator is in its own separate api

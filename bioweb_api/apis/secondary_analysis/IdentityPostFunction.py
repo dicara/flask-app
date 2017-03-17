@@ -446,7 +446,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
                             TEMPORAL_PLOT_URL: get_results_url(temporal_plot_path),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
-                update_data[ERROR] = '\n'.join(report_errors)
+                update_data[ERROR] = ' '.join(report_errors)
 
             update = {"$set": update_data}
             # If job has been deleted, then delete result and don't update DB.

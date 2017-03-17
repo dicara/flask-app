@@ -21,6 +21,7 @@ limitations under the License.
 # Imports
 #=============================================================================
 import os
+import pipes
 import re
 import sys
 import shutil
@@ -343,7 +344,7 @@ def execute_process(archive, dyes, device, major, minor, offsets, use_iid,
         # shutil.copytree does not play nicely when copying from samba drive to
         # Mac, so use a system command.
         io_utilities.safe_make_dirs(TMP_PATH)
-        os.system("cp -fr %s %s" % (archive_path, tmp_path))
+        os.system("cp -fr %s %s" % (pipes.quote(archive_path), pipes.quote(tmp_path)))
 
         with open(tmp_config_path, "w") as f:
             print >>f, "dye_map:"
@@ -353,7 +354,7 @@ def execute_process(archive, dyes, device, major, minor, offsets, use_iid,
             if minor is not None:
                 print >>f, "  minor: %s" % minor
             print >>f, "  dyes: [%s]" % ", ".join([ "\"%s\"" % x for x in dyes])
-            
+
         images = io_utilities.filter_files(os.listdir(tmp_path), 
                                            VALID_HAM_IMAGE_EXTENSIONS)
         images =[os.path.join(tmp_path, image) for image in images]

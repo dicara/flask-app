@@ -765,3 +765,5 @@ GnuBio Flask API.
    * Predator script generator is in its own separate api
  * v3.64.0
    * Display select parameters while job is running
+ * v3.64.1
+   * Archive names can accept special characters

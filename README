@@ -767,3 +767,5 @@ GnuBio Flask API.
    * Display select parameters while job is running
  * v3.64.1
    * Archive names can accept special characters
+ * v3.64.2
+   * predator scripts zip file location changed to results directory

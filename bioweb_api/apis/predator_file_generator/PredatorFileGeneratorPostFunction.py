@@ -28,7 +28,7 @@ import traceback
 from datetime import datetime
 import numpy
 
-from bioweb_api import RESULTS_PATH, HOSTNAME, PORT
+from bioweb_api import RESULTS_PATH, HOSTNAME, PORT, HOME_DIR
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.ApiConstants import ERROR, DATESTAMP, MIX_VOL, \
@@ -134,13 +134,14 @@ class PredatorFileGeneratorPostFunction(AbstractPostFunction):
 
             # convert the information in the predator plates into csv files
             cg = CsvGenerator(ds_lib, pplates)
-            predator_files_dir = os.path.join(RESULTS_PATH, 'predator_files')
-            if not os.path.exists(predator_files_dir):
-                os.makedirs(predator_files_dir)
-            output_dir_path = tempfile.mkdtemp(dir=predator_files_dir, prefix='predator_files')
-            output_zip_path = cg.generate(output_path=output_dir_path)
-            json_response['predator_files_url'] = "http://%s:%d/tmp/%s" % \
-                (HOSTNAME, PORT, os.path.basename(output_zip_path))
+            predator_files_dir_path = os.path.join(RESULTS_PATH, 'predator_files')
+            if not os.path.exists(predator_files_dir_path):
+                os.makedirs(predator_files_dir_path)
+            output_dir_path = tempfile.mkdtemp(dir=predator_files_dir_path, prefix='predator_files')
+            output_zip_file_path = cg.generate(output_path=output_dir_path)
+            rel_path = os.path.relpath(output_zip_file_path, HOME_DIR)
+
+            json_response['predator_files_url'] = "http://%s/%s" % (HOSTNAME, rel_path)
 
         except IOError:
             APP_LOGGER.exception(traceback.format_exc())

@@ -121,11 +121,11 @@ class LibraryDesign(object):
 
         for name, _, nlvls in self._requested_dye_lots:
             if self._pico1_dye == name:
-                raise Exception('Pico 1 dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the picoinjection 1 dye because it\'s a barcode dye.' % self._pico1_dye)
             if self._pico2_dye == name:
-                raise Exception('Pico 2 dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the picoinjection 2 dye because it\'s a barcode dye.' % self._pico2_dye)
             if self._assay_dye == name:
-                raise Exception('Assay dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the assay dye because it\'s a barcode dye.' % self._assay_dye)
 
             if nlvls is not None and nlvls < self.get_min_nlvls(name):
                 raise Exception('Requested number of levels for dye %s is below minimum of %d' %

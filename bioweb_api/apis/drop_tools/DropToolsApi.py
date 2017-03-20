@@ -23,7 +23,6 @@ limitations under the License.
 from bioweb_api.apis.AbstractApi import AbstractApiV1
 from bioweb_api.apis.drop_tools.DropSizePostFunction import DropSizePostFunction
 from bioweb_api.apis.drop_tools.GenerateLibraryPostFunction import GenerateLibraryPostFunction
-from bioweb_api.apis.drop_tools.BarcodeLibraryDyesGetFunction import BarcodeLibraryDyesGetFunction
 
 
 #=============================================================================
@@ -34,7 +33,6 @@ class DropToolsAPIV1(AbstractApiV1):
     _FUNCTIONS = [
                   DropSizePostFunction(),
                   GenerateLibraryPostFunction(),
-                  BarcodeLibraryDyesGetFunction()
                  ]
 
     @staticmethod

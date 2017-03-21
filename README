@@ -769,3 +769,7 @@ GnuBio Flask API.
    * Archive names can accept special characters
  * v3.64.2
    * predator scripts zip file location changed to results directory
+ * v3.65.0
+   * epoch time appended to hdf5 file
+   * user can specify fixed number of levels for library design generator
+   * library design error messages are more descriptive

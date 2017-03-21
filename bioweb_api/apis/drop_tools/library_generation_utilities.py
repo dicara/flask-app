@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import itertools
 
 from matplotlib import pyplot as plt
@@ -139,10 +139,12 @@ class LibraryDesign(object):
             dye_names = [name for name, _, _ in self._requested_dye_lots]
             lot_numbers = [lot for _, lot, _ in self._requested_dye_lots]
             if len(set(dye_names)) != len(dye_names):
-                raise Exception('Duplicate dye names were found.')
+                counts = Counter(dye_names)
+                raise Exception('Duplicate dyes detected: %s' % ', '.join(key for key in counts if counts[key] > 1))
 
             if len(set(lot_numbers)) != len(lot_numbers):
-                raise Exception('Duplicate lot numbers were found.')
+                counts = Counter(lot_numbers)
+                raise Exception('Duplicate lots detected: %s' % ', '.join(key for key in counts if counts[key] > 1))
 
     def _set_barcode_maps(self):
         """

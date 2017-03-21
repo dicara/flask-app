@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import itertools
 
 from matplotlib import pyplot as plt
@@ -22,10 +22,10 @@ DEFAULT_MIN_NLEVELS = 2
 DEFAULT_MAX_NLEVELS = 4
 
 # based on pdms chip data, 40 mW laser power, Gain 0
-# by default PE should be restriced to two levels
-# any dyes that must have a restricted number of levels below the default are set here
+# by default PE should be restricted to two levels
+# any dyes that must have a restricted number of levels are set here
 # user requests can override these setting (if user requests 3 levels of PE they will get 3 levels)
-MAX_NLEVELS = {
+DYE_SPECIFIC_NLEVELS = {
     DYE_PE: 2,
 }
 
@@ -80,8 +80,8 @@ class LibraryDesign(object):
         self._barcode_peaks = numpy.array(self._barcode_peaks_map.values())
 
         # set min and max level variables
-        self._barcode_min_nlvls = numpy.array([DEFAULT_MIN_NLEVELS for _ in self._barcode_dyes])
-        self._barcode_max_nlvls = numpy.array([self.default_max_nlvls(dye) for dye in self._barcode_dyes])
+        self._barcode_min_nlvls = numpy.array([self.get_min_nlvls(dye) for dye in self._barcode_dyes])
+        self._barcode_max_nlvls = numpy.array([self.get_max_nlvls(dye) for dye in self._barcode_dyes])
         self._barcode_lvl_ranges = None
         self._set_nlvls()
 
@@ -105,8 +105,11 @@ class LibraryDesign(object):
         """
         return self._requested_ndyes is not None and self._requested_ndyes > len(self._requested_dye_lots)
 
-    def default_max_nlvls(self, dye):
-        return MAX_NLEVELS.get(dye, DEFAULT_MAX_NLEVELS)
+    def get_max_nlvls(self, dye):
+        return DYE_SPECIFIC_NLEVELS.get(dye, DEFAULT_MAX_NLEVELS)
+
+    def get_min_nlvls(self, dye):
+        return DYE_SPECIFIC_NLEVELS.get(dye, DEFAULT_MIN_NLEVELS)
 
     def _validate_inputs(self):
         """
@@ -118,28 +121,30 @@ class LibraryDesign(object):
 
         for name, _, nlvls in self._requested_dye_lots:
             if self._pico1_dye == name:
-                raise Exception('Pico 1 dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the picoinjection 1 dye because it\'s a barcode dye.' % self._pico1_dye)
             if self._pico2_dye == name:
-                raise Exception('Pico 2 dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the picoinjection 2 dye because it\'s a barcode dye.' % self._pico2_dye)
             if self._assay_dye == name:
-                raise Exception('Assay dye cannot be a barcode dye.')
+                raise Exception('%s cannot be used as the assay dye because it\'s a barcode dye.' % self._assay_dye)
 
-            if nlvls is not None and nlvls < DEFAULT_MIN_NLEVELS:
+            if nlvls is not None and nlvls < self.get_min_nlvls(name):
                 raise Exception('Requested number of levels for dye %s is below minimum of %d' %
-                                (name, DEFAULT_MIN_NLEVELS))
+                                (name, self.get_min_nlvls(name)))
 
-            if nlvls is not None and nlvls > self.default_max_nlvls(name):
+            if nlvls is not None and nlvls > self.get_max_nlvls(name):
                 raise Exception('Requested number of levels for dye %s is above maximum %d' %
-                                (name, self.default_max_nlvls(name)))
+                                (name, self.get_max_nlvls(name)))
 
         if self._requested_dye_lots:
             dye_names = [name for name, _, _ in self._requested_dye_lots]
             lot_numbers = [lot for _, lot, _ in self._requested_dye_lots]
             if len(set(dye_names)) != len(dye_names):
-                raise Exception('Duplicate dye names were found.')
+                counts = Counter(dye_names)
+                raise Exception('Duplicate dyes detected: %s' % ', '.join(key for key in counts if counts[key] > 1))
 
             if len(set(lot_numbers)) != len(lot_numbers):
-                raise Exception('Duplicate lot numbers were found.')
+                counts = Counter(lot_numbers)
+                raise Exception('Duplicate lots detected: %s' % ', '.join(key for key in counts if counts[key] > 1))
 
     def _set_barcode_maps(self):
         """

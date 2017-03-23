@@ -773,3 +773,5 @@ GnuBio Flask API.
    * epoch time appended to hdf5 file
    * user can specify fixed number of levels for library design generator
    * library design error messages are more descriptive
+ * v3.65.1
+   * capture epoch time appended to primary analysis file

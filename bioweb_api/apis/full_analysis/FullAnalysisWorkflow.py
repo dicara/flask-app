@@ -31,7 +31,7 @@ from bioweb_api.apis.primary_analysis.ProcessPostFunction import make_process_ca
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process_callback as id_make_process_callback
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
-from gbutils.expdb_fetcher import ExperimentDefinitions
+from gbutils.exp_def.exp_def_handler import ExpDefHandler
 
 
 # lookup dictionary for last step in workflow
@@ -89,8 +89,8 @@ class FullAnalysisWorkFlowCallable(object):
         for exploratory experiment, and sequencing API for sequencing experiment.
         """
         try:
-            exp_def_fetcher = ExperimentDefinitions()
-            experiment = exp_def_fetcher.get_experiment_definition_obj(self.parameters[EXP_DEF])
+            exp_def_fetcher = ExpDefHandler()
+            experiment = exp_def_fetcher.get_experiment_definition(self.parameters[EXP_DEF])
 
             exp_type = experiment.exp_type
             self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER] + [WORKFLOW_LOOKUP[exp_type]]

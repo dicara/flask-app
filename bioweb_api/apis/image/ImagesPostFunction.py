@@ -40,7 +40,7 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
-from gbutils.expdb_fetcher import ExperimentDefinitions
+from gbutils.exp_def.exp_def_handler import ExpDefHandler
 
 #=============================================================================
 # Public Static Variables
@@ -127,7 +127,7 @@ class ImagesPostFunction(AbstractPostFunction):
                                                      [NAME])
 
             # check for exp def
-            exp_def_fetcher = ExperimentDefinitions()
+            exp_def_fetcher = ExpDefHandler()
             exp_def_uuid = exp_def_fetcher.get_experiment_uuid(exp_def_name)
 
             if existing_stacks:

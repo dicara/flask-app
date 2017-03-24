@@ -89,7 +89,8 @@ class FullAnalysisWorkFlowCallable(object):
         for exploratory experiment, and sequencing API for sequencing experiment.
         """
         try:
-            exp_def_fetcher = ExpDefHandler()
+            exp_def_fetcher = ExpDefHandler(urls=["http://expdb/experiment",
+                                                  "http://exp-def-db/experiment"])
             experiment = exp_def_fetcher.get_experiment_definition(self.parameters[EXP_DEF])
 
             exp_type = experiment.exp_type

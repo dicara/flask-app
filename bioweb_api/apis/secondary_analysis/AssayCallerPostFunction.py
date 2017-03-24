@@ -279,7 +279,8 @@ class SaAssayCallerCallable(object):
         try:
             safe_make_dirs(self.tmp_path)
 
-            exp_def_fetcher = ExpDefHandler()
+            exp_def_fetcher = ExpDefHandler(urls=["http://expdb/experiment",
+                                                  "http://exp-def-db/experiment"])
             experiment = exp_def_fetcher.get_experiment_definition(self.exp_def_name)
 
             AssayCallManager(self.num_probes, in_file=self.analysis_file,

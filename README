@@ -790,3 +790,5 @@ GnuBio Flask API.
        * entry point bugfix
      * v2.4.2
        * bugfix where attempting to reverse numpy array created wrong size array
+ * v3.66.1
+   * use both old and new expdb sites for fetching definitions

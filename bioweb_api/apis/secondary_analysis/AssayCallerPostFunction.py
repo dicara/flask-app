@@ -45,7 +45,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     CTRL_FILTER_DESCRIPTION, AC_MODEL, ASSAY_CALLER_MODEL_DESCRIPTION
 
 from primary_analysis.command import InvalidFileError
-from gbutils.expdb_fetcher import ExperimentDefinitions
+from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 
@@ -279,8 +279,8 @@ class SaAssayCallerCallable(object):
         try:
             safe_make_dirs(self.tmp_path)
 
-            exp_def_fetcher = ExperimentDefinitions()
-            experiment = exp_def_fetcher.get_experiment_definition_obj(self.exp_def_name)
+            exp_def_fetcher = ExpDefHandler()
+            experiment = exp_def_fetcher.get_experiment_definition(self.exp_def_name)
 
             AssayCallManager(self.num_probes, in_file=self.analysis_file,
                              out_file=self.tmp_outfile_path,

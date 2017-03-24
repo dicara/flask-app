@@ -775,3 +775,18 @@ GnuBio Flask API.
    * library design error messages are more descriptive
  * v3.65.1
    * capture epoch time appended to primary analysis file
+ * v3.66.0
+   * use new experiment definition fetcher in gbutils
+   * update gbutils to v2.4.2:
+     * v2.2
+       * Refactor experiment definition fetcher into a more feature complete tool
+     * v2.2.1
+       * Add def_updater entry point
+     * v2.3
+       * Harmonize dependencies, make experiment-database dependency abstract and update to 0.15.
+     * v2.4
+       * ring buffer can be multi-dimensional
+     * v2.4.1
+       * entry point bugfix
+     * v2.4.2
+       * bugfix where attempting to reverse numpy array created wrong size array

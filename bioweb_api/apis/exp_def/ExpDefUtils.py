@@ -28,7 +28,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME, DYES, \
     TYPE
 
-from gbutils.expdb_fetcher import ExperimentDefinitions
+from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from secondary_analysis.genotyping.genotyper_utils import get_target_id
 
 #=============================================================================
@@ -74,7 +74,7 @@ def update_experiment_definitions():
     """
     Update EXP_DEF_COLLECTION with new experiment definitions.
     """
-    exp_def_fetcher = ExperimentDefinitions()
+    exp_def_fetcher = ExpDefHandler()
 
     db_uuids = set(_DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, UUID))
     cur_uuids = set(exp_def_fetcher.experiment_uuids)
@@ -82,7 +82,7 @@ def update_experiment_definitions():
     obselete_uuids = db_uuids - cur_uuids
     new_exp_defs = list()
     for uuid in new_uuids:
-        experiment = exp_def_fetcher.get_experiment_definition_obj(uuid)
+        experiment = exp_def_fetcher.get_experiment_definition(uuid)
         if experiment is not None:
             update = {UUID: uuid, NAME: experiment.name, DYES: list(experiment.dyes),
                       TYPE: experiment.exp_type}

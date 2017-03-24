@@ -307,36 +307,37 @@ def convert_hdf5_dataset_to_txt(hdf5_path, dataset, output_path, delimiter='\t')
         'saturated': '%d',
         'av_sq_err': '%.8f',
         'sum-err': '%.3f',
-        'capture_time': '%07.2f',
-        'img_creation_time': '%07.2f',
+        'time': '%07.2f',
         '-decomp': '%.1f',
-        'epoch_time': '%.3f'
+        'img_epoch': '%.4f',
+        'capture_epoch': '%.6f'
     }
 
     # get HDF5 dataset
     dataset = h5py.File(hdf5_path)[dataset]
     columns = dataset.attrs['columns']
-    data = dataset.value
+    data = dataset.value.astype(numpy.float64)
     creation_time = dataset.attrs.get('creation_time', None)
     convert_time_human_readable = numpy.vectorize(
-        lambda x: float(time.strftime('%H%M.%S', time.localtime(x + creation_time)))
+        lambda x: float(time.strftime('%H%M.%S', time.localtime(x)))
     )
 
     # append capture time if available
     if 'capture_time' in columns and creation_time is not None:
         idx = numpy.where(columns == 'capture_time')[0][0]
-        data[:, idx] = convert_time_human_readable(data[:, idx])
+        data[:, idx] += creation_time
+        columns[idx] = 'capture_epoch'
 
     # append capture time if available
     if 'img_creation_time' in columns and creation_time is not None:
         idx = numpy.where(columns == 'img_creation_time')[0][0]
-        data = data[data[:, idx].argsort()]
-        # epoch time is so large that float64 must be used in order to get millisec precision
-        epoch_time = numpy.copy(data[:, [idx]]).astype(numpy.float64) + creation_time
-        data[:, idx] = convert_time_human_readable(data[:, idx])
+        data[:, idx] += creation_time
+        columns[idx] = 'img_epoch'
+
+        human_readable_hour_min = convert_time_human_readable(data[:, idx]).reshape(-1, 1)
         # also append epoch time
-        data = numpy.hstack((epoch_time, data))
-        columns = numpy.concatenate((['epoch_time'], columns))
+        data = numpy.hstack((human_readable_hour_min, data))
+        columns = numpy.concatenate((['time'], columns))
 
     # create data types
     data_types = list()

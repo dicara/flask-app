@@ -29,8 +29,8 @@ import yaml
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
-    HDF5_COLLECTION
-from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET
+    HDF5_COLLECTION, ARCHIVES_COLLECTION, ARCHIVES_PATH
+from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, ARCHIVE
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     CHIP_REVISION_TXT, DATETIME, DEVICE_NAME_TXT, EXIT_NOTES_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
@@ -236,6 +236,24 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     return [r[HDF5_DATASET] for r in new_records]
 
 
+def update_image_stacks(log_data):
+    """
+    Check whether the image_stacks in a run report document exist in archive collection.
+    If not, add them to database.
+    """
+    if log_data is None or IMAGE_STACKS not in log_data: return
+
+    new_records = list()
+    for image_stack in log_data[IMAGE_STACKS]:
+        exist_record = _DB_CONNECTOR.find_one(ARCHIVES_COLLECTION, ARCHIVE, image_stack)
+        if not exist_record and os.path.isdir(os.path.join(ARCHIVES_PATH, image_stack)):
+            new_records.append({ARCHIVE: image_stack})
+
+    if new_records:
+        APP_LOGGER.info('Found %d image stacks: %s' % (len(new_records), new_records))
+        _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, new_records)
+
+
 def update_run_reports(date_folders=None):
     '''
     Update the database with available run reports.  It is not an error
@@ -279,6 +297,9 @@ def update_run_reports(date_folders=None):
                     if log_data is None:
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
+                        # add image stacks to archive collection
+                        update_image_stacks(log_data)
+                        # find HDF5 datasets and add them to HDF5 collection
                         hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
@@ -291,8 +312,11 @@ def update_run_reports(date_folders=None):
                     # unique_tag. If this occurs, try reading the run report again.
                     if len(log_data.keys()) == 3:
                         log_data = read_report_file(report_file_path, date_obj, utag)
+                        # add image stacks to archive collection
+                        update_image_stacks(log_data)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
+                        # find HDF5 datasets and add new records to HDF5 collection
                         new_datasets = set(get_hdf5_datasets(log_data, folder, sf))
                         if new_datasets:
                             exist_datasets = set(log_data[IMAGE_STACKS])

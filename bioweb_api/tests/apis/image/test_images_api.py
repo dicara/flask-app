@@ -69,7 +69,7 @@ class TestImagesAppi(unittest.TestCase):
 
     def setUp(self):
         self._client = app.test_client(self)
-        
+
     def test_invalid_exp_def(self):
         url = _IMAGES_URL
         url = add_url_argument(url, EXP_DEF, 'invalid_exp_def', True)
@@ -79,21 +79,21 @@ class TestImagesAppi(unittest.TestCase):
 
     def test_empty_archive(self):
         url = _IMAGES_URL
-        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, EXP_DEF, 'Beta_24b_p1_V6', True)
         url = add_url_argument(url, NAME, 'empty_archive')
         url = add_url_argument(url, DESCRIPTION, 'Empty archive.')
         upload_file(self, _TEST_DIR, url, _NO_IMAGES, 415)
-        
+
     def test_not_an_archive(self):
         url = _IMAGES_URL
-        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True) 
-        url = add_url_argument(url, NAME, 'not_an_archive') 
+        url = add_url_argument(url, EXP_DEF, 'Beta_24b_p1_V6', True)
+        url = add_url_argument(url, NAME, 'not_an_archive')
         url = add_url_argument(url, DESCRIPTION, 'Not an archive.')
         upload_file(self, _TEST_DIR, url, _NOT_AN_ARCHIVE, 415)
 
     def test_invalid_ham_dir_name(self):
         url = _IMAGES_URL
-        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, EXP_DEF, 'Beta_24b_p1_V6', True)
         url = add_url_argument(url, NAME, 'invalid ham dir name')
         url = add_url_argument(url, DESCRIPTION, 'invalid ham dir name')
         upload_file(self, _TEST_DIR, url, _INVALID_HAM_NAME, 415)
@@ -157,7 +157,7 @@ class TestImagesAppi(unittest.TestCase):
     def test_bin_images(self):
         # Upload image stack
         url = _IMAGES_URL
-        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, EXP_DEF, 'Beta_24b_p1_V6', True)
         url = add_url_argument(url, NAME, 'bin_images')
         url = add_url_argument(url, DESCRIPTION, 'Binary image stack.')
 
@@ -176,7 +176,7 @@ class TestImagesAppi(unittest.TestCase):
         """
         # Upload image stack
         url = _IMAGES_URL
-        url = add_url_argument(url, EXP_DEF, 'test_golden_run', True)
+        url = add_url_argument(url, EXP_DEF, 'Beta_24b_p1_V6', True)
         url = add_url_argument(url, NAME, 'golden_run')
         url = add_url_argument(url, DESCRIPTION, 'Short description.')
 
@@ -282,7 +282,7 @@ class TestImagesAppi(unittest.TestCase):
 
         # Upload ham image stack
         ham_url = _IMAGES_URL
-        ham_url = add_url_argument(ham_url, EXP_DEF, 'test_golden_run', True)
+        ham_url = add_url_argument(ham_url, EXP_DEF, 'Beta_24b_p1_V6', True)
         ham_url = add_url_argument(ham_url, NAME, 'golden_run')
         ham_url = add_url_argument(ham_url, DESCRIPTION, 'Short description.')
         ham_response = upload_file(self, _TEST_DIR, ham_url, _HAM_IMAGES, 200)

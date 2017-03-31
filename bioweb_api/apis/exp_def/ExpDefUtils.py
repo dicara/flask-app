@@ -74,8 +74,7 @@ def update_experiment_definitions():
     """
     Update EXP_DEF_COLLECTION with new experiment definitions.
     """
-    exp_def_fetcher = ExpDefHandler(urls=["http://expdb/experiment",
-                                          "http://exp-def-db/experiment"])
+    exp_def_fetcher = ExpDefHandler()
 
     db_uuids = set(_DB_CONNECTOR.distinct(EXP_DEF_COLLECTION, UUID))
     cur_uuids = set(exp_def_fetcher.experiment_uuids)

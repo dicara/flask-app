@@ -794,3 +794,14 @@ GnuBio Flask API.
    * use both old and new expdb sites for fetching definitions
  * v3.67.0
    * Update archive collection when refreshing run reports
+ * v3.68.0
+   * Update gbutils to v2.5.0:
+     * switch to use exp-def-db site
+   * Update secondary-analysis to v3.3.0:
+     * v3.1.3
+       * identity report includes standard scaled svd for each cluster
+     * v3.2.0
+       * Add enable/disable capabilities to decomposition filters
+     * v3.3.0
+       * let experiment definition fetcher point to exp-def-db site
+       * use static exp def yaml files for unit tests

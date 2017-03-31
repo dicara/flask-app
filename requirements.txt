@@ -1,8 +1,10 @@
 --index-url http://sw-repository/simple/ --trusted-host sw-repository
+biopython==1.68
 coverage==4.3.1
 experiment-database==0.15.0
 Flask==0.12
 futures==3.0.3
+gb-algorithms==0.12.1
 gbutils==2.5.0
 idt-analyzer==0.3
 matplotlib==1.5.1

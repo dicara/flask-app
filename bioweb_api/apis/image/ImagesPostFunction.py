@@ -127,8 +127,7 @@ class ImagesPostFunction(AbstractPostFunction):
                                                      [NAME])
 
             # check for exp def
-            exp_def_fetcher = ExpDefHandler(urls=["http://expdb/experiment",
-                                                  "http://exp-def-db/experiment"])
+            exp_def_fetcher = ExpDefHandler()
             exp_def_uuid = exp_def_fetcher.get_experiment_uuid(exp_def_name)
 
             if existing_stacks:

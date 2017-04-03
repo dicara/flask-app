@@ -1,9 +1,11 @@
 --index-url http://sw-repository/simple/ --trusted-host sw-repository
+biopython==1.68
 coverage==4.3.1
 experiment-database==0.15.0
 Flask==0.12
 futures==3.0.3
-gbutils==2.4.2
+gb-algorithms==0.12.1
+gbutils==2.5.0
 idt-analyzer==0.3
 matplotlib==1.5.1
 ncbi-utilities==0.2
@@ -19,6 +21,6 @@ PyPDF2==1.26.0
 pyyaml==3.11
 redis==2.10.5
 reportlab==3.3.0
-secondary-analysis==3.1.2
+secondary-analysis==3.3.0
 simplejson==3.10.0
 tornado==4.3

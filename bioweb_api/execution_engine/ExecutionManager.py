@@ -20,6 +20,7 @@ limitations under the License.
 #===============================================================================
 # Imports
 #===============================================================================
+from bioweb_api import MAX_WORKERS
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 import threading
@@ -61,7 +62,7 @@ class ExecutionManager(object):
     @classmethod
     def Instance(cls):
         if not cls._INSTANCE:
-            cls._INSTANCE = ExecutionManager(max_workers=2)
+            cls._INSTANCE = ExecutionManager(max_workers=MAX_WORKERS)
         return cls._INSTANCE
 
     #===========================================================================

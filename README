@@ -805,3 +805,6 @@ GnuBio Flask API.
      * v3.3.0
        * let experiment definition fetcher point to exp-def-db site
        * use static exp def yaml files for unit tests
+ * v3.69.0
+   * Update primary and secondary analysis dependencies.
+   * Make number of workers configurable.

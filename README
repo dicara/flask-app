@@ -808,3 +808,6 @@ GnuBio Flask API.
  * v3.69.0
    * Update primary and secondary analysis dependencies.
    * Make number of workers configurable.
+ * v3.70.0
+   * Update primary-analysis to v2.35
+     * read_image must convert the image to 32 bit

@@ -38,6 +38,7 @@ RESULTS_PATH            = os.path.join(HOME_DIR, "results", str(PORT))
 REFS_PATH               = os.path.join(HOME_DIR, "refs")
 TMP_PATH                = os.path.join(HOME_DIR, "tmp")
 TORNADO_LOG_FILE_PREFIX = os.path.join(HOME_DIR, "logs/tornado_%s.log" % str(PORT))
+MAX_WORKERS             = 6
 
 #===============================================================================
 # Platform-Independent Configuration Settings

@@ -740,7 +740,7 @@ GnuBio Flask API.
    * Do not add non-default parameter information to database
  * v3.58.0
    * Update to new version of experiment definition fetcher
-   * Update gbutils to v2.1.1 which includes:
+   * Update gbutils to v2.1.3 which includes:
      * Migrate experiment definition fetcher to gbutils
      * Update parameters for slug window video generation
    * Update secondary-analysis to v2.2.0 which includes:
@@ -760,7 +760,7 @@ GnuBio Flask API.
    * Update secondary_analysis to 2.4.2 which includes:
      * bugfix for training kde in offline mode
      * entry point bugfix
- * v3.63
+ * v3.63.0
    * Libarary design generator refactored
    * Predator script generator is in its own separate api
  * v3.64.0
@@ -805,3 +805,6 @@ GnuBio Flask API.
      * v3.3.0
        * let experiment definition fetcher point to exp-def-db site
        * use static exp def yaml files for unit tests
+ * v3.69.0
+   * Update primary and secondary analysis dependencies.
+   * Make number of workers configurable.

@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = '3.69.0',
+      version          = '3.70.0',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com',
       entry_points     = {'console_scripts': [
@@ -57,7 +57,7 @@ setup(
                           'ncbi-utilities>=0.2',
                           'pandas>=0.18.1',
                           'probe-design>=0.3',
-                          'primary-analysis>=2.34',
+                          'primary-analysis>=2.35',
                           'predator==0.2',
                           'secondary-analysis>=3.4.0',
                           'experiment-database>=0.15.0',

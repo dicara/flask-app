@@ -24,6 +24,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 import os
 import re
+import shutil
 import yaml
 
 import h5py
@@ -47,6 +48,8 @@ from bioweb_api.DbConnector import DbConnector
 # Private Static Variables
 #=============================================================================
 _DB_CONNECTOR = DbConnector.Instance()
+
+ALLOWED_EXTENSIONS = ['h5']
 
 #=============================================================================
 # RESTful location of services
@@ -341,3 +344,56 @@ def update_run_reports(date_folders=None):
 
     APP_LOGGER.info("Database successfully updated with available run reports.")
     return True
+
+def add_datasets(filepaths, report_uuid):
+    """
+    Given the paths of HDF5/image stack files, add the datasets to HDF5/archive and run_report collections.
+
+    @param filepaths:           filepaths
+    @param report_uuid:         uuid of run report that the files are associated with
+    """
+    if not filepaths or not report_uuid: return {}
+
+    all_exist_datasets = _DB_CONNECTOR.distinct(HDF5_COLLECTION, HDF5_DATASET)
+    new_hdf5_records, hdf5_records = list(), list()
+    for fp in filepaths:
+        if fp.endswith('.h5'):
+            try:
+                with h5py.File(fp) as h5_file:
+                    dataset_names = h5_file.keys()
+                for dsname in dataset_names:
+                    if dsname != "laser_power":
+                        record = {HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True}
+                        hdf5_records.append(record)
+                        if dsname not in all_exist_datasets:
+                            new_hdf5_records.append(record)
+            except:
+                APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % fp)
+
+    if new_hdf5_records:
+        _DB_CONNECTOR.insert(HDF5_COLLECTION, new_hdf5_records)
+        APP_LOGGER.info('Updated database with %s new HDF5 files' % len(new_hdf5_records))
+
+    run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
+    if run_report:
+        exist_datasets = set(run_report[IMAGE_STACKS])
+        new_datasets = set([r[HDF5_DATASET] for r in hdf5_records])
+        if new_datasets - exist_datasets:
+            run_report[IMAGE_STACKS] = list(exist_datasets | new_datasets)
+            _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                 {UUID: report_uuid},
+                                 {'$set': {IMAGE_STACKS: run_report[IMAGE_STACKS]}})
+            APP_LOGGER.info("Updated run report uuid=%s with %d HDF5 datasets."
+                            % (report_uuid, len(set(new_datasets - exist_datasets))))
+
+    del run_report[ID]
+    return {"run_report": run_report}
+
+def allowed_file(filepath):
+    return '.' in filepath and filepath.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS \
+           and os.path.isfile(filepath)
+
+if __name__ == '__main__':
+    filepath = '/mnt/runs/run_analysis/modifiedH5/id1482786670-2016-12-26_1807.35-pilot7-filt.h5'
+    uuid = '85feb5ad-0971-4743-a860-3303f276273a'
+    add_datasets(filepath, uuid)

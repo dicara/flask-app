@@ -145,6 +145,7 @@ HOTSPOT          = "HOTSPOT"
 ID               = "_id"
 ID_DOCUMENT      = 'id_document'
 IGNORE_LOWEST_BARCODE = 'ignore_lowest_barcode'
+IMAGE_STACKS     = "image_stacks"
 IS_HDF5          = 'is_hdf5'
 IGNORED_DYES     = "ignored_dyes"
 JOB_NAME         = "job_name"

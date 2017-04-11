@@ -114,7 +114,7 @@ def add_diff_params(fa_job):
     # check if a non-default experiment definition is used.
     run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, IMAGE_STACKS,
                                         fa_job[ARCHIVE])
-    if run_report[EXP_DEF] != fa_job[EXP_DEF]:
+    if run_report is not None and run_report[EXP_DEF] != fa_job[EXP_DEF]:
         diff_params[EXP_DEF] = fa_job[EXP_DEF]
 
     for param, doc_name in PARAM_MAP.items():

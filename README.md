@@ -813,3 +813,6 @@ GnuBio Flask API.
      * read_image must convert the image to 32 bit
  * v3.71.0
    * Allow uploading customized HDF5 files    
+ * v3.71.1
+   * Display non-default experiment definition as select parameter
+   * Restart entire workflow if a different experiment definition is selected

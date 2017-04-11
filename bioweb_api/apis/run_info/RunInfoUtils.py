@@ -49,7 +49,7 @@ from bioweb_api.DbConnector import DbConnector
 #=============================================================================
 _DB_CONNECTOR = DbConnector.Instance()
 
-ALLOWED_EXTENSIONS = ['h5']
+ALLOWED_EXTENSIONS = ['.h5']
 
 #=============================================================================
 # RESTful location of services
@@ -355,16 +355,17 @@ def add_datasets(filepaths, report_uuid):
     if not filepaths or not report_uuid: return {}
 
     all_exist_datasets = _DB_CONNECTOR.distinct(HDF5_COLLECTION, HDF5_DATASET)
-    new_hdf5_records, hdf5_records = list(), list()
+    new_hdf5_records = list()
+    new_datasets = set()
     for fp in filepaths:
-        if fp.endswith('.h5'):
+        if fp.lower().endswith('.h5'):
             try:
                 with h5py.File(fp) as h5_file:
                     dataset_names = h5_file.keys()
                 for dsname in dataset_names:
                     if dsname != "laser_power":
                         record = {HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True}
-                        hdf5_records.append(record)
+                        new_datasets.add(dsname)
                         if dsname not in all_exist_datasets:
                             new_hdf5_records.append(record)
             except:
@@ -377,7 +378,6 @@ def add_datasets(filepaths, report_uuid):
     run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
     if run_report:
         exist_datasets = set(run_report[IMAGE_STACKS])
-        new_datasets = set([r[HDF5_DATASET] for r in hdf5_records])
         if new_datasets - exist_datasets:
             run_report[IMAGE_STACKS] = list(exist_datasets | new_datasets)
             _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
@@ -390,8 +390,10 @@ def add_datasets(filepaths, report_uuid):
     return {"run_report": run_report}
 
 def allowed_file(filepath):
-    return '.' in filepath and filepath.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS \
-           and os.path.isfile(filepath)
+    try:
+        return os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() in ALLOWED_EXTENSIONS
+    except:
+        return False
 
 if __name__ == '__main__':
     filepath = '/mnt/runs/run_analysis/modifiedH5/id1482786670-2016-12-26_1807.35-pilot7-filt.h5'

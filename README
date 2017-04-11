@@ -811,3 +811,5 @@ GnuBio Flask API.
  * v3.70.0
    * Update primary-analysis to v2.35
      * read_image must convert the image to 32 bit
+ * v3.71.0
+   * Allow uploading customized HDF5 files

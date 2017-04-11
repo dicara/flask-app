@@ -45,6 +45,7 @@ MAX_WORKERS             = 6
 #===============================================================================
 ARCHIVES_PATH           = "/mnt/runs"
 RUN_REPORT_PATH         = "/mnt/runs/run_reports"
+MODIFIED_ARCHIVES_PATH  = "/mnt/runs/run_analysis/modifiedH5"
 DATABASE_PORT           = 27017             # the Mongo port is well-known and pretty much constant
 MAX_BUFFER_SIZE         = 2*1024*1024*1024  # Max file upload size: 2GB
 

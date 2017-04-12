@@ -7,7 +7,8 @@ from uuid import uuid4
 
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
-    SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION
+    SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, \
+    SA_EXPLORATORY_COLLECTION
 from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
     MAJOR, MINOR, USE_IID, DYES, DEVICE, ARCHIVE, UUID, JOB_NAME, \
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
@@ -19,7 +20,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, \
-    HOTSPOT, EXPLORATORY, SEQUENCING, EP_DOCUMENT, SQ_DOCUMENT
+    HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -27,10 +28,12 @@ from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallab
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import SaIdentityCallable, IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import SaAssayCallerCallable, ASSAY_CALLER
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import SaGenotyperCallable, GENOTYPER
+from bioweb_api.apis.secondary_analysis.ExploratoryPostFunction import SaExploratoryCallable
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import make_process_callback as pa_make_process_callback
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import make_process_callback as id_make_process_callback
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import make_process_callback as ac_make_process_callback
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import make_process_callback as gt_make_process_callback
+from bioweb_api.apis.secondary_analysis.ExploratoryPostFunction import make_process_callback as ep_make_process_callback
 from gbutils.exp_def.exp_def_handler import ExpDefHandler
 
 
@@ -92,10 +95,10 @@ class FullAnalysisWorkFlowCallable(object):
             exp_def_fetcher = ExpDefHandler()
             experiment = exp_def_fetcher.get_experiment_definition(self.parameters[EXP_DEF])
 
-            exp_type = experiment.exp_type
-            self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER] + [WORKFLOW_LOOKUP[exp_type]]
+            self.exp_type = experiment.exp_type
+            self.workflow = [PROCESS, IDENTITY, ASSAY_CALLER] + [WORKFLOW_LOOKUP[self.exp_type]]
             self.document_list = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] + \
-                                 [DOCUMENT_LOOKUP[exp_type]]
+                                 [DOCUMENT_LOOKUP[self.exp_type]]
 
             if DYES not in self.parameters or \
                DYE_LEVELS not in self.parameters or \
@@ -388,6 +391,47 @@ class FullAnalysisWorkFlowCallable(object):
         # return genotyper status and uuid
         return callable.uuid, result[STATUS], 'genotyper'
 
+    def exploratory_job(self, assay_caller_uuid):
+        """
+        Create and run an exploratory job.
+
+        @param assay_caller_uuid:   String indicating assay caller uuid which
+                                    will be used as an input for genotyper.
+        @return:                    String, uuid of job, String, status of job
+        """
+        job_name = self.parameters[JOB_NAME] + generate_random_str(5)
+        # create a callable and a callback
+        callable = SaExploratoryCallable(assay_caller_uuid=assay_caller_uuid,
+                                         exp_def_name=self.parameters[EXP_DEF],
+                                         required_drops=self.parameters[REQUIRED_DROPS],
+                                         db_connector=self.db_connector,
+                                         job_name=job_name)
+        callback = ep_make_process_callback(uuid=callable.uuid,
+                                            outfile_path=callable.tsv_path,
+                                            db_connector=self.db_connector)
+
+        # enter genotyper uuid into full analysis database entry
+        self.db_connector.update(FA_PROCESS_COLLECTION, self.query,
+                                 {"$set": {EP_DOCUMENT: {START_DATESTAMP: datetime.today(),
+                                                         SA_EXPLORATORY_UUID: callable.uuid,
+                                                         REQUIRED_DROPS: self.parameters[REQUIRED_DROPS]}}})
+
+        # run genotyper job
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(callable)
+            future.add_done_callback(callback)
+
+        # update full analysis entry with results from genotyper
+        result = self.db_connector.find_one(SA_EXPLORATORY_COLLECTION, UUID, callable.uuid)
+        keys = [UUID, URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, KDE_PNG_SUM_URL, STATUS,
+            ERROR, START_DATESTAMP, FINISH_DATESTAMP]
+        document = {key: result[key] for key in keys if key in result}
+        update = {"$set": {EP_DOCUMENT: document}}
+        self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)
+
+        # return genotyper status and uuid
+        return callable.uuid, result[STATUS], 'exploratory'
+
     def run_analysis(self):
         """
         Initialize a list of jobs that will be run in order
@@ -395,7 +439,8 @@ class FullAnalysisWorkFlowCallable(object):
         job_map = {PROCESS:         self.primary_analysis_job,
                    IDENTITY:        self.identity_job,
                    ASSAY_CALLER:    self.assay_caller_job,
-                   GENOTYPER:       self.genotyper_job}
+                   GENOTYPER:       self.genotyper_job,
+                   EXPLORATORY:     self.exploratory_job}
         # run jobs in the order specified by self.workflow
         while self.workflow:
             job = job_map[self.workflow.pop(0)]
@@ -407,7 +452,8 @@ class FullAnalysisWorkFlowCallable(object):
 
         # add unified pdf
         fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
-        while STATUS not in fa_job[GT_DOCUMENT] or fa_job[GT_DOCUMENT][STATUS] == JOB_STATUS.running:
+        last_doc = DOCUMENT_LOOKUP[self.exp_type]
+        while STATUS not in fa_job[last_doc] or fa_job[last_doc][STATUS] == JOB_STATUS.running:
             time.sleep(10)
             fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
         add_unified_pdf(fa_job)

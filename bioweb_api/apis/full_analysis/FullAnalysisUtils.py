@@ -43,8 +43,8 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      CTRL_THRESH, REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, KDE_PNG_SUM_URL, \
      PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, IGNORE_LOWEST_BARCODE, \
-     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING, PICO1_DYE, ARCHIVE, IMAGE_STACKS, \
-     EXP_DEF
+     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING, PICO1_DYE, EP_DOCUMENT, ARCHIVE, \
+     IMAGE_STACKS, EXP_DEF
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -199,19 +199,29 @@ class MakeUnifiedPDF(PDFWriter):
     def __init__(self, fa_job):
         self.uuid                = fa_job[UUID]
         id_report_url            = fa_job[ID_DOCUMENT][REPORT_URL]
-        gt_png_url               = fa_job[GT_DOCUMENT][PNG_URL]
-        gt_png_sum_url           = fa_job[GT_DOCUMENT][PNG_SUM_URL]
-        gt_kde_url               = fa_job[GT_DOCUMENT][KDE_PNG_URL]
-        gt_kde_sum_url           = fa_job[GT_DOCUMENT][KDE_PNG_SUM_URL]
-        gt_pdf_url               = fa_job[GT_DOCUMENT][PDF_URL]
+
+        doc = GT_DOCUMENT
+        if GT_DOCUMENT in fa_job:
+            vcf_pdf_url          = fa_job[GT_DOCUMENT][PDF_URL]
+        elif EP_DOCUMENT in fa_job:
+            doc                  = EP_DOCUMENT
+            vcf_pdf_url          = None
+        else:
+            raise Exception("Genotyper or exploratory document is missing from full analysis document, %s."
+                            % fa_job)
+        png_url                  = fa_job[doc][PNG_URL]
+        png_sum_url              = fa_job[doc][PNG_SUM_URL]
+        kde_url                  = fa_job[doc][KDE_PNG_URL]
+        kde_sum_url              = fa_job[doc][KDE_PNG_SUM_URL]
 
         results_folder           = get_results_folder()
         self.id_report_path      = os.path.join(results_folder, os.path.basename(id_report_url))
-        self.gt_png_path         = os.path.join(results_folder, os.path.basename(gt_png_url))
-        self.gt_png_sum_path     = os.path.join(results_folder, os.path.basename(gt_png_sum_url))
-        self.gt_kde_path         = os.path.join(results_folder, os.path.basename(gt_kde_url))
-        self.gt_kde_sum_path     = os.path.join(results_folder, os.path.basename(gt_kde_sum_url))
-        self.gt_pdf_path         = os.path.join(results_folder, os.path.basename(gt_pdf_url))
+        self.png_path            = os.path.join(results_folder, os.path.basename(png_url))
+        self.png_sum_path        = os.path.join(results_folder, os.path.basename(png_sum_url))
+        self.kde_path            = os.path.join(results_folder, os.path.basename(kde_url))
+        self.kde_sum_path        = os.path.join(results_folder, os.path.basename(kde_sum_url))
+        self.vcf_pdf_path        = os.path.join(results_folder, os.path.basename(vcf_pdf_url)) \
+                                    if vcf_pdf_url is not None else None
 
         self.fa_pdf_path         = os.path.join(results_folder, self.uuid + '.pdf')
         self.tmp_path            = os.path.join(TMP_PATH, self.uuid)
@@ -224,17 +234,17 @@ class MakeUnifiedPDF(PDFWriter):
 
             combine_sa = self._combine_sa(self.tmp_sa_path,
                                           self.id_report_path,
-                                          self.gt_png_path,
-                                          self.gt_png_sum_path,
-                                          self.gt_kde_path,
-                                          self.gt_kde_sum_path)
+                                          self.png_path,
+                                          self.png_sum_path,
+                                          self.kde_path,
+                                          self.kde_sum_path)
             if not combine_sa:
                 raise Exception("Failed to combine secondary analysis results.")
 
             if not os.path.isfile(self.tmp_sa_path):
                 raise Exception("Failed to find temporary combined secondary analysis file")
 
-            self._merge_pdfs(self.tmp_pdf_path, self.gt_pdf_path, self.tmp_sa_path)
+            self._merge_pdfs(self.tmp_pdf_path, self.vcf_pdf_path, self.tmp_sa_path)
 
             if not os.path.isfile(self.tmp_pdf_path):
                 raise Exception("Failed to merge PDF files.")
@@ -301,7 +311,8 @@ class MakeUnifiedPDF(PDFWriter):
         """
         merger = PdfFileMerger()
         for path in args:
-            merger.append(path)
+            if path is not None:
+                merger.append(path)
         merger.write(output_path)
 
     @staticmethod

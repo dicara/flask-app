@@ -135,6 +135,12 @@ class FullAnalysisWorkFlowCallable(object):
         """
         # find the full analysis job
         previous_fa_job_document = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.parameters[UUID])
+
+        # if no previous job is found or experiment definition of previous job is
+        # different from the current one, start from beginning
+        if previous_fa_job_document is None or previous_fa_job_document[EXP_DEF] != self.parameters[EXP_DEF]:
+            return
+
         # find the job it failed on
         failed_subjob = None
         last_successful_subjob_uuid = None
@@ -150,6 +156,7 @@ class FullAnalysisWorkFlowCallable(object):
         # append last successful uuid to uuid manager
         if last_successful_subjob_uuid is not None:
             self.uuid_container.append(last_successful_subjob_uuid)
+
 
         if failed_subjob is None:
             self.workflow = []

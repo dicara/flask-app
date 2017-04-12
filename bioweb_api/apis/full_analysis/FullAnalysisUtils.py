@@ -33,7 +33,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import utils
 
-from bioweb_api import TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION
+from bioweb_api import TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION, \
+    RUN_REPORT_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder, \
     get_results_url
@@ -42,7 +43,8 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      CTRL_THRESH, REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, KDE_PNG_SUM_URL, \
      PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, IGNORE_LOWEST_BARCODE, \
-     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING, PICO1_DYE
+     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING, PICO1_DYE, ARCHIVE, IMAGE_STACKS, \
+     EXP_DEF
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -108,6 +110,13 @@ def update_fa_docs(jobs):
 
 def add_diff_params(fa_job):
     diff_params = dict()
+
+    # check if a non-default experiment definition is used.
+    run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, IMAGE_STACKS,
+                                        fa_job[ARCHIVE])
+    if run_report is not None and run_report[EXP_DEF] != fa_job[EXP_DEF]:
+        diff_params[EXP_DEF] = fa_job[EXP_DEF]
+
     for param, doc_name in PARAM_MAP.items():
         if doc_name not in fa_job: continue
         param_name = convert_param_name(param)

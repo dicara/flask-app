@@ -818,3 +818,4 @@ GnuBio Flask API.
    * Restart entire workflow if a different experiment definition is selected
  * v3.71.2
    * Fix upload HDF5 bug
+   * Fix removing outdated experiment definition bug

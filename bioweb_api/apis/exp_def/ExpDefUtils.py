@@ -93,4 +93,5 @@ def update_experiment_definitions():
         _DB_CONNECTOR.insert(EXP_DEF_COLLECTION, new_exp_defs)
 
     if obselete_uuids:
-        _DB_CONNECTOR.remove(EXP_DEF_COLLECTION, {UUID: list(obselete_uuids)})
+        _DB_CONNECTOR.remove(EXP_DEF_COLLECTION,
+                             {UUID: {"$in": list(obselete_uuids)}})

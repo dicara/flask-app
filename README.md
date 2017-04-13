@@ -816,3 +816,6 @@ GnuBio Flask API.
  * v3.71.1
    * Display non-default experiment definition as select parameter
    * Restart entire workflow if a different experiment definition is selected
+ * v3.71.2
+   * Fix upload HDF5 bug
+   * Fix removing outdated experiment definition bug

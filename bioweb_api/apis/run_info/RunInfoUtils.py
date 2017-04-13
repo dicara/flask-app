@@ -360,14 +360,13 @@ def add_datasets(filepaths, report_uuid):
     for fp in filepaths:
         if fp.lower().endswith('.h5'):
             try:
-                with h5py.File(fp) as h5_file:
+                with h5py.File(fp, 'r') as h5_file:
                     dataset_names = h5_file.keys()
                 for dsname in dataset_names:
-                    if dsname != "laser_power":
-                        record = {HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True}
+                    if not dsname.lower().startswith("laser_power"):
                         new_datasets.add(dsname)
                         if dsname not in all_exist_datasets:
-                            new_hdf5_records.append(record)
+                            new_hdf5_records.append({HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True})
             except:
                 APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % fp)
 

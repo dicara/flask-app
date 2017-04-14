@@ -196,6 +196,7 @@ RUN_ID           = "run_id"
 RUNNING          = 'running'
 REQUIRED_DROPS   = "required_drops"
 SA_ASSAY_CALLER_UUID = "sa_assay_caller_uuid"
+SA_EXPLORATORY_UUID = "sa_exploratory_uuid"
 SA_GENOTYPER_UUID = "sa_genotyper_uuid"
 SA_IDENTITY_UUID = "sa_identity_uuid"
 SAMPLE_ID        = "sample_id"

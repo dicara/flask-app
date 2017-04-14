@@ -30,6 +30,8 @@ from bioweb_api.apis.secondary_analysis.AssayCallerDeleteFunction import AssayCa
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GenotyperPostFunction
 from bioweb_api.apis.secondary_analysis.GenotyperGetFunction import GenotyperGetFunction
 from bioweb_api.apis.secondary_analysis.GenotyperDeleteFunction import GenotyperDeleteFunction
+from bioweb_api.apis.secondary_analysis.ExploratoryGetFunction import ExploratoryGetFunction
+from bioweb_api.apis.secondary_analysis.ExploratoryPostFunction import ExploratoryPostFunction
 
 #=============================================================================
 # Class
@@ -46,29 +48,31 @@ class SecondaryAnalysisAPIV1(AbstractApiV1):
                   GenotyperPostFunction(),
                   GenotyperGetFunction(),
                   GenotyperDeleteFunction(),
+                  ExploratoryGetFunction(),
+                  ExploratoryPostFunction(),
                  ]
-    
+
     @staticmethod
     def name():
         return "SecondaryAnalysis"
-   
+
     @staticmethod
     def description():
         return "Functions for running, examining, and deleting secondary " \
                "analysis jobs."
-    
+
     @staticmethod
     def preferred():
         return True
-    
+
     @staticmethod
     def consumes():
         return ["multipart/form-data"]
-    
+
     @property
     def functions(self):
         return self._FUNCTIONS
-    
+
 #===============================================================================
 # Run Main
 #===============================================================================

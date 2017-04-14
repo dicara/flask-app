@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
     AC_DOCUMENT, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
-    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO
+    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, EP_DOCUMENT
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -67,9 +67,11 @@ _DB_CONNECTOR             = DbConnector.Instance()
 _FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
 _ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
 _HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
-_FA_JOBNAME               = "test_full_analysis_job"
+_FA_HOTSPOT_JOBNAME       = "test_full_analysis_job"
+_FA_EXPLORATORY_JOBNAME   = "test_exploratory_full_analysis_job"
 _ARCHIVE_NAME             = "2016-08-17_1602.41-pilot5"
-_EXP_DEF_NAME             = "Beta_24b_p1_V6"
+_EXP_DEF_HOTSPOT_NAME     = "Beta_24b_p1_V6"
+_EXP_DEF_EXPLORATORY_NAME = "Exploratory_bioweb_test"
 _OFFSETS                  = 30
 _UI_THRESHOLD             = 4000
 _MAX_UI_RATIO             = 1.5
@@ -236,8 +238,8 @@ class TestFullAnalysisAPI(unittest.TestCase):
         # Construct url
         url = _FULL_ANALYSIS_URL
         url = add_url_argument(url, PA_DATA_SOURCE, _ARCHIVE_NAME, True)
-        url = add_url_argument(url, JOB_NAME, _FA_JOBNAME)
-        url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
+        url = add_url_argument(url, JOB_NAME, _FA_HOTSPOT_JOBNAME)
+        url = add_url_argument(url, EXP_DEF, _EXP_DEF_HOTSPOT_NAME)
         url = add_url_argument(url, OFFSETS, _OFFSETS)
         url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
         url = add_url_argument(url, MAX_UNINJECTED_RATIO, _MAX_UI_RATIO)
@@ -315,6 +317,72 @@ class TestFullAnalysisAPI(unittest.TestCase):
 
         os.unlink(_OUTPUT_SA_PATH)
         os.unlink(_OUTPUT_PDF_PATH)
+
+    def test_full_analysis_exploratory(self):
+        """
+        Test the POST and DELETE full analysis API with exploratory experiment definition.
+        """
+        # Construct url
+        url = _FULL_ANALYSIS_URL
+        url = add_url_argument(url, PA_DATA_SOURCE, _ARCHIVE_NAME, True)
+        url = add_url_argument(url, JOB_NAME, _FA_EXPLORATORY_JOBNAME)
+        url = add_url_argument(url, EXP_DEF, _EXP_DEF_EXPLORATORY_NAME)
+        url = add_url_argument(url, OFFSETS, _OFFSETS)
+        url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
+        url = add_url_argument(url, MAX_UNINJECTED_RATIO, _MAX_UI_RATIO)
+        url = add_url_argument(url, AC_TRAINING_FACTOR, _AC_TRAINING_FACTOR)
+        url = add_url_argument(url, CTRL_THRESH, _CTRL_THRESH)
+        url = add_url_argument(url, REQUIRED_DROPS, _REQUIRED_DROPS)
+
+        # Submit full analysis job
+        response    = post_data(self, url, 200)
+        fa_uuid     = response[FULL_ANALYSIS][0][UUID]
+
+        # Test that submitting two jobs with the same name fails and returns
+        # the appropriate error code.
+        post_data(self, url, 403)
+
+        running = True
+        while running:
+            time.sleep(10)
+            response = get_data(self, _FULL_ANALYSIS_URL, 200)
+            for job in response[FULL_ANALYSIS]:
+                if fa_uuid == job[UUID]:
+                    job_details = job
+                    running     = job_details[STATUS] == 'running'
+
+        msg = "%s doesn't exist in job_details." % PA_DOCUMENT
+        self.assertTrue(PA_DOCUMENT in job_details, msg)
+        if ERROR in job_details[PA_DOCUMENT]:
+            self.assertTrue(False, job_details[PA_DOCUMENT][ERROR])
+
+        msg = "%s doesn't exist in job_details." % ID_DOCUMENT
+        self.assertTrue(ID_DOCUMENT in job_details, msg)
+        if ERROR in job_details[ID_DOCUMENT]:
+            self.assertTrue(False, job_details[ID_DOCUMENT][ERROR])
+
+        msg = "%s doesn't exist in job_details." % AC_DOCUMENT
+        self.assertTrue(AC_DOCUMENT in job_details, msg)
+        if ERROR in job_details[AC_DOCUMENT]:
+            self.assertTrue(False, job_details[AC_DOCUMENT][ERROR])
+
+        msg = "%s doesn't exist in job_details." % EP_DOCUMENT
+        self.assertTrue(EP_DOCUMENT in job_details, msg)
+        if ERROR in job_details[EP_DOCUMENT]:
+            self.assertTrue(False, job_details[EP_DOCUMENT][ERROR])
+
+        if ERROR in job_details:
+            self.assertTrue(False, job_details[ERROR])
+
+        # Delete full analysis job
+        delete_url = add_url_argument(_FULL_ANALYSIS_URL, UUID, fa_uuid, True)
+        delete_data(self, delete_url, 200)
+
+        # Ensure job no longer exists in the database
+        response = get_data(self, _FULL_ANALYSIS_URL, 200)
+        for job in response[FULL_ANALYSIS]:
+            msg = "Full analysis job %s still exists in database." % fa_uuid
+            self.assertNotEqual(fa_uuid, job[UUID], msg)
 
 if __name__ == '__main__':
     unittest.main()

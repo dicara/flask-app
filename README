@@ -819,3 +819,5 @@ GnuBio Flask API.
  * v3.71.2
    * Fix upload HDF5 bug
    * Fix removing outdated experiment definition bug
+ * v3.72.0
+   * new API for exploratory mode

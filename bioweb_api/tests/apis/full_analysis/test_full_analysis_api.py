@@ -67,10 +67,10 @@ _DB_CONNECTOR             = DbConnector.Instance()
 _FULL_ANALYSIS_URL        = os.path.join("/api/v1/FullAnalysis", FULL_ANALYSIS)
 _ARCHIVES_URL             = os.path.join(_PRIMARY_ANALYSIS_URL, 'Archives')
 _HDF5S_URL                = os.path.join(_PRIMARY_ANALYSIS_URL, 'HDF5s')
-_FA_JOBNAME               = "test_full_analysis_job"
+_FA_HOTSPOT_JOBNAME       = "test_full_analysis_job"
 _FA_EXPLORATORY_JOBNAME   = "test_exploratory_full_analysis_job"
 _ARCHIVE_NAME             = "2016-08-17_1602.41-pilot5"
-_EXP_DEF_NAME             = "Beta_24b_p1_V6"
+_EXP_DEF_HOTSPOT_NAME     = "Beta_24b_p1_V6"
 _EXP_DEF_EXPLORATORY_NAME = "Exploratory_bioweb_test"
 _OFFSETS                  = 30
 _UI_THRESHOLD             = 4000
@@ -238,8 +238,8 @@ class TestFullAnalysisAPI(unittest.TestCase):
         # Construct url
         url = _FULL_ANALYSIS_URL
         url = add_url_argument(url, PA_DATA_SOURCE, _ARCHIVE_NAME, True)
-        url = add_url_argument(url, JOB_NAME, _FA_JOBNAME)
-        url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
+        url = add_url_argument(url, JOB_NAME, _FA_HOTSPOT_JOBNAME)
+        url = add_url_argument(url, EXP_DEF, _EXP_DEF_HOTSPOT_NAME)
         url = add_url_argument(url, OFFSETS, _OFFSETS)
         url = add_url_argument(url, UI_THRESHOLD, _UI_THRESHOLD)
         url = add_url_argument(url, MAX_UNINJECTED_RATIO, _MAX_UI_RATIO)

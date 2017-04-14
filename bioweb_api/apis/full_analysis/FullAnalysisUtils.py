@@ -220,8 +220,10 @@ class MakeUnifiedPDF(PDFWriter):
         self.png_sum_path        = os.path.join(results_folder, os.path.basename(png_sum_url))
         self.kde_path            = os.path.join(results_folder, os.path.basename(kde_url))
         self.kde_sum_path        = os.path.join(results_folder, os.path.basename(kde_sum_url))
-        self.vcf_pdf_path        = os.path.join(results_folder, os.path.basename(vcf_pdf_url)) \
-                                    if vcf_pdf_url is not None else None
+
+        self.vcf_pdf_path        = None
+        if vcf_pdf_url is not None:
+            self.vcf_pdf_path    = os.path.join(results_folder, os.path.basename(vcf_pdf_url)) 
 
         self.fa_pdf_path         = os.path.join(results_folder, self.uuid + '.pdf')
         self.tmp_path            = os.path.join(TMP_PATH, self.uuid)

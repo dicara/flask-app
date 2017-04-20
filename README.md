@@ -821,3 +821,5 @@ GnuBio Flask API.
    * Fix removing outdated experiment definition bug
  * v3.72.0
    * new API for exploratory mode
+ * v3.73.0
+   * add update run reports cron job

@@ -1,1 +1,1 @@
-*/10 * * * * cd /bioweb-api/bioweb_api/apis/run_info/ && /usr/bin/python /bioweb-api/bioweb_api/apis/run_info/update_reports.py 
+*/10 * * * * cd /bioweb-api/bioweb_api/apis/run_info/ && /usr/bin/python /bioweb-api/bioweb_api/apis/run_info/update_reports.py

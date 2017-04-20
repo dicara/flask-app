@@ -24,24 +24,15 @@ import os
 
 import requests
 
-from bioweb_api import HOSTNAME, PORT
+from bioweb_api.apis.run_info.RunInfoApi import RunInfoAPIV1
 from bioweb_api.apis.run_info.RunInfoGetFunction import RUN_REPORT
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-
-#=============================================================================
-# Private Static Variables
-#=============================================================================
-_RUN_INFO_URL               = '/api/v1/RunInfo'
-_RUN_INFO_GET_URL           = os.path.join(_RUN_INFO_URL, RUN_REPORT)
 
 #=============================================================================
 # Function
 #=============================================================================
 def update_reports():
-    resp = requests.get('http://{0}:{1}{2}?refresh=true'.format(
-                                                HOSTNAME,
-                                                PORT,
-                                                _RUN_INFO_GET_URL))
+    resp = requests.get(os.path.join(RunInfoAPIV1().url(), RUN_REPORT) + '?refresh=true')
     APP_LOGGER.info("Updated run reports with status %s" % resp.status_code)
     return resp
 

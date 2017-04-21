@@ -823,3 +823,5 @@ GnuBio Flask API.
    * new API for exploratory mode
  * v3.73.0
    * add update run reports cron job
+ * v3.74.0
+   * revert 3.73.0 changes

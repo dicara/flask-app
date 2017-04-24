@@ -833,7 +833,7 @@ GnuBio Flask API.
        * add barcodes abstract property to experiment definition object
      * v0.17.2
        * bugfix in barcode_to_label_map
-   * Update secondary-analysis to 3.11.0:
+   * Update secondary-analysis to 3.11.1:
      * v3.8.0
        * Add sorting to run report results.
        * Clean up run report results HTML.
@@ -844,3 +844,5 @@ GnuBio Flask API.
        * Move barcode to target ID function to expdb
      * v3.11.0
        * Added saturated drops filter
+     * v3.11.1
+       * Offline usage of saturated drop filter is backward compatible

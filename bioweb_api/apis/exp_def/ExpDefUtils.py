@@ -29,7 +29,7 @@ from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME, DYES
     TYPE
 
 from gbutils.exp_def.exp_def_handler import ExpDefHandler
-from secondary_analysis.genotyping.genotyper_utils import get_target_id
+from expdb.utils import get_target_id
 
 #=============================================================================
 # Private Static Variables

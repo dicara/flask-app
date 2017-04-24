@@ -825,3 +825,22 @@ GnuBio Flask API.
    * add update run reports cron job
  * v3.74.0
    * revert 3.73.0 changes
+ * v3.75.0
+   * Update experiment-database to 0.17.2:
+     * v0.17.0
+       * add barcode to target ID mapping function to experiment definition object
+     * v0.17.1
+       * add barcodes abstract property to experiment definition object
+     * v0.17.2
+       * bugfix in barcode_to_label_map
+   * Update secondary-analysis to 3.11.0:
+     * v3.8.0
+       * Add sorting to run report results.
+       * Clean up run report results HTML.
+       * Fix analyze run reports argparse bug.
+     * v3.9.0
+       * IdentityJob defaults to organic identity factory if none is specified
+     * v3.10.0
+       * Move barcode to target ID function to expdb
+     * v3.11.0
+       * Added saturated drops filter

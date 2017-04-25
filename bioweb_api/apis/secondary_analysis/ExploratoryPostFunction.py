@@ -44,9 +44,8 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
-from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from primary_analysis.command import InvalidFileError
-from secondary_analysis.exploratory.exploratory_analysis import ExploratoryProcessor
+from secondary_analysis.exploratory.offline_analysis import offline_analysis
 
 #=============================================================================
 # Public Static Variables
@@ -185,6 +184,7 @@ class SaExploratoryCallable(object):
         self.required_drops   = required_drops
         self.ignored_dyes     = identity_doc[IGNORED_DYES] + identity_doc[FILTERED_DYES]
         self.db_connector     = db_connector
+        self.job_name         = job_name
 
         scatter_filename      = '%s_scatter.%s' % (self.uuid, PNG)
         scatter_ind_filename  = '%s_scatter_ind.%s' % (self.uuid, PDF)
@@ -228,13 +228,11 @@ class SaExploratoryCallable(object):
         try:
             safe_make_dirs(self.tmp_path)
 
-            exp_def_fetcher = ExpDefHandler()
-            experiment = exp_def_fetcher.get_experiment_definition(self.exp_def_name)
-            ExploratoryProcessor(experiment,
-                                 output_path=self.tmp_tsv_path,
-                                 in_file=self.ac_result_path,
-                                 required_drops=self.required_drops,
-                                 ignored_dyes=self.ignored_dyes)
+            offline_analysis(self.exp_def_name,
+                             self.ac_result_path,
+                             self.tmp_tsv_path,
+                             ignored_dyes=self.ignored_dyes,
+                             data_set_name=self.job_name)
 
             if not all(os.path.isfile(f) for f in [self.tmp_tsv_path, self.tmp_scatter_fn,
                     self.tmp_scatter_ind_fn, self.tmp_kde_fn, self.tmp_kde_ind_fn]):

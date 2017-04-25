@@ -848,3 +848,5 @@ GnuBio Flask API.
        * Offline usage of saturated drop filter is backward compatible
  * v3.75.1
    * bugfix in generating exploratory mode PDF report
+ * v3.75.2
+   * set job name as plot title in exploratory mode

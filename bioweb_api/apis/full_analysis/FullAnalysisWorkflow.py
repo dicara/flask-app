@@ -453,7 +453,8 @@ class FullAnalysisWorkFlowCallable(object):
         # add unified pdf
         fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
         last_doc = DOCUMENT_LOOKUP[self.exp_type]
+
         while STATUS not in fa_job[last_doc] or fa_job[last_doc][STATUS] == JOB_STATUS.running:
             time.sleep(10)
             fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.uuid)
-        add_unified_pdf(fa_job)
+        add_unified_pdf(fa_job, [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, last_doc])

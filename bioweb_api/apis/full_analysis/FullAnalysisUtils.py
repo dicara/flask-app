@@ -127,11 +127,11 @@ def add_diff_params(fa_job):
 
     fa_job[DIFF_PARAMS] = diff_params
 
-def add_unified_pdf(fa_job):
+def add_unified_pdf(fa_job, document_list):
     if UNIFIED_PDF_URL in fa_job and fa_job[UNIFIED_PDF_URL] \
             or any(indiv_doc not in fa_job or STATUS not in fa_job[indiv_doc]
                    or fa_job[indiv_doc][STATUS] != SUCCEEDED
-                   for indiv_doc in set(PARAM_MAP.values())):
+                   for indiv_doc in document_list):
         return False
 
     make_pdf = MakeUnifiedPDF(fa_job)
@@ -223,7 +223,7 @@ class MakeUnifiedPDF(PDFWriter):
 
         self.vcf_pdf_path        = None
         if vcf_pdf_url is not None:
-            self.vcf_pdf_path    = os.path.join(results_folder, os.path.basename(vcf_pdf_url)) 
+            self.vcf_pdf_path    = os.path.join(results_folder, os.path.basename(vcf_pdf_url))
 
         self.fa_pdf_path         = os.path.join(results_folder, self.uuid + '.pdf')
         self.tmp_path            = os.path.join(TMP_PATH, self.uuid)

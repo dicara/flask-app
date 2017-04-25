@@ -846,3 +846,5 @@ GnuBio Flask API.
        * Added saturated drops filter
      * v3.11.1
        * Offline usage of saturated drop filter is backward compatible
+ * v3.75.1
+   * bugfix in generating exploratory mode PDF report

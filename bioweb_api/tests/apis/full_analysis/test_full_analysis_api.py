@@ -36,7 +36,8 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
     AC_DOCUMENT, SCATTER_PLOT_URL, CTRL_THRESH, GT_DOCUMENT, \
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
-    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, EP_DOCUMENT
+    ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, EP_DOCUMENT, \
+    UNIFIED_PDF, UNIFIED_PDF_URL
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -226,7 +227,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
         msg = "Genotyper PDF file cannot be found: %s" % gt_pdf
         self.assertTrue(os.path.isfile(gt_pdf), msg)
 
-    def test_full_analysis(self):
+    def test_full_analysis_hotspot(self):
         """
         Test the POST, GET and DELETE full analysis APIs
         """
@@ -283,6 +284,12 @@ class TestFullAnalysisAPI(unittest.TestCase):
         self.assertTrue(GT_DOCUMENT in job_details, msg)
         if ERROR in job_details[GT_DOCUMENT]:
             self.assertTrue(False, job_details[GT_DOCUMENT][ERROR])
+
+        msg = "%s doesn't exist in job_details." % UNIFIED_PDF
+        self.assertTrue(UNIFIED_PDF in job_details, msg)
+
+        msg = "%s doesn't exist in job_details." % UNIFIED_PDF_URL
+        self.assertTrue(UNIFIED_PDF_URL in job_details, msg)
 
         if ERROR in job_details:
             self.assertTrue(False, job_details[ERROR])
@@ -370,6 +377,12 @@ class TestFullAnalysisAPI(unittest.TestCase):
         self.assertTrue(EP_DOCUMENT in job_details, msg)
         if ERROR in job_details[EP_DOCUMENT]:
             self.assertTrue(False, job_details[EP_DOCUMENT][ERROR])
+
+        msg = "%s doesn't exist in job_details." % UNIFIED_PDF
+        self.assertTrue(UNIFIED_PDF in job_details, msg)
+
+        msg = "%s doesn't exist in job_details." % UNIFIED_PDF_URL
+        self.assertTrue(UNIFIED_PDF_URL in job_details, msg)
 
         if ERROR in job_details:
             self.assertTrue(False, job_details[ERROR])

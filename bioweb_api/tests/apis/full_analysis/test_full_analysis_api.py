@@ -227,7 +227,7 @@ class TestFullAnalysisAPI(unittest.TestCase):
         msg = "Genotyper PDF file cannot be found: %s" % gt_pdf
         self.assertTrue(os.path.isfile(gt_pdf), msg)
 
-    def test_full_analysis_hotspot(self):
+    def test_full_analysis(self):
         """
         Test the POST, GET and DELETE full analysis APIs
         """

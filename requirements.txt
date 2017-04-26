@@ -4,7 +4,7 @@ coverage==4.3.1
 experiment-database==0.17.2
 Flask==0.12
 futures==3.0.3
-gb-algorithms==0.12.1
+gb-algorithms==0.12.7
 gbutils==2.5.0
 idt-analyzer==0.3
 matplotlib==1.5.1
@@ -21,6 +21,6 @@ PyPDF2==1.26.0
 pyyaml==3.11
 redis==2.10.5
 reportlab==3.3.0
-secondary-analysis==3.11.1
+secondary-analysis==3.12.3
 simplejson==3.10.0
 tornado==4.3

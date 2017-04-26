@@ -848,3 +848,30 @@ GnuBio Flask API.
        * Offline usage of saturated drop filter is backward compatible
  * v3.75.1
    * bugfix in generating exploratory mode PDF report
+ * v3.76.0
+   * set job name as plot title in exploratory mode
+   * update secondary-analysis to 3.12.3:
+     * v3.11.2
+       * update version of sklearn and use new gmm methods
+     * v3.12.0
+       * clean up old imports
+       * update experiment-database to 0.17.2
+     * v3.12.1
+       * disable broken test for quantum dots
+     * v3.12.2
+       * moved plotting
+     * v3.12.3
+       * missing constant import
+   * update gb-algorithms to 0.12.7:
+     * v0.12.2
+       * PidController now friendly to dynamic integral gain
+     * v0.12.3
+       * Update requirements for new docker image
+     * v0.12.4
+       * PidController: Add optional filter pipeline for the derivative term.
+     * v0.12.5
+       * PidController: Save pre-filtered derivative values so they can be compared to filtered values.
+     * v0.12.6
+       * Added two new filters--holding spike filter and low pass filter--which are useful for cleaning noisy derivatives.
+     * v0.12.7
+       * valueerror returns NaN in distance measurement

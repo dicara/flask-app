@@ -65,6 +65,7 @@ setup(
                           'reportlab>=3.3.0',
                           'profile-db>=0.9',
                           'gbutils>=2.5.0',
+                          'gb-algorithms>=0.12.7'
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,

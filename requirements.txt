@@ -21,6 +21,6 @@ PyPDF2==1.26.0
 pyyaml==3.11
 redis==2.10.5
 reportlab==3.3.0
-secondary-analysis==3.12.2
+secondary-analysis==3.12.3
 simplejson==3.10.0
 tornado==4.3

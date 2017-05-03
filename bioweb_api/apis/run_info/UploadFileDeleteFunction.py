@@ -24,54 +24,49 @@ import os
 import sys
 import traceback
 
-from werkzeug.utils import secure_filename
-
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import UPLOAD_FILE, FILENAMES, RUN_REPORT_UUID, \
-    ERROR, HDF5_PATH
-from bioweb_api.apis.run_info.RunInfoUtils import add_datasets, allowed_file
-from bioweb_api import MODIFIED_ARCHIVES_PATH, HDF5_COLLECTION
+from bioweb_api.apis.ApiConstants import UPLOAD_FILE, RUN_REPORT_UUID, \
+    ERROR, HDF5_DATASET, UUID, IMAGE_STACKS
+from bioweb_api import HDF5_COLLECTION, RUN_REPORT_COLLECTION
 from bioweb_api.utilities.io_utilities import make_clean_response
 
 #=============================================================================
 # Class
 #=============================================================================
-class UploadFilePostFunction(AbstractPostFunction):
+class UploadFileDeleteFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return UPLOAD_FILE
+        return UPLOAD_FILE + '/delete'
 
     @staticmethod
     def summary():
-        return "Upload a HDF5/image stack file."
+        return "Unassociate a HDF5/image stack file."
 
     @staticmethod
     def notes():
-        return "Upload a HDF5/image stack file and associate it with a run report."
+        return "Unassociate a HDF5/image stack file from a run report."
 
     def response_messages(self):
-        msgs = super(UploadFilePostFunction, self).response_messages()
+        msgs = super(UploadFileDeleteFunction, self).response_messages()
         msgs.extend([
                      { "code": 400,
-                       "message": "One or more file(s) do not exist or not a valid HDF5 file."},
-                     { "code": 403,
-                       "message": "One or more file(s) already associated with other run report(s)."},
+                       "message": "Run report does not exist."},
                     ])
         return msgs
 
     @classmethod
     def parameters(cls):
-        cls.filenames_parameter = ParameterFactory.filenames()
+        cls.dataset_parameter = ParameterFactory.pa_data_source()
         cls.report_uuid_parameter = ParameterFactory.uuid(allow_multiple=False)
 
         parameters = [
-                      cls.filenames_parameter,
+                      cls.dataset_parameter,
                       cls.report_uuid_parameter,
                       ParameterFactory.format(),
                      ]
@@ -79,10 +74,10 @@ class UploadFilePostFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        if cls.filenames_parameter in params_dict:
-            filenames = params_dict[cls.filenames_parameter][0].split(',')
+        if cls.dataset_parameter in params_dict:
+            dataset = params_dict[cls.dataset_parameter][0]
         else:
-            filenames = list()
+            dataset = None
 
         if cls.report_uuid_parameter in params_dict:
             report_uuid = params_dict[cls.report_uuid_parameter][0]
@@ -90,20 +85,19 @@ class UploadFilePostFunction(AbstractPostFunction):
             report_uuid = None
 
         http_status_code = 200
-        json_response = {RUN_REPORT_UUID: report_uuid, FILENAMES: filenames}
+        json_response = {RUN_REPORT_UUID: report_uuid, HDF5_DATASET: dataset}
 
-        filepaths = [os.path.join(MODIFIED_ARCHIVES_PATH, secure_filename(fn))
-                     for fn in filenames]
-        if not filenames or not report_uuid or not all(allowed_file(fp) for fp in filepaths):
+        if cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid) is None:
             http_status_code = 400
-        elif any(len(cls._DB_CONNECTOR.find(HDF5_COLLECTION,
-                                            {HDF5_PATH: {'$regex': fn + '$'}})) > 0
-                for fn in filenames):
-            http_status_code = 403
         else:
             try:
-                run_report = add_datasets(filepaths, report_uuid)
-                json_response.update(run_report)
+                cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                         {UUID: report_uuid},
+                                         {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
+                cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
+                                         {HDF5_DATASET: dataset})
+                APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
+                                (dataset, report_uuid))
             except:
                 APP_LOGGER.exception(traceback.format_exc())
                 json_response[ERROR] = str(sys.exc_info()[1])
@@ -115,5 +109,5 @@ class UploadFilePostFunction(AbstractPostFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = UploadFilePostFunction()
+    function = UploadFileDeleteFunction()
     print function

@@ -230,6 +230,7 @@ RUN_REPORT_UUID  = "run_report_uuid"
 UNIFIED_PDF      = "unified_pdf"
 UNIFIED_PDF_URL  = "unified_pdf_url"
 UPLOAD_FILE      = "upload_file"
+UPLOAD_FILE_DELETE = "upload_file_delete"
 
 VALID_HAM_IMAGE_EXTENSIONS = ["bin", "png"]
 VALID_HDF5_EXTENSIONS = {'.h5'}

@@ -812,7 +812,7 @@ GnuBio Flask API.
    * Update primary-analysis to v2.35
      * read_image must convert the image to 32 bit
  * v3.71.0
-   * Allow uploading customized HDF5 files    
+   * Allow uploading customized HDF5 files
  * v3.71.1
    * Display non-default experiment definition as select parameter
    * Restart entire workflow if a different experiment definition is selected
@@ -848,7 +848,7 @@ GnuBio Flask API.
        * Offline usage of saturated drop filter is backward compatible
  * v3.75.1
    * bugfix in generating exploratory mode PDF report
- * v3.76.0
+ * v3.75.2
    * set job name as plot title in exploratory mode
    * update secondary-analysis to 3.12.3:
      * v3.11.2
@@ -875,3 +875,5 @@ GnuBio Flask API.
        * Added two new filters--holding spike filter and low pass filter--which are useful for cleaning noisy derivatives.
      * v0.12.7
        * valueerror returns NaN in distance measurement
+ * v3.76.0
+   * Pull in build-automation update that installs scikit-learn version to fix dependency issue.

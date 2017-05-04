@@ -390,6 +390,7 @@ def add_datasets(filepaths, report_uuid):
 
         del run_report[ID]
         return {"run_report": run_report, "uploaded": new_datasets}
+    return {"error": "Run report uuid=%s does not exist." % report_uuid}
 
 def allowed_file(filepath):
     try:

@@ -93,6 +93,7 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
                                          {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
                 cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
                                          {HDF5_DATASET: dataset})
+                json_response.update({"unassociate": True})
                 APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
                                 (dataset, report_uuid))
             except:

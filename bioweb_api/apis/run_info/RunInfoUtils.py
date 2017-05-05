@@ -378,7 +378,8 @@ def add_datasets(filepaths, report_uuid):
 
     run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
     if run_report:
-        exist_datasets = set(run_report[IMAGE_STACKS])
+        exist_datasets = set([d for d in run_report[IMAGE_STACKS]
+                              if isinstance(d, str) or isinstance(d, unicode)])
         new_datasets = list(new_datasets - exist_datasets)
         if new_datasets:
             _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,

@@ -24,25 +24,24 @@ import os
 import sys
 import traceback
 
-from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
+from bioweb_api.apis.AbstractDeleteFunction import AbstractDeleteFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import UPLOAD_FILE, RUN_REPORT_UUID, \
     ERROR, HDF5_DATASET, UUID, IMAGE_STACKS
 from bioweb_api import HDF5_COLLECTION, RUN_REPORT_COLLECTION
-from bioweb_api.utilities.io_utilities import make_clean_response
 
 #=============================================================================
 # Class
 #=============================================================================
-class UploadFileDeleteFunction(AbstractPostFunction):
+class UploadFileDeleteFunction(AbstractDeleteFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return UPLOAD_FILE + '/delete'
+        return UPLOAD_FILE
 
     @staticmethod
     def summary():
@@ -74,15 +73,13 @@ class UploadFileDeleteFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
+        dataset = None
         if cls.dataset_parameter in params_dict:
             dataset = params_dict[cls.dataset_parameter][0]
-        else:
-            dataset = None
 
+        report_uuid = None
         if cls.report_uuid_parameter in params_dict:
             report_uuid = params_dict[cls.report_uuid_parameter][0]
-        else:
-            report_uuid = None
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, HDF5_DATASET: dataset}
@@ -103,7 +100,7 @@ class UploadFileDeleteFunction(AbstractPostFunction):
                 json_response[ERROR] = str(sys.exc_info()[1])
                 http_status_code     = 500
 
-        return make_clean_response(json_response, http_status_code)
+        return json_response, http_status_code
 
 #===============================================================================
 # Run Main

@@ -877,3 +877,5 @@ GnuBio Flask API.
        * valueerror returns NaN in distance measurement
  * v3.76.0
    * Pull in build-automation update that installs scikit-learn version to fix dependency issue.
+ * v3.77.0
+   * Improve uploading customized HDF5

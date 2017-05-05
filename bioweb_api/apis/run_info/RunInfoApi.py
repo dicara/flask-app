@@ -25,6 +25,7 @@ from bioweb_api.apis.run_info.RunInfoGetFunction import RunInfoGetFunction
 from bioweb_api.apis.run_info.RunInfoFullAnalysisPostFunction import RunInfoFullAnalysisPostFunction
 from bioweb_api.apis.run_info.UploadFilePostFunction import UploadFilePostFunction
 from bioweb_api.apis.run_info.UploadFileGetFunction import UploadFileGetFunction
+from bioweb_api.apis.run_info.UploadFileDeleteFunction import UploadFileDeleteFunction
 
 #=============================================================================
 # Class
@@ -36,6 +37,7 @@ class RunInfoAPIV1(AbstractApiV1):
                   RunInfoFullAnalysisPostFunction(),
                   UploadFilePostFunction(),
                   UploadFileGetFunction(),
+                  UploadFileDeleteFunction(),
                  ]
 
     @staticmethod

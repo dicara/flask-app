@@ -322,16 +322,18 @@ def update_run_reports(date_folders=None):
                         # find HDF5 datasets and add new records to HDF5 collection
                         new_datasets = set(get_hdf5_datasets(log_data, folder, sf))
                         if new_datasets:
-                            exist_datasets = set(log_data[IMAGE_STACKS])
-
-                            if new_datasets - exist_datasets:
-                                updated_datasets = list(new_datasets | exist_datasets)
+                            # exclude uploaded HDF5 datasets
+                            exist_datasets = set([d for d in log_data[IMAGE_STACKS]
+                                                  if isinstance(d, str) or isinstance(d, unicode)])
+                            new_datasets = list(new_datasets - exist_datasets)
+                            if new_datasets:
                                 _DB_CONNECTOR.update(
                                         RUN_REPORT_COLLECTION,
                                         {UTAG: utag},
-                                        {"$set": {IMAGE_STACKS: updated_datasets}})
+                                        {"$addToSet": {IMAGE_STACKS:
+                                            {'$each': new_datasets}}})
                                 APP_LOGGER.info('Updated run report utag=%s with %d datasets'
-                                                % (utag, len(updated_datasets)))
+                                                % (utag, len(new_datasets)))
 
         APP_LOGGER.info("Found %d run reports" % (len(reports)))
         if len(reports) > 0:
@@ -376,17 +378,20 @@ def add_datasets(filepaths, report_uuid):
 
     run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
     if run_report:
-        exist_datasets = set(run_report[IMAGE_STACKS])
-        if new_datasets - exist_datasets:
-            run_report[IMAGE_STACKS] = list(exist_datasets | new_datasets)
+        exist_datasets = set([d for d in run_report[IMAGE_STACKS]
+                              if isinstance(d, str) or isinstance(d, unicode)])
+        new_datasets = list(new_datasets - exist_datasets)
+        if new_datasets:
             _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
                                  {UUID: report_uuid},
-                                 {'$set': {IMAGE_STACKS: run_report[IMAGE_STACKS]}})
+                                 {'$addToSet': {IMAGE_STACKS:
+                                    {'$each': [{'name': d, 'upload': True} for d in new_datasets]}}})
             APP_LOGGER.info("Updated run report uuid=%s with %d HDF5 datasets."
-                            % (report_uuid, len(set(new_datasets - exist_datasets))))
+                            % (report_uuid, len(new_datasets)))
 
-    del run_report[ID]
-    return {"run_report": run_report}
+        del run_report[ID]
+        return {"run_report": run_report, "uploaded": new_datasets}
+    return {"error": "Run report uuid=%s does not exist." % report_uuid}
 
 def allowed_file(filepath):
     try:

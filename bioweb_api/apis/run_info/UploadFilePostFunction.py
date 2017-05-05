@@ -96,9 +96,10 @@ class UploadFilePostFunction(AbstractPostFunction):
                      for fn in filenames]
         if not filenames or not report_uuid or not all(allowed_file(fp) for fp in filepaths):
             http_status_code = 400
-        elif any(len(cls._DB_CONNECTOR.find(HDF5_COLLECTION,
-                                            {HDF5_PATH: {'$regex': fn + '$'}})) > 0
-                for fn in filenames):
+        elif any(cls._DB_CONNECTOR.find_one(HDF5_COLLECTION,
+                                            HDF5_PATH,
+                                            {'$regex': fn + '$'})
+                is not None for fn in filenames):
             http_status_code = 403
         else:
             try:

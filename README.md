@@ -879,3 +879,5 @@ GnuBio Flask API.
    * Pull in build-automation update that installs scikit-learn version to fix dependency issue.
  * v3.77.0
    * Improve uploading customized HDF5
+ * v3.77.1
+   * Disallow uploading datasets with duplicate names

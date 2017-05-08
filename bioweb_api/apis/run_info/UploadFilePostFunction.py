@@ -30,9 +30,9 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.ApiConstants import UPLOAD_FILE, FILENAMES, RUN_REPORT_UUID, \
-    ERROR, HDF5_PATH
-from bioweb_api.apis.run_info.RunInfoUtils import add_datasets, allowed_file
-from bioweb_api import MODIFIED_ARCHIVES_PATH, HDF5_COLLECTION
+    ERROR, HDF5_PATH, UUID, IMAGE_STACKS, HDF5_DATASET, ID
+from bioweb_api.apis.run_info.RunInfoUtils import get_datasets_from_files, allowed_file
+from bioweb_api import MODIFIED_ARCHIVES_PATH, HDF5_COLLECTION, RUN_REPORT_COLLECTION
 from bioweb_api.utilities.io_utilities import make_clean_response
 
 #=============================================================================
@@ -61,7 +61,8 @@ class UploadFilePostFunction(AbstractPostFunction):
                      { "code": 400,
                        "message": "One or more file(s) do not exist or not a valid HDF5 file."},
                      { "code": 403,
-                       "message": "One or more file(s) already associated with other run report(s)."},
+                       "message": "One or more file(s) already associated with other run report(s) \
+                                   or contains datasets with names existing in database."},
                     ])
         return msgs
 
@@ -79,15 +80,13 @@ class UploadFilePostFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
+        filenames = list()
         if cls.filenames_parameter in params_dict:
             filenames = params_dict[cls.filenames_parameter][0].split(',')
-        else:
-            filenames = list()
 
+        report_uuid = None
         if cls.report_uuid_parameter in params_dict:
             report_uuid = params_dict[cls.report_uuid_parameter][0]
-        else:
-            report_uuid = None
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, FILENAMES: filenames}
@@ -103,8 +102,35 @@ class UploadFilePostFunction(AbstractPostFunction):
             http_status_code = 403
         else:
             try:
-                run_report = add_datasets(filepaths, report_uuid)
-                json_response.update(run_report)
+                fp_to_datasets, duplicate = get_datasets_from_files(filepaths)
+                if not fp_to_datasets or not duplicate:
+                    http_status_code = 403
+                else:
+                    new_hdf5_records = [{HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True}
+                                        for fp in fp_to_datasets for dsname in fp_to_datasets[fp]]
+                    cls._DB_CONNECTOR.insert(HDF5_COLLECTION, new_hdf5_records)
+                    APP_LOGGER.info('Updated database with %d new HDF5 files' % len(new_hdf5_records))
+
+                    run_report = cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
+                    if run_report:
+                        exist_datasets = set([d for d in run_report[IMAGE_STACKS]
+                                              if isinstance(d, str) or isinstance(d, unicode)])
+                        new_datasets = set()
+                        for datasets in fp_to_datasets.values():
+                            new_datasets = new_datasets | datasets
+                        new_datasets = list(new_datasets - exist_datasets)
+                        if new_datasets:
+                            cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                             {UUID: report_uuid},
+                                             {'$addToSet': {IMAGE_STACKS:
+                                                {'$each': [{'name': d, 'upload': True} for d in new_datasets]}}})
+                            APP_LOGGER.info("Updated run report uuid=%s with %d HDF5 datasets."
+                                            % (report_uuid, len(new_datasets)))
+
+                        del run_report[ID]
+                        json_response.update({"run_report": run_report, "uploaded": new_datasets})
+                    else:
+                        json_response.update({"error": "Run report uuid=%s does not exist." % report_uuid})
             except:
                 APP_LOGGER.exception(traceback.format_exc())
                 json_response[ERROR] = str(sys.exc_info()[1])

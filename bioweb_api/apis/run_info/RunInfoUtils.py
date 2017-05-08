@@ -349,7 +349,9 @@ def update_run_reports(date_folders=None):
 
 def get_datasets_from_files(filepaths):
     """
-    Given the paths of HDF5/image stack files, return a list of their datasets.
+    Given the paths of HDF5/image stack files, return a tuple of a dictionary and a boolean.
+    The dictionary has (filepath, set of datasets) as key, value. The boolean indicates
+    whether any file contains dataset(s) with duplicate name(s).
 
     @param filepaths:           filepaths
     """

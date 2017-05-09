@@ -355,7 +355,7 @@ def get_datasets_from_files(filepaths):
 
     @param filepaths:           filepaths
     """
-    if not filepaths: return dict()
+    if not filepaths: return dict(), False
 
     all_exist_datasets = _DB_CONNECTOR.distinct(HDF5_COLLECTION, HDF5_DATASET)
     fp_to_datasets = defaultdict(set)
@@ -373,6 +373,13 @@ def get_datasets_from_files(filepaths):
                             duplicate = True
             except:
                 APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % fp)
+
+    # check if there are duplicate datasets in fp_to_datasets
+    unique_datasets = set()
+    for datasets in fp_to_datasets.values():
+        unique_datasets = unique_datasets | datasets
+    if len(unique_datasets) < sum(len(d) for d in fp_to_datasets.values()):
+        duplicate = True
     return fp_to_datasets, duplicate
 
 def allowed_file(filepath):

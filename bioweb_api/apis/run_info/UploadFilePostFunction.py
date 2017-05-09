@@ -82,7 +82,7 @@ class UploadFilePostFunction(AbstractPostFunction):
     def process_request(cls, params_dict):
         filenames = list()
         if cls.filenames_parameter in params_dict:
-            filenames = params_dict[cls.filenames_parameter][0].split(',')
+            filenames = params_dict[cls.filenames_parameter]
 
         report_uuid = None
         if cls.report_uuid_parameter in params_dict:
@@ -103,7 +103,7 @@ class UploadFilePostFunction(AbstractPostFunction):
         else:
             try:
                 fp_to_datasets, duplicate = get_datasets_from_files(filepaths)
-                if not fp_to_datasets or not duplicate:
+                if not fp_to_datasets or duplicate:
                     http_status_code = 403
                 else:
                     new_hdf5_records = [{HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True}

@@ -20,7 +20,7 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 import os
 import re
@@ -347,18 +347,19 @@ def update_run_reports(date_folders=None):
     APP_LOGGER.info("Database successfully updated with available run reports.")
     return True
 
-def add_datasets(filepaths, report_uuid):
+def get_datasets_from_files(filepaths):
     """
-    Given the paths of HDF5/image stack files, add the datasets to HDF5/archive and run_report collections.
+    Given the paths of HDF5/image stack files, return a tuple of a dictionary and a boolean.
+    The dictionary has (filepath, set of datasets) as key, value. The boolean indicates
+    whether any file contains dataset(s) with duplicate name(s).
 
     @param filepaths:           filepaths
-    @param report_uuid:         uuid of run report that the files are associated with
     """
-    if not filepaths or not report_uuid: return {}
+    if not filepaths: return dict(), False
 
     all_exist_datasets = _DB_CONNECTOR.distinct(HDF5_COLLECTION, HDF5_DATASET)
-    new_hdf5_records = list()
-    new_datasets = set()
+    fp_to_datasets = defaultdict(set)
+    duplicate = False
     for fp in filepaths:
         if fp.lower().endswith('.h5'):
             try:
@@ -366,32 +367,20 @@ def add_datasets(filepaths, report_uuid):
                     dataset_names = h5_file.keys()
                 for dsname in dataset_names:
                     if not dsname.lower().startswith("laser_power"):
-                        new_datasets.add(dsname)
                         if dsname not in all_exist_datasets:
-                            new_hdf5_records.append({HDF5_PATH: fp, HDF5_DATASET: dsname, "upload": True})
+                            fp_to_datasets[fp].add(dsname)
+                        else:
+                            duplicate = True
             except:
                 APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % fp)
 
-    if new_hdf5_records:
-        _DB_CONNECTOR.insert(HDF5_COLLECTION, new_hdf5_records)
-        APP_LOGGER.info('Updated database with %s new HDF5 files' % len(new_hdf5_records))
-
-    run_report = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid)
-    if run_report:
-        exist_datasets = set([d for d in run_report[IMAGE_STACKS]
-                              if isinstance(d, str) or isinstance(d, unicode)])
-        new_datasets = list(new_datasets - exist_datasets)
-        if new_datasets:
-            _DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                 {UUID: report_uuid},
-                                 {'$addToSet': {IMAGE_STACKS:
-                                    {'$each': [{'name': d, 'upload': True} for d in new_datasets]}}})
-            APP_LOGGER.info("Updated run report uuid=%s with %d HDF5 datasets."
-                            % (report_uuid, len(new_datasets)))
-
-        del run_report[ID]
-        return {"run_report": run_report, "uploaded": new_datasets}
-    return {"error": "Run report uuid=%s does not exist." % report_uuid}
+    # check if there are duplicate datasets in fp_to_datasets
+    unique_datasets = set()
+    for datasets in fp_to_datasets.values():
+        unique_datasets = unique_datasets | datasets
+    if len(unique_datasets) < sum(len(d) for d in fp_to_datasets.values()):
+        duplicate = True
+    return fp_to_datasets, duplicate
 
 def allowed_file(filepath):
     try:

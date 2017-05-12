@@ -213,30 +213,35 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     @param time_folder:         the time sub folder where run report lives
     """
     run_id = log_data[RUN_ID]
-    hdf5_path = os.path.join(RUN_REPORT_PATH, date_folder, time_folder,
-                             run_id + '.h5')
+    hdf5_paths = [os.path.join(RUN_REPORT_PATH, date_folder, time_folder, f + '.h5')
+                  for f in [run_id, run_id + '-baseline']]
+    all_datasets = set()
 
-    exist_records = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_PATH: hdf5_path})
-    if exist_records:
-        return [r[HDF5_DATASET] for r in exist_records]
+    for path in hdf5_paths:
+        exist_records = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_PATH: path})
+        if exist_records:
+            all_datasets.update(set(r[HDF5_DATASET] for r in exist_records))
+            continue
 
-    new_records = list()
-    try:
-        with h5py.File(hdf5_path) as h5_file:
-            dataset_names = h5_file.keys()
-        for dsname in dataset_names:
-            if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
-                new_records.append({
-                    HDF5_PATH: hdf5_path,
-                    HDF5_DATASET: dsname,
-                })
-    except:
-        APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % hdf5_path)
+        new_records = list()
+        try:
+            with h5py.File(path) as h5_file:
+                dataset_names = h5_file.keys()
+            for dsname in dataset_names:
+                if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
+                    new_records.append({
+                        HDF5_PATH: path,
+                        HDF5_DATASET: dsname,
+                    })
+        except:
+            APP_LOGGER.exception('Unable to get dataset information from HDF5 file: %s' % path)
 
-    if new_records:
-        APP_LOGGER.info('Found %d datasets from HDF5 file: %s' % (len(new_records), hdf5_path))
-        _DB_CONNECTOR.insert(HDF5_COLLECTION, new_records)
-    return [r[HDF5_DATASET] for r in new_records]
+        if new_records:
+            APP_LOGGER.info('Found %d datasets from HDF5 file: %s' % (len(new_records), path))
+            _DB_CONNECTOR.insert(HDF5_COLLECTION, new_records)
+            all_datasets.update(set(r[HDF5_DATASET] for r in new_records))
+
+    return all_datasets
 
 
 def update_image_stacks(log_data):

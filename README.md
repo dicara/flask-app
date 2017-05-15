@@ -881,3 +881,7 @@ GnuBio Flask API.
    * Improve uploading customized HDF5
  * v3.77.1
    * Disallow uploading datasets with duplicate names
+ * v3.78.0
+   * Scan baseline HDF5 file to database
+   * Update gbutils to v2.5.1:
+     * update VCF version number to 4.2

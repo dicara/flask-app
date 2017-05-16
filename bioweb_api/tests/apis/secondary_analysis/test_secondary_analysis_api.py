@@ -31,14 +31,14 @@ from datetime import datetime
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, add_url_argument
 from bioweb_api.utilities import io_utilities
-from bioweb_api.apis.ApiConstants import UUID, PICO2_DYE, ASSAY_DYE,\
+from bioweb_api.apis.ApiConstants import UUID, PICO1_DYE, PICO2_DYE, ASSAY_DYE,\
     NUM_PROBES, TRAINING_FACTOR, DYE_LEVELS, PLOT, JOB_NAME, JOB_TYPE_NAME, \
     JOB_TYPE, ARCHIVE, DEVICE, DYES, STATUS, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, CONFIG_URL, REPORT, RESULT, \
     CONFIG, FILTERED_DYES, IGNORED_DYES, UI_THRESHOLD,PA_PROCESS_UUID, \
     PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, JOE, FAM, JOB_STATUS, \
     SCATTER_PLOT, SCATTER_PLOT_URL, REQUIRED_DROPS, EXP_DEF, PDF, PNG, \
-    PNG_SUM, VCF, KDE_PNG, KDE_PNG_SUM
+    PNG_SUM, VCF, KDE_PNG, KDE_PNG_SUM, DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL
 from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,\
     SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
@@ -70,9 +70,6 @@ _JOB_NAME                 = "test_pa_process_job"
 _IDENTITY_JOB_NAME     = "test_identity"
 _ASSAY_CALLER_JOB_NAME = "test_assay_caller"
 _GENOTYPER_JOB_NAME    = "test_genotyper"
-_FIDUCIAL_DYE          = "joe"
-_ASSAY_DYE             = "fam"
-_AC_NUM_PROBES         = 8
 _ID_NUM_PROBES         = 0
 _TRAINING_FACTOR       = 10
 _DYE_LEVELS            = "594:4,633:3,cy5.5:4,pe:2,pe-cy7:2,IF790:2"
@@ -155,6 +152,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         ########################################################################
         cls._identity_uuid = "fb549af2-d807-492c-8b73-4f8c41435917"
         cls._id_record = {
+                          PICO1_DYE: None,
                           PICO2_DYE: "joe",
                           ASSAY_DYE: "fam",
                           NUM_PROBES: 8,
@@ -205,6 +203,8 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                           URL : "http://bioweb/results/8020/" + cls._ac_uuid,
                           SCATTER_PLOT: os.path.join(_ARCHIVE_DIR, cls._ac_uuid + "_scatter.png"),
                           SCATTER_PLOT_URL : "http://bioweb/results/8020/" + cls._ac_uuid + "_scatter.png",
+                          DYES_SCATTER_PLOT: os.path.join(_ARCHIVE_DIR, cls._ac_uuid + "_dyes_scatter.png"),
+                          DYES_SCATTER_PLOT_URL : "http://bioweb/results/8020/" + cls._ac_uuid + "_dyes_scatter.png",
                          }
         _DB_CONNECTOR.insert(SA_ASSAY_CALLER_COLLECTION, [cls._ac_record])
 
@@ -369,9 +369,6 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         url = add_url_argument(url, UUID, self._id_record[UUID], True)
         url = add_url_argument(url, JOB_NAME, _ASSAY_CALLER_JOB_NAME)
         url = add_url_argument(url, EXP_DEF, _EXP_DEF_NAME)
-        url = add_url_argument(url, PICO2_DYE, _FIDUCIAL_DYE)
-        url = add_url_argument(url, ASSAY_DYE, _ASSAY_DYE)
-        url = add_url_argument(url, NUM_PROBES, _AC_NUM_PROBES)
         url = add_url_argument(url, TRAINING_FACTOR, AC_TRAINING_FACTOR)
 
         # Submit identity job

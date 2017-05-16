@@ -307,19 +307,17 @@ class FullAnalysisWorkFlowCallable(object):
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = SaAssayCallerCallable(identity_uuid=identity_uuid,
-                                        exp_def_name=self.parameters[EXP_DEF],
-                                        num_probes=self.parameters[NUM_PROBES],
-                                        training_factor=self.parameters[AC_TRAINING_FACTOR],
-                                        assay_dye=self.parameters[ASSAY_DYE],
-                                        pico2_dye=self.parameters[PICO2_DYE],
-                                        ctrl_thresh=self.parameters[CTRL_THRESH],
-                                        db_connector=self.db_connector,
-                                        job_name=job_name,
-                                        ctrl_filter=self.parameters[CTRL_FILTER],
-                                        assay_caller_model=self.parameters[AC_MODEL])
+                                         exp_def_name=self.parameters[EXP_DEF],
+                                         training_factor=self.parameters[AC_TRAINING_FACTOR],
+                                         ctrl_thresh=self.parameters[CTRL_THRESH],
+                                         db_connector=self.db_connector,
+                                         job_name=job_name,
+                                         ctrl_filter=self.parameters[CTRL_FILTER],
+                                         assay_caller_model=self.parameters[AC_MODEL])
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             scatter_plot_path=callable.scatter_plot_path,
+                                            dyes_scatter_plot_path=callable.dyes_plot_path,
                                             db_connector=self.db_connector)
 
         # enter assay caller uuid into full analysis database entry

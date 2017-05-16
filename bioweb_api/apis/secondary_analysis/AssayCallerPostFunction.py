@@ -22,6 +22,7 @@ limitations under the License.
 #=============================================================================
 import copy
 import os
+import pandas
 import shutil
 import sys
 import traceback
@@ -40,14 +41,17 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, FINISH_DATESTAMP, URL, SCATTER_PLOT, SCATTER_PLOT_URL, \
-    JOE, FAM, EXP_DEF_NAME, CTRL_THRESH, NUM_PROBES_DESCRIPTION, \
-    TRAINING_FACTOR_DESCRIPTION, CTRL_THRESH_DESCRIPTION, CTRL_FILTER, \
-    CTRL_FILTER_DESCRIPTION, AC_MODEL, ASSAY_CALLER_MODEL_DESCRIPTION
+    EXP_DEF_NAME, CTRL_THRESH, TRAINING_FACTOR_DESCRIPTION, \
+    CTRL_THRESH_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, AC_MODEL, \
+    ASSAY_CALLER_MODEL_DESCRIPTION, PICO1_DYE, DYES_SCATTER_PLOT, \
+    DYES_SCATTER_PLOT_URL
 
 from primary_analysis.command import InvalidFileError
+from primary_analysis.pa_utils import sniff_delimiter
 from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
+from secondary_analysis.assay_calling.assay_caller_plotting import generate_dye_scatterplots
 
 #=============================================================================
 # Public Static Variables
@@ -94,17 +98,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          'name to give this '
                                                          'job.')
         cls.exp_defs_param  = ParameterFactory.experiment_definition()
-        cls.pico2_dye_param = ParameterFactory.dye(PICO2_DYE,
-                                                   'picoinjection 2 dye.',
-                                                   default=JOE,
-                                                   required=True)
-        cls.assay_dye_param = ParameterFactory.dye(ASSAY_DYE, 'Assay dye.',
-                                                   default=FAM,
-                                                   required=True)
-        cls.n_probes_param  = ParameterFactory.integer(NUM_PROBES,
-                                                       NUM_PROBES_DESCRIPTION,
-                                                       default=1, minimum=1,
-                                                       required=True)
         cls.training_param  = ParameterFactory.integer(TRAINING_FACTOR,
                                                        TRAINING_FACTOR_DESCRIPTION,
                                                        default=AC_TRAINING_FACTOR, minimum=1,
@@ -124,9 +117,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.job_uuid_param,
                       cls.job_name_param,
                       cls.exp_defs_param,
-                      cls.pico2_dye_param,
-                      cls.assay_dye_param,
-                      cls.n_probes_param,
                       cls.training_param,
                       cls.ctrl_thresh,
                       cls.ctrl_filter,
@@ -139,9 +129,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
         job_uuids       = params_dict[cls.job_uuid_param]
         job_name        = params_dict[cls.job_name_param][0]
         exp_def_name    = params_dict[cls.exp_defs_param][0]
-        pico2_dye       = params_dict[cls.pico2_dye_param][0]
-        assay_dye       = params_dict[cls.assay_dye_param][0]
-        num_probes      = params_dict[cls.n_probes_param][0]
         training_factor = params_dict[cls.training_param][0]
         ctrl_thresh     = params_dict[cls.ctrl_thresh][0]
         ctrl_filter     = params_dict[cls.ctrl_filter][0]
@@ -182,9 +169,6 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     # Create helper functions
                     sac_callable = SaAssayCallerCallable(sa_identity_job[UUID],
                                                          exp_def_name,
-                                                         assay_dye,
-                                                         pico2_dye,
-                                                         num_probes,
                                                          training_factor,
                                                          ctrl_thresh,
                                                          cls._DB_CONNECTOR,
@@ -195,6 +179,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                     callback = make_process_callback(sac_callable.uuid,
                                                      sac_callable.outfile_path,
                                                      sac_callable.scatter_plot_path,
+                                                     sac_callable.dyes_plot_path,
                                                      cls._DB_CONNECTOR)
                     # Add to queue
                     cls._EXECUTION_MANAGER.add_job(response[UUID], sac_callable,
@@ -222,18 +207,20 @@ class SaAssayCallerCallable(object):
     '''
     Callable that executes the assay caller command.
     '''
-    def __init__(self, identity_uuid, exp_def_name, assay_dye, pico2_dye,
-                 num_probes, training_factor, ctrl_thresh, db_connector, job_name,
-                 ctrl_filter, assay_caller_model):
+    def __init__(self, identity_uuid, exp_def_name, training_factor, 
+                 ctrl_thresh, db_connector, job_name, ctrl_filter, 
+                 assay_caller_model):
+
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, identity_uuid)
 
         self.uuid = str(uuid4())
         self.exp_def_name          = exp_def_name
         self.analysis_file         = identity_doc[RESULT]
-        self.num_probes            = num_probes
+        self.num_probes            = identity_doc[NUM_PROBES]
         self.training_factor       = training_factor
-        self.assay_dye             = assay_dye
-        self.pico2_dye             = pico2_dye
+        self.pico1_dye             = identity_doc[PICO1_DYE]
+        self.pico2_dye             = identity_doc[PICO2_DYE]
+        self.assay_dye             = identity_doc[ASSAY_DYE]
         self.db_connector          = db_connector
         self.job_name              = job_name
         self.ctrl_thresh           = ctrl_thresh
@@ -243,16 +230,20 @@ class SaAssayCallerCallable(object):
         results_folder             = get_results_folder()
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.scatter_plot_path     = os.path.join(results_folder, self.uuid + '_scatter.png')
+        self.dyes_plot_path        = os.path.join(results_folder, self.uuid + '_dyes_scatter.png')
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path,
                                                   'assay_calls.txt')
         self.tmp_scatter_plot_path = os.path.join(self.tmp_path,
                                                   'assay_calls_scatter.png')
+        self.tmp_dyes_plot_path    = os.path.join(self.tmp_path,
+                                                  'assay_calls_dyes_scatter.png')
         self.document = {
                         EXP_DEF_NAME: exp_def_name,
-                        PICO2_DYE: pico2_dye,
-                        ASSAY_DYE: assay_dye,
-                        NUM_PROBES: num_probes,
+                        PICO1_DYE: self.pico1_dye,
+                        PICO2_DYE: self.pico2_dye,
+                        ASSAY_DYE: self.assay_dye,
+                        NUM_PROBES: self.num_probes,
                         TRAINING_FACTOR: training_factor,
                         CTRL_THRESH: ctrl_thresh,
                         UUID: self.uuid,
@@ -275,6 +266,21 @@ class SaAssayCallerCallable(object):
                            START_DATESTAMP: datetime.today()}}
         query = {UUID: self.uuid}
         self.db_connector.update(SA_ASSAY_CALLER_COLLECTION, query, update)
+
+        def gen_dye_scatterplot(dyes):
+            try:
+                analysis_df = pandas.read_table(self.analysis_file, 
+                    sep=sniff_delimiter(self.analysis_file))
+                ac_df = pandas.read_table(self.tmp_outfile_path, 
+                    sep=sniff_delimiter(self.tmp_outfile_path))
+                analysis_df['assay'] = False
+                analysis_df.loc[analysis_df['identity'].notnull(), 'assay'] = ac_df['assay'].values
+                generate_dye_scatterplots(analysis_df, dyes, 
+                    self.tmp_dyes_plot_path, self.job_name, self.pico1_dye)
+                shutil.copy(self.tmp_dyes_plot_path, self.dyes_plot_path)
+            except:
+                # Plot generation should not fail job, so ignore exception.
+                pass
 
         try:
             safe_make_dirs(self.tmp_path)
@@ -299,6 +305,8 @@ class SaAssayCallerCallable(object):
                                 'failed: output file not generated.')
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
+                gen_dye_scatterplot(experiment.dyes)
+
             if os.path.isfile(self.tmp_scatter_plot_path):
                 shutil.copy(self.tmp_scatter_plot_path, self.scatter_plot_path)
         finally:
@@ -306,14 +314,15 @@ class SaAssayCallerCallable(object):
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
 
-def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
+def make_process_callback(uuid, outfile_path, scatter_plot_path, 
+    dyes_scatter_plot_path, db_connector):
     '''
     Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
     an error message if applicable.
 
     @param uuid:         Unique job id in database
-    @param outfile_path: Path where the final identity results will live.
+    @param outfile_path: Path where the final assay caller results will live.
     @param plot_path:    Path where the final PNG plot should live.
     @param db_connector: Object that handles communication with the DB
     '''
@@ -327,6 +336,8 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
                                  URL: get_results_url(outfile_path),
                                  SCATTER_PLOT: scatter_plot_path,
                                  SCATTER_PLOT_URL: get_results_url(scatter_plot_path),
+                                 DYES_SCATTER_PLOT: dyes_scatter_plot_path,
+                                 DYES_SCATTER_PLOT_URL: get_results_url(dyes_scatter_plot_path),
                                  FINISH_DATESTAMP: datetime.today(),
                                }
                     }
@@ -336,6 +347,7 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
                 silently_remove_file(scatter_plot_path)
+                silently_remove_file(dyes_scatter_plot_path)
         except:
             APP_LOGGER.exception(traceback.format_exc())
             error_msg = str(sys.exc_info()[1])
@@ -349,6 +361,7 @@ def make_process_callback(uuid, outfile_path, scatter_plot_path, db_connector):
             else:
                 silently_remove_file(outfile_path)
                 silently_remove_file(scatter_plot_path)
+                silently_remove_file(dyes_scatter_plot_path)
 
     return process_callback
 

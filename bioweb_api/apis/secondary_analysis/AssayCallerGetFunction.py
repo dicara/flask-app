@@ -29,7 +29,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
     START_DATESTAMP, SCATTER_PLOT, SCATTER_PLOT_URL, AC_MODEL, \
-    FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID, CTRL_THRESH
+    FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID, CTRL_THRESH, \
+    DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 
 #=============================================================================
@@ -61,29 +62,31 @@ class AssayCallerGetFunction(AbstractGetFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        columns                   = OrderedDict()
-        columns[ID]               = 0
-        columns[JOB_NAME]         = 1
-        columns[JOB_TYPE_NAME]    = 1
-        columns[UUID]             = 1
-        columns[EXP_DEF_NAME]     = 1
-        columns[EXP_DEF_UUID]     = 1
-        columns[SA_IDENTITY_UUID] = 1
-        columns[PICO2_DYE]     = 1
-        columns[ASSAY_DYE]        = 1
-        columns[NUM_PROBES]       = 1
-        columns[TRAINING_FACTOR]  = 1
-        columns[CTRL_THRESH]      = 1
-        columns[STATUS]           = 1
-        columns[SUBMIT_DATESTAMP] = 1
-        columns[START_DATESTAMP]  = 1
-        columns[FINISH_DATESTAMP] = 1
-        columns[ERROR]            = 1
-        columns[RESULT]           = 1
-        columns[URL]              = 1
-        columns[SCATTER_PLOT]     = 1
-        columns[SCATTER_PLOT_URL] = 1
-        columns[AC_MODEL]         = 1
+        columns                        = OrderedDict()
+        columns[ID]                    = 0
+        columns[JOB_NAME]              = 1
+        columns[JOB_TYPE_NAME]         = 1
+        columns[UUID]                  = 1
+        columns[EXP_DEF_NAME]          = 1
+        columns[EXP_DEF_UUID]          = 1
+        columns[SA_IDENTITY_UUID]      = 1
+        columns[PICO2_DYE]             = 1
+        columns[ASSAY_DYE]             = 1
+        columns[NUM_PROBES]            = 1
+        columns[TRAINING_FACTOR]       = 1
+        columns[CTRL_THRESH]           = 1
+        columns[STATUS]                = 1
+        columns[SUBMIT_DATESTAMP]      = 1
+        columns[START_DATESTAMP]       = 1
+        columns[FINISH_DATESTAMP]      = 1
+        columns[ERROR]                 = 1
+        columns[RESULT]                = 1
+        columns[URL]                   = 1
+        columns[SCATTER_PLOT]          = 1
+        columns[SCATTER_PLOT_URL]      = 1
+        columns[DYES_SCATTER_PLOT]     = 1
+        columns[DYES_SCATTER_PLOT_URL] = 1
+        columns[AC_MODEL]              = 1
 
         column_names = columns.keys()
         column_names.remove(ID)

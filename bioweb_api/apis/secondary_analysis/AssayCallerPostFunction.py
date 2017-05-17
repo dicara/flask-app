@@ -278,9 +278,10 @@ class SaAssayCallerCallable(object):
                 generate_dye_scatterplots(analysis_df, dyes, 
                     self.tmp_dyes_plot_path, self.job_name, self.pico1_dye)
                 shutil.copy(self.tmp_dyes_plot_path, self.dyes_plot_path)
+                APP_LOGGER.info("Dyes scatter plot generated for %s." % \
+                    self.job_name)
             except:
-                # Plot generation should not fail job, so ignore exception.
-                pass
+                APP_LOGGER.exception("Dyes scatter plot generation failed.")
 
         try:
             safe_make_dirs(self.tmp_path)

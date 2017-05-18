@@ -24,21 +24,18 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 import os
 import re
-import shutil
 import yaml
 
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
-    HDF5_COLLECTION, ARCHIVES_COLLECTION, ARCHIVES_PATH
-from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, ARCHIVE
-from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
-    CHIP_REVISION_TXT, DATETIME, DEVICE_NAME_TXT, EXIT_NOTES_TXT, \
-    EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
-    RUN_REPORT_PATH, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
-    TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, REAGENT_INFO, USER, \
-    IMAGE_STACKS, RUN_DESCRIPTION, FILE_TYPE, UTAG, FA_UUID_MAP, SAMPLE_NAME, \
-    CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, EXPERIMENT_PURPOSE, \
+    HDF5_COLLECTION, ARCHIVES_COLLECTION, ARCHIVES_PATH, FA_PROCESS_COLLECTION
+from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, ARCHIVE, \
+    STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS
+from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
+    RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
+    TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, RUN_DESCRIPTION, \
+    FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, \
     PICO1_DYE
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -99,6 +96,34 @@ def get_run_reports(cartridge_sn=None):
                                      columns)
     APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
                     % (len(reports), ))
+<<<<<<< HEAD
+=======
+
+    if reports:
+        all_jobs = _DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
+        job_map = defaultdict(list)
+        for job in all_jobs:
+            job_map[job[ARCHIVE]].append(job)
+
+        for report in reports:
+            report[DATA_TO_JOBS] = dict()
+            for archive in report[IMAGE_STACKS]:
+                archive_name = archive['name'] if isinstance(archive, dict) else archive
+
+                job_status = {STATUS: 'not processed', 'job_uuids': list()}
+                jobs = job_map[archive_name] if archive_name in job_map else list()
+                if jobs:
+                    if any(j[STATUS] == RUNNING for j in jobs):
+                        job_status[STATUS] = RUNNING
+                    elif any(j[STATUS] == SUBMITTED for j in jobs):
+                        job_status[STATUS] = SUBMITTED
+                    elif any(j[STATUS] == SUCCEEDED for j in jobs):
+                        job_status[STATUS] = SUCCEEDED
+                    else:
+                        job_status[STATUS] = FAILED
+                    job_status['job_uuids'] = [j[UUID] for j in jobs]
+                report[DATA_TO_JOBS][archive_name] = job_status
+>>>>>>> clean up code
     return (reports, column_names, None)
 
 def set_utag(date_obj, sf):
@@ -392,8 +417,3 @@ def allowed_file(filepath):
         return os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() in ALLOWED_EXTENSIONS
     except:
         return False
-
-if __name__ == '__main__':
-    filepath = '/mnt/runs/run_analysis/modifiedH5/id1482786670-2016-12-26_1807.35-pilot7-filt.h5'
-    uuid = '85feb5ad-0971-4743-a860-3303f276273a'
-    add_datasets(filepath, uuid)

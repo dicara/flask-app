@@ -24,13 +24,12 @@ import datetime
 import os
 import unittest
 
-from bioweb_api import app, RUN_REPORT_COLLECTION
-from bioweb_api.utilities import io_utilities
+from bioweb_api import app, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
 from bioweb_api.tests.test_utils import get_data
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DATETIME, DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, \
-    RUN_DESCRIPTION, RUN_REPORT_PATH, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
+    RUN_DESCRIPTION, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
     CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
     APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
     CUSTOMER_APP_NAME, DATETIME

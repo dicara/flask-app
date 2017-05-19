@@ -59,13 +59,14 @@ setup(
                           'probe-design>=0.3',
                           'primary-analysis>=2.35',
                           'predator==0.2',
-                          'secondary-analysis>=3.12.3',
-                          'experiment-database>=0.17.2',
+                          'secondary-analysis>=3.18.3',
+                          'experiment-database>=0.17.3',
                           'PyPDF2>=1.25.1',
                           'reportlab>=3.3.0',
                           'profile-db>=0.9',
-                          'gbutils>=2.5.1',
-                          'gb-algorithms>=0.12.7'
+                          'gbutils>=2.5.2',
+                          'gb-algorithms>=0.12.7',
+                          'scikit-learn==0.18.0'
                          ],
       package_data     = {'': ['bioweb_api/templates/*'],},
       description      = _LONG_DESCRIPTION,

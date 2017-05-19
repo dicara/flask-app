@@ -43,10 +43,10 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      CTRL_THRESH, REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, KDE_PNG_SUM_URL, \
      PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, IGNORE_LOWEST_BARCODE, \
-     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, RUNNING, PICO1_DYE, EP_DOCUMENT, ARCHIVE, \
+     AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, EP_DOCUMENT, ARCHIVE, DEV_MODE, DEFAULT_DEV_MODE, \
      IMAGE_STACKS, EXP_DEF
 from primary_analysis.dye_model import DEFAULT_OFFSETS
-from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
@@ -70,7 +70,8 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              REQUIRED_DROPS:        GT_DOCUMENT,
              CTRL_FILTER:           AC_DOCUMENT,
              AC_MODEL:              AC_DOCUMENT,
-             IGNORE_LOWEST_BARCODE: ID_DOCUMENT}
+             IGNORE_LOWEST_BARCODE: ID_DOCUMENT,
+             DEV_MODE:              ID_DOCUMENT}
 
 DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             ID_TRAINING_FACTOR: DEFAULT_ID_TRAINING_FACTOR,
@@ -83,7 +84,8 @@ DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             REQUIRED_DROPS:     0,
             CTRL_FILTER:        False,
             AC_MODEL:           DEFAULT_AC_MODEL,
-            IGNORE_LOWEST_BARCODE: True}
+            IGNORE_LOWEST_BARCODE: True,
+            DEV_MODE:           DEFAULT_DEV_MODE}
 
 _DB_CONNECTOR = DbConnector.Instance()
 

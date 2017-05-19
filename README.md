@@ -920,3 +920,5 @@ GnuBio Flask API.
        * minor cleanup and parameters added
      * 3.20.6:
        * fixed plot axis and tick label issue  
+ * v3.85.0
+   * Upload data from two locations

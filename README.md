@@ -885,3 +885,6 @@ GnuBio Flask API.
    * Scan baseline HDF5 file to database
    * Update gbutils to v2.5.1:
      * update VCF version number to 4.2
+ * v3.79.0
+   * identity dev mode argument is exposed
+   * secondary analysis updated to version 3.18.3

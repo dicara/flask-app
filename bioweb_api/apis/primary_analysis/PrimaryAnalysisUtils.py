@@ -169,13 +169,10 @@ def get_valid_subfolders(parent_folder, check_func=None):
     """
     Return valid subfolders in parent_folder that meet criteria specified by check_func.
     """
-    if check_func:
-        return set(os.path.join(parent_folder, x) for x in os.listdir(parent_folder)
-                   if os.path.isdir(os.path.join(parent_folder, x)) and
-                   check_func(os.path.join(parent_folder, x)))
-    else:
-        return set(os.path.join(parent_folder, x) for x in os.listdir(parent_folder)
-                   if os.path.isdir(os.path.join(parent_folder, x)))
+    subs = set(os.path.join(parent_folder, x) for x in os.listdir(parent_folder)
+               if os.path.isdir(os.path.join(parent_folder, x)))
+    if check_func is None: return subs
+    return [x for x in subs if check_func(x)]
 
 def update_archives():
     '''

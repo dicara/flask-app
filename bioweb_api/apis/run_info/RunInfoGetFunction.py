@@ -111,8 +111,12 @@ class RunInfoGetFunction(AbstractGetFunction):
                     end_date = params_dict[cls.end_date][0]
                 else:
                     end_date = datetime.now()
+                # Old file location 05_10_17
                 date_folders = [d.strftime("%m_%d_%y")
                                 for d in daterange(start_date, end_date)]
+                # New file location 2017_05/10
+                date_folders.extend(d.strftime("%Y_%m/%d")
+                                    for d in daterange(start_date, end_date))
             else:
                 date_folders = None
             update_run_reports(date_folders)

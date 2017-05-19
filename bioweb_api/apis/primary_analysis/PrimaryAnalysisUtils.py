@@ -159,6 +159,12 @@ def is_date_folder(folder):
     except:
         return False
 
+def is_time_pilot_folder(folder, regex='^\d{4}_pilot\d$'):
+    """
+    Check whether a folder basename has format 1530_pilot7.
+    """
+    return bool(re.match(regex, os.path.basename(folder)))
+
 def get_valid_subfolders(parent_folder, check_func=None):
     """
     Return valid subfolders in parent_folder that meet criteria specified by check_func.
@@ -187,14 +193,16 @@ def update_archives():
                        for archive in archives]
 
         # Check YYYY_MM/DD folders for archives
-        year_month_folders = get_valid_subfolders(ARCHIVES_PATH, is_year_month_folder)
+        year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
         for ym_folder in year_month_folders:
             date_folders = get_valid_subfolders(ym_folder, is_date_folder)
 
             for d_folder in date_folders:
-                archives = get_valid_subfolders(d_folder)
-                records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                                for archive in archives])
+                time_folders = get_valid_subfolders(d_folder, is_time_pilot_folder)
+                for t_folder in time_folders:
+                    archives = get_valid_subfolders(d_folder)
+                    records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                                    for archive in archives])
 
         APP_LOGGER.info("Found %d archives" % (len(records)))
         if len(records) > 0:
@@ -210,11 +218,6 @@ def update_archives():
 
 def update_hdf5s():
     APP_LOGGER.info("Updating database with available HDF5 files...")
-
-    # check if archive path exists
-    if not os.path.isdir(ARCHIVES_PATH):
-        APP_LOGGER.error("Couldn't locate archive path '%s', to update database." % ARCHIVES_PATH)
-        return False
 
     # check if run report path exists
     if not os.path.isdir(RUN_REPORT_PATH):
@@ -237,14 +240,16 @@ def update_hdf5s():
                     current_paths.update(hdf5_paths)
 
     # Check YYYY_MM/DD folders for HDF5 files
-    year_month_folders = get_valid_subfolders(ARCHIVES_PATH, is_year_month_folder)
+    year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
     for ym_folder in year_month_folders:
         date_folders = get_valid_subfolders(ym_folder, is_date_folder)
 
         for d_folder in date_folders:
-            hdf5s = [f for f in os.listdir(d_folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
-            hdf5_paths = [os.path.join(d_folder, f) for f in hdf5s]
-            current_paths.update(hdf5_paths)
+            time_folders = get_valid_subfolders(d_folder, is_time_pilot_folder)
+            for t_folder in time_folders:
+                hdf5s = [f for f in os.listdir(t_folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+                hdf5_paths = [os.path.join(t_folder, f) for f in hdf5s]
+                current_paths.update(hdf5_paths)
 
     # remove obsolete paths
     obsolete_paths = list(database_paths - current_paths)

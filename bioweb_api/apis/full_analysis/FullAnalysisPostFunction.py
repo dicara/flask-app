@@ -31,11 +31,11 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     ASSAY_DYE, NUM_PROBES, AC_TRAINING_FACTOR, IGNORED_DYES, FILTERED_DYES, \
     UI_THRESHOLD, ID_TRAINING_FACTOR, REQUIRED_DROPS, CONTINUOUS_PHASE, \
     NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, CONTINUOUS_PHASE_DESCRIPTION, \
-    UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, \
+    UI_THRESHOLD_DESCRIPTION, REQ_DROPS_DESCRIPTION, ARCHIVE, DEFAULT_DEV_MODE, \
     PA_DATA_SOURCE, CTRL_THRESH, CTRL_THRESH_DESCRIPTION, JOB_STATUS, VARIANT_MASK, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
-    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, USE_PICO1_FILTER, \
+    ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, USE_PICO1_FILTER, DEV_MODE, \
     USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
@@ -46,7 +46,7 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import parse_pa_data_src
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
-from secondary_analysis.constants import ID_TRAINING_FACTOR_MAX as DEFAULT_ID_TRAINING_FACTOR
+from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
 from secondary_analysis.constants import ASSAY_DYE as DEFAULT_ASSAY_DYE
 from secondary_analysis.constants import PICO2_DYE as DEFAULT_PICO2_DYE
@@ -125,7 +125,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                       default_value=False,
                                                       required=False)
 
-        # secondary analysis parameters
+        # identity parameters
         cls.dye_levels_param    = ParameterFactory.dye_levels(required=False)
         cls.ignored_dyes_param  = ParameterFactory.dyes(name=IGNORED_DYES,
                                                        required=False)
@@ -172,6 +172,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         cls.use_pico1_filter = ParameterFactory.boolean(USE_PICO1_FILTER,
                                                         USE_PICO1_FILTER_DESCRIPTION,
                                                         default_value=True,
+                                                        required=False)
+        cls.dev_mode_param   = ParameterFactory.boolean(DEV_MODE,
+                                                        'Use development mode (more forgiving of mistakes).',
+                                                        default_value=DEFAULT_DEV_MODE,
                                                         required=False)
 
         # assay caller params
@@ -220,6 +224,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.id_training_param,
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
+                      cls.dev_mode_param,
                       cls.use_pico1_filter,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,

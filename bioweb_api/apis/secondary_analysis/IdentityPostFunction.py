@@ -44,11 +44,11 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     REPORT_URL, FILTERED_DYES, NUM_PROBES_DESCRIPTION, TRAINING_FACTOR_DESCRIPTION, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
-    IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER
+    IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER, DEV_MODE, \
+    DEFAULT_DEV_MODE
 from primary_analysis.command import InvalidFileError
-from secondary_analysis.constants import FACTORY_ORGANIC, ID_MODEL_METRICS, \
-    UNINJECTED_THRESHOLD, UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, \
-    ID_TEMPORAL_PLOT_SUFFIX
+from secondary_analysis.constants import FACTORY_ORGANIC, UNINJECTED_THRESHOLD, \
+    UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX
 
 from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.identity.offline_identity import OfflineIdentity
@@ -126,6 +126,10 @@ class IdentityPostFunction(AbstractPostFunction):
                                                           CONTINUOUS_PHASE_DESCRIPTION,
                                                           default_value=False,
                                                           required=False)
+        cls.dev_mode_param   = ParameterFactory.boolean(DEV_MODE,
+                                                        'Use development mode (more forgiving of mistakes).',
+                                                        default_value=DEFAULT_DEV_MODE,
+                                                        required=False)
         cls.max_ui_ratio_param = ParameterFactory.float(MAX_UNINJECTED_RATIO,
                                                         MAX_UI_RATIO_DESCRIPTION,
                                                         default=UNINJECTED_RATIO,
@@ -150,6 +154,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.continuous_phase_param,
                       cls.max_ui_ratio_param,
                       cls.ignore_lowest_barcode,
+                      cls.dev_mode_param,
                      ]
         return parameters
 
@@ -186,6 +191,12 @@ class IdentityPostFunction(AbstractPostFunction):
             ignored_dyes = params_dict[cls.ignored_dyes_param]
 
         ui_threshold    = params_dict[cls.ui_threshold_param][0]
+
+        if cls.dev_mode_param in params_dict and \
+           params_dict[cls.dev_mode_param][0]:
+            dev_mode = True
+        else:
+            dev_mode = False
 
         if cls.continuous_phase_param in params_dict and \
            params_dict[cls.continuous_phase_param][0]:
@@ -251,7 +262,8 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       cls._DB_CONNECTOR,
                                                       job_name,
                                                       use_pico_thresh,
-                                                      ignore_lowest_barcode)
+                                                      ignore_lowest_barcode,
+                                                      dev_mode)
                     response = copy.deepcopy(sai_callable.document)
                     callback = make_process_callback(sai_callable.uuid,
                                                      sai_callable.outfile_path,
@@ -291,7 +303,7 @@ class SaIdentityCallable(object):
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  use_pico1_filter, pico1_dye, pico2_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, max_uninj_ratio, db_connector, job_name,
-                 use_pico_thresh, ignore_lowest_barcode):
+                 use_pico_thresh, ignore_lowest_barcode, dev_mode):
         self.uuid                  = str(uuid4())
         self.primary_analysis_uuid = primary_analysis_uuid
         self.dye_levels            = map(list, dye_levels)
@@ -316,6 +328,7 @@ class SaIdentityCallable(object):
         self.job_name              = job_name
         self.use_pico_thresh       = use_pico_thresh
         self.ignore_lowest_barcode = ignore_lowest_barcode
+        self.dev_mode = dev_mode
 
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
@@ -340,6 +353,7 @@ class SaIdentityCallable(object):
                         SUBMIT_DATESTAMP: datetime.today(),
                         CONTINUOUS_PHASE: use_pico_thresh,
                         IGNORE_LOWEST_BARCODE: ignore_lowest_barcode,
+                        DEV_MODE: dev_mode
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)
@@ -391,7 +405,7 @@ class SaIdentityCallable(object):
                      ignored_dyes=self.ignored_dyes,
                      filtered_dyes=self.filtered_dyes,
                      uninjected_threshold=self.ui_threshold,
-                     dev_mode=True,
+                     dev_mode=self.dev_mode,
                      use_pico_thresh=self.use_pico_thresh,
                      max_uninj_ratio=self.max_uninj_ratio,
                      ignore_lowest_barcode=self.ignore_lowest_barcode).execute()

@@ -93,7 +93,10 @@ def get_hdf5_dataset_path(dataset_name):
 
 def get_archive_path(archive_name):
     documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE_PATH: archive_name})
-    return documents[0][ARCHIVE_PATH]
+    if ARCHIVE_PATH in documents[0]:
+        return documents[0][ARCHIVE_PATH]
+    else:
+        return os.path.join(ARCHIVES_PATH, documents[0][ARCHIVE])
 
 def parse_pa_data_src(pa_data_src_name):
     """

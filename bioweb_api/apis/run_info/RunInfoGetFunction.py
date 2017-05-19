@@ -22,11 +22,12 @@ limitations under the License.
 #=============================================================================
 from datetime import timedelta, datetime
 
+from bioweb_api import RUN_REPORT_COLLECTION
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.apis.parameters.DateParameter import DateParameter
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import ID, RUN_REPORT
+from bioweb_api.apis.ApiConstants import ID, UUID, RUN_REPORT
 from bioweb_api.apis.run_info.RunInfoUtils import get_run_reports, update_run_reports
 
 #=============================================================================
@@ -73,18 +74,35 @@ class RunInfoGetFunction(AbstractGetFunction):
         cls.end_date = DateParameter("end", "End date of the form YYYY_MM_DD.",
                                      allow_multiple=False,
                                      required=False)
-
+        cls.uuid_parameter = ParameterFactory.uuid(required=False,
+                                                   allow_multiple=False)
         parameters = [
                       cls.cart_sn_parameter,
                       cls.refresh_parameter,
                       cls.start_date,
                       cls.end_date,
+                      cls.uuid_parameter,
                       ParameterFactory.format(),
                      ]
         return parameters
 
     @classmethod
     def process_request(cls, params_dict):
+        uuid = None
+        if cls.uuid_parameter in params_dict and \
+            params_dict[cls.uuid_parameter][0]:
+            uuid = params_dict[cls.uuid_parameter][0]
+
+        # if uuid exists, return a single report with all fields
+        if uuid is not None:
+            report = cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, uuid)
+            if report is None:
+                APP_LOGGER.debug("Run report uuid=%s does not exist." % uuid)
+                return ([], [], None)
+
+            del report[ID]
+            return ([report], report.keys(), None)
+
         if cls.refresh_parameter in params_dict and \
            params_dict[cls.refresh_parameter][0]:
             if cls.start_date in params_dict and params_dict[cls.start_date][0]:

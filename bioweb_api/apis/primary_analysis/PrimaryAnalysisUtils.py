@@ -92,7 +92,7 @@ def get_hdf5_dataset_path(dataset_name):
     return documents[0][HDF5_PATH]
 
 def get_archive_path(archive_name):
-    documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE_PATH: archive_name})
+    documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: archive_name})
     if ARCHIVE_PATH in documents[0]:
         return documents[0][ARCHIVE_PATH]
     else:
@@ -259,7 +259,7 @@ def update_hdf5s():
                 dataset_names = h5_file.keys()
             for dsname in dataset_names:
                 if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname) or \
-                        re.match(r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}$', dsname):
+                        re.match(r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
                     new_records.append({
                         HDF5_PATH: hdf5_path,
                         HDF5_DATASET: dsname,

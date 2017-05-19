@@ -330,7 +330,7 @@ def update_run_reports(date_folders=None):
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
                         # add image stacks to archive collection
-                        update_image_stacks(log_data)
+                        update_image_stacks(log_data, data_folders)
                         # find HDF5 datasets and add them to HDF5 collection
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folders)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)

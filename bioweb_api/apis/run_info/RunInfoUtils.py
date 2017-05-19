@@ -283,7 +283,7 @@ def update_image_stacks(log_data, data_folder):
 def get_date_object(folder):
     if re.search('\d{2}_\d{2}_\d{2}', folder) is not None:
         # Old file location 05_10_17
-        return datetime.strptime(os.path.basename(folder), '%m_%d_%y')
+        return datetime.strptime(re.search('\d{2}_\d{2}_\d{2}', folder).group(), '%m_%d_%y')
     else:
         # New file location 2017_05/10
         return datetime.strptime(re.search('\d{4}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')

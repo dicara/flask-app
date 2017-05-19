@@ -174,6 +174,25 @@ def get_valid_subfolders(parent_folder, check_func=None):
     if check_func is None: return subs
     return [x for x in subs if check_func(x)]
 
+def get_date_folders():
+    """
+    Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/.
+    """
+    date_folders = set()
+    year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
+    for ym_folder in year_month_folders:
+        date_folders.update(set(get_valid_subfolders(ym_folder, is_date_folder)))
+    return date_folders
+
+def get_run_folders():
+    """
+    Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/1530_pilot7/.
+    """
+    run_folders = set()
+    for d_folder in get_date_folders():
+        run_folders.update(set(get_valid_subfolders(d_folder, is_time_pilot_folder)))
+    return run_folders
+
 def update_archives():
     '''
     Update the database with available primary analysis archives.  It is not
@@ -189,17 +208,12 @@ def update_archives():
         records     = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
                        for archive in archives]
 
-        # Check YYYY_MM/DD folders for archives
-        year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
-        for ym_folder in year_month_folders:
-            date_folders = get_valid_subfolders(ym_folder, is_date_folder)
-
-            for d_folder in date_folders:
-                time_folders = get_valid_subfolders(d_folder, is_time_pilot_folder)
-                for t_folder in time_folders:
-                    archives = get_valid_subfolders(d_folder)
-                    records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                                    for archive in archives])
+        # Check YYYY_MM/DD location
+        run_folders = get_run_folders()
+        for folder in run_folders:
+            archives = get_valid_subfolders(folder)
+            records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                            for archive in archives])
 
         APP_LOGGER.info("Found %d archives" % (len(records)))
         if len(records) > 0:
@@ -237,16 +251,11 @@ def update_hdf5s():
                     current_paths.update(hdf5_paths)
 
     # Check YYYY_MM/DD folders for HDF5 files
-    year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
-    for ym_folder in year_month_folders:
-        date_folders = get_valid_subfolders(ym_folder, is_date_folder)
-
-        for d_folder in date_folders:
-            time_folders = get_valid_subfolders(d_folder, is_time_pilot_folder)
-            for t_folder in time_folders:
-                hdf5s = [f for f in os.listdir(t_folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
-                hdf5_paths = [os.path.join(t_folder, f) for f in hdf5s]
-                current_paths.update(hdf5_paths)
+    run_folders = get_run_folders()
+    for folder in run_folders:
+        hdf5s = [f for f in os.listdir(folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+        hdf5_paths = [os.path.join(folder, f) for f in hdf5s]
+        current_paths.update(hdf5_paths)
 
     # remove obsolete paths
     obsolete_paths = list(database_paths - current_paths)

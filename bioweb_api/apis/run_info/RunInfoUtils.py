@@ -40,8 +40,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_valid_subfolders, \
-    is_year_month_folder, is_date_folder
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders
 
 #=============================================================================
 # Private Static Variables
@@ -287,7 +286,7 @@ def get_date_object(folder):
         return datetime.strptime(os.path.basename(folder), '%m_%d_%y')
     else:
         # New file location 2017_05/10
-        return datetime.strptime(re.search('\d{4}_\d{2}/\d{1,2}').group(), '%Y_%m/%d')
+        return datetime.strptime(re.search('\d{4}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')
 
 
 def update_run_reports(date_folders=None):
@@ -318,11 +317,8 @@ def update_run_reports(date_folders=None):
                             if re.match('\d{2}_\d{2}_\d{2}', folder) and valid_date(folder)]
 
             # New file location
-            year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
-            d_folders = [os.path.join(os.path.basename(ym_folder), f)
-                         for ym_folder in year_month_folders
-                         for f in os.listdir(ym_folder) if is_date_folder(f)]
-            date_folders.extend(f for f in d_folders if valid_date(f))
+            new_date_folders = get_date_folders()
+            date_folders.extend(f for f in new_date_folders if valid_date(f))
 
         date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
         date_folders = [f for f in date_folders if os.path.isdir(f)]

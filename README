@@ -888,3 +888,5 @@ GnuBio Flask API.
  * v3.79.0
    * identity dev mode argument is exposed
    * secondary analysis updated to version 3.18.3
+ * v3.80.0
+   * Add dyes scatter plot to assay caller API

@@ -20,7 +20,8 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     FINISH_DATESTAMP, TRAINING_FACTOR, VARIANT_MASK, CONTINUOUS_PHASE, PLATE_PLOT_URL, \
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, \
-    HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID
+    HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID, \
+    DYES_SCATTER_PLOT_URL
 
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
@@ -307,19 +308,17 @@ class FullAnalysisWorkFlowCallable(object):
         job_name = self.parameters[JOB_NAME] + generate_random_str(5)
         # create a callable and a callback
         callable = SaAssayCallerCallable(identity_uuid=identity_uuid,
-                                        exp_def_name=self.parameters[EXP_DEF],
-                                        num_probes=self.parameters[NUM_PROBES],
-                                        training_factor=self.parameters[AC_TRAINING_FACTOR],
-                                        assay_dye=self.parameters[ASSAY_DYE],
-                                        pico2_dye=self.parameters[PICO2_DYE],
-                                        ctrl_thresh=self.parameters[CTRL_THRESH],
-                                        db_connector=self.db_connector,
-                                        job_name=job_name,
-                                        ctrl_filter=self.parameters[CTRL_FILTER],
-                                        assay_caller_model=self.parameters[AC_MODEL])
+                                         exp_def_name=self.parameters[EXP_DEF],
+                                         training_factor=self.parameters[AC_TRAINING_FACTOR],
+                                         ctrl_thresh=self.parameters[CTRL_THRESH],
+                                         db_connector=self.db_connector,
+                                         job_name=job_name,
+                                         ctrl_filter=self.parameters[CTRL_FILTER],
+                                         assay_caller_model=self.parameters[AC_MODEL])
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             scatter_plot_path=callable.scatter_plot_path,
+                                            dyes_scatter_plot_path=callable.dyes_plot_path,
                                             db_connector=self.db_connector)
 
         # enter assay caller uuid into full analysis database entry
@@ -339,7 +338,8 @@ class FullAnalysisWorkFlowCallable(object):
         # update full analysis entry with results from assay caller
         result = self.db_connector.find_one(SA_ASSAY_CALLER_COLLECTION, UUID, callable.uuid)
         keys = [UUID, URL, SCATTER_PLOT_URL, STATUS, ERROR, START_DATESTAMP,
-                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, AC_MODEL]
+                FINISH_DATESTAMP, TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, 
+                AC_MODEL, DYES_SCATTER_PLOT_URL]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {AC_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

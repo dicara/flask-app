@@ -53,7 +53,6 @@ setup(
                           'futures>=2.1.6',
                           'matplotlib>=1.5.1',
                           'numpy>=1.12.0',
-                          'scikit-learn>=0.18.0',
                           'idt-analyzer>=0.3',
                           'ncbi-utilities>=0.2',
                           'pandas>=0.18.1',

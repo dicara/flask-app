@@ -208,7 +208,7 @@ def update_archives():
         records     = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
                        for archive in archives]
 
-        # Check YYYY_MM/DD location
+        # Check yyyy_mm/dd/HHMM_pilotX location
         run_folders = get_run_folders()
         for folder in run_folders:
             archives = get_valid_subfolders(folder)
@@ -250,7 +250,7 @@ def update_hdf5s():
                     hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
                     current_paths.update(hdf5_paths)
 
-    # Check YYYY_MM/DD folders for HDF5 files
+    # Check yyyy_mm/dd/HHMM_pilotX location
     run_folders = get_run_folders()
     for folder in run_folders:
         hdf5s = [f for f in os.listdir(folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
@@ -269,8 +269,8 @@ def update_hdf5s():
             with h5py.File(hdf5_path) as h5_file:
                 dataset_names = h5_file.keys()
             for dsname in dataset_names:
-                if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname) or \
-                        re.match(r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
+                if any(re.match(pat, dsname) for pat in [r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}',
+                                                         r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}']):
                     new_records.append({
                         HDF5_PATH: hdf5_path,
                         HDF5_DATASET: dsname,

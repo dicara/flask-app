@@ -96,8 +96,6 @@ def get_run_reports(cartridge_sn=None):
                                      columns)
     APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
                     % (len(reports), ))
-<<<<<<< HEAD
-=======
 
     if reports:
         all_jobs = _DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
@@ -123,7 +121,6 @@ def get_run_reports(cartridge_sn=None):
                         job_status[STATUS] = FAILED
                     job_status['job_uuids'] = [j[UUID] for j in jobs]
                 report[DATA_TO_JOBS][archive_name] = job_status
->>>>>>> clean up code
     return (reports, column_names, None)
 
 def set_utag(date_obj, sf):

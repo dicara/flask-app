@@ -49,7 +49,6 @@ RUN_DESCRIPTION             = 'starting_notes'
 RUN_DESCRIPTION_TXT         = 'Run Description'
 RUN_REPORT_TXTFILE          = 'run_info.txt'
 RUN_REPORT_YAMLFILE         = 'run_info.yaml'
-RUN_REPORT_PATH             = os.path.join(ARCHIVES_PATH, 'run_reports')
 SAMPLE_NAME                 = 'sample_name'
 SAMPLE_TYPE                 = 'sample_type'
 SERIAL_NUM                  = 'serial_num'

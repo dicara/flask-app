@@ -890,3 +890,7 @@ GnuBio Flask API.
    * secondary analysis updated to version 3.18.3
  * v3.80.0
    * Add dyes scatter plot to assay caller API
+ * v3.81.0
+   * add new API to retrieve details of single run report
+   * let GET full analysis job API take uuids parameter
+   * let GET run report API map full analysis jobs

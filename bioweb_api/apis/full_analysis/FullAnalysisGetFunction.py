@@ -24,6 +24,7 @@ from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import FA_PROCESS_COLLECTION
+from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import update_fa_docs
 
 #=============================================================================
@@ -48,14 +49,24 @@ class FullAnalysisGetFunction(AbstractGetFunction):
 
     @classmethod
     def parameters(cls):
+        cls.uuids_param = ParameterFactory.uuid(required=False)
         parameters = [
+                      cls.uuids_param,
                       ParameterFactory.format(),
                      ]
         return parameters
 
     @classmethod
     def process_request(cls, params_dict):
-        fa_documents = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
+        uuids = list()
+        if cls.uuids_param in params_dict:
+            uuids = params_dict[cls.uuids_param]
+
+        if not uuids:
+            fa_documents = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION, {})
+        else:
+            fa_documents = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION,
+                                                  {UUID: {'$in': uuids}})
         fa_documents = update_fa_docs(fa_documents)
 
         if fa_documents:

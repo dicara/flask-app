@@ -105,6 +105,7 @@ CTRL_THRESH      = "ctrl_thresh"
 CONFIG           = "config"
 CONFIG_URL       = "config_url"
 CONTINUOUS_PHASE = 'continuous_phase'
+DATA_TO_JOBS     = "data_to_jobs"
 DATE             = "date"
 DATESTAMP        = "datestamp"
 DESIGN           = "design"

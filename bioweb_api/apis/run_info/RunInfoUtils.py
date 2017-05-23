@@ -58,42 +58,29 @@ def get_run_reports(cartridge_sn=None):
     columns                     = OrderedDict()
     columns[ID]                 = 0
     columns[UUID]               = 1
-    columns[USER]               = 1
     columns[DATETIME]           = 1
     columns[DEVICE_NAME]        = 1
     columns[EXP_DEF_NAME]       = 1
-    columns[RUN_DESCRIPTION]    = 1
-    columns[SAMPLE_NAME]        = 1
     columns[CARTRIDGE_SN]       = 1
     columns[CARTRIDGE_SN_OLD]   = 1
     columns[CARTRIDGE_BC]       = 1
     columns[IMAGE_STACKS]       = 1
-    columns[FA_UUID_MAP]        = 1
-    columns[EXPERIMENT_PURPOSE] = 1
     columns[PICO1_DYE]          = 1
 
     column_names = columns.keys()
     column_names.remove(ID)
 
-    if cartridge_sn is None:
-        reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
-                                        {UUID: {'$exists': True},
-                                         DEVICE_NAME: {'$ne': ''},
-                                         EXP_DEF_NAME: {'$ne': None},
-                                         IMAGE_STACKS: {'$ne': None,
-                                                        '$not': {'$size': 0}}},
-                                     columns)
-    else:
-        reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
-                                        {UUID: {'$exists': True},
-                                         DEVICE_NAME: {'$ne': ''},
-                                         EXP_DEF_NAME: {'$ne': None},
-                                         IMAGE_STACKS: {'$ne': None,
-                                                        '$not': {'$size': 0}},
-                                         '$or': [{CARTRIDGE_SN: cartridge_sn},
-                                                 {CARTRIDGE_SN_OLD: cartridge_sn},
-                                                 {'{0}.{1}'.format(CARTRIDGE_BC, 'serial_num'): cartridge_sn}]},
-                                     columns)
+    query = {UUID: {'$exists': True},
+             DEVICE_NAME: {'$ne': ''},
+             EXP_DEF_NAME: {'$ne': None},
+             IMAGE_STACKS: {'$ne': None,
+                            '$not': {'$size': 0}}}
+    if cartridge_sn is not None:
+        query.update({'$or': [{CARTRIDGE_SN: cartridge_sn},
+                              {CARTRIDGE_SN_OLD: cartridge_sn},
+                              {'{0}.{1}'.format(CARTRIDGE_BC, 'serial_num'): cartridge_sn}]})
+
+    reports = _DB_CONNECTOR.find(RUN_REPORT_COLLECTION, query, columns)
     APP_LOGGER.info('Retrieved %d run reports with image stack(s)' \
                     % (len(reports), ))
 

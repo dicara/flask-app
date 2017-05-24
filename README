@@ -894,3 +894,5 @@ GnuBio Flask API.
    * add new API to retrieve details of single run report
    * let GET full analysis job API take uuids parameter
    * let GET run report API map full analysis jobs
+ * v3.81.1
+   * bugfix in get run reports JSON

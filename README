@@ -896,3 +896,13 @@ GnuBio Flask API.
    * let GET run report API map full analysis jobs
  * v3.81.1
    * bugfix in get run reports JSON
+ * v3.82.0
+   * update secondary-analysis to 3.20.2:
+     * 3.20.0
+       * added normalization capability to genotyper
+     * 3.20.1
+       * added scrubber model
+     * 3.20.2
+       * changed format of pickle to work with bioweb
+     * 3.20.3
+       * bugfix with normalizing

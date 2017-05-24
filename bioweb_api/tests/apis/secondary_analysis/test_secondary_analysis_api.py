@@ -103,11 +103,11 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                           UUID : cls._pa_uuid,
                           ARCHIVE : "20141015_b7_312ele_60mw_g2_18000_2",
                           DEVICE : "beta7",
-                          DYES : [ 
-                                  "594", 
-                                  "633", 
-                                  "cy5.5", 
-                                  "pe", 
+                          DYES : [
+                                  "594",
+                                  "633",
+                                  "cy5.5",
+                                  "pe",
                                   "pe-cy7"
                                  ],
                           STATUS : JOB_STATUS.succeeded, # @UndefinedVariable
@@ -127,10 +127,10 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                               UUID : cls._abl_pa_uuid,
                               ARCHIVE : "2016-01-28_05.22pm_beta_15",
                               DEVICE : "beta7",
-                              DYES : [ 
-                                      "594", 
-                                      "633", 
-                                      "cy5.5", 
+                              DYES : [
+                                      "594",
+                                      "633",
+                                      "cy5.5",
                                       "pe",
                                       "joe",
                                       "fam"
@@ -157,9 +157,9 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                           ASSAY_DYE: "fam",
                           NUM_PROBES: 8,
                           TRAINING_FACTOR: 1000,
-                          DYE_LEVELS : [ 
+                          DYE_LEVELS : [
                                   ["594", 2],
-                                  ["633", 2], 
+                                  ["633", 2],
                                   ["cy5.5", 2],
                                  ],
                           IGNORED_DYES: [],
@@ -210,10 +210,10 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        _DB_CONNECTOR.remove(PA_PROCESS_COLLECTION, 
+        _DB_CONNECTOR.remove(PA_PROCESS_COLLECTION,
                              {UUID: {"$in": [cls._pa_uuid,
                                              cls._abl_pa_uuid]}})
-        _DB_CONNECTOR.remove(SA_IDENTITY_COLLECTION, 
+        _DB_CONNECTOR.remove(SA_IDENTITY_COLLECTION,
                              {UUID: {"$in": [cls._identity_uuid]}})
         _DB_CONNECTOR.remove(SA_ASSAY_CALLER_COLLECTION,
                              {UUID: {"$in": [cls._ac_uuid]}})
@@ -279,86 +279,86 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         msg = "Result file cannot be found: %s" % response[RESULT]
         self.assertTrue(os.path.isfile(response[RESULT]), msg)
 
-    def test_identity_on_abl(self):
-        """
-        Test the POST, GET and DELETE identity APIs.
-        """
-        # Construct url
-        url = _IDENTITY_URL
-        url = add_url_argument(url, UUID, self._abl_pa_record[UUID], True) 
-        url = add_url_argument(url, JOB_NAME, _ABL_IDENTITY_JOB_NAME) 
-        url = add_url_argument(url, NUM_PROBES, _ABL_ID_NUM_PROBES) 
-        url = add_url_argument(url, DYE_LEVELS, _ABL_DYE_LEVELS)
-        url = add_url_argument(url, FILTERED_DYES, _ABL_FILTERED_DYES)
-
-        # Submit identity job
-        response      = post_data(self, url, 200)
-        identity_uuid = response[IDENTITY][0][UUID]
-
-        # Test that submitting two jobs with the same name fails and returns
-        # the appropriate error code. 
-        post_data(self, url, 403)
-
-        running = True
-        while running:
-            time.sleep(10)
-            response = get_data(self, _IDENTITY_URL, 200)
-            for job in response[IDENTITY]:
-                if identity_uuid == job[UUID]:
-                    job_details = job
-                    running     = job_details[STATUS] == 'running'
-
-        msg = "%s doesn't exist in job_details." % REPORT
-        self.assertTrue(REPORT in job_details, msg)
-        obs_id_report_path = job_details[REPORT]
-
-        msg = "Report path doesn't exist: %s" % obs_id_report_path
-        self.assertTrue(os.path.isfile(obs_id_report_path), msg)
-
-        shutil.copy(obs_id_report_path, "abl_observed_report.yaml")
-
-        msg = "%s doesn't exist in job_details." % PLOT
-        self.assertTrue(PLOT in job_details, msg)
-        identity_plot_path = job_details[PLOT]
-
-        msg = "Plot path doesn't exist: %s" % identity_plot_path
-        self.assertTrue(os.path.isfile(identity_plot_path), msg)
-
-        shutil.copy(identity_plot_path, "abl_identity_plot.png")
-
-        msg = "%s doesn't exist in job_details." % RESULT
-        self.assertTrue(RESULT in job_details, msg)
-        result_path = job_details[RESULT]
-
-        msg = "Result path doesn't exist: %s" % result_path
-        self.assertTrue(os.path.isfile(result_path), msg)
-
-        shutil.copy(result_path, "abl_observed_identity.txt")
-
-        # check if expected clusters were found
-        with open(self._exp_abl_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
-            exp_report = yaml.load(f_exp)
-            obs_report = yaml.load(f_obs)
-        exp_clusters = exp_report[ID_MODEL_METRICS][0]['CLUSTERS']
-        obs_clusters = obs_report[ID_MODEL_METRICS][0]['CLUSTERS']
-
-        exp_clus_ids = exp_clusters.keys()
-        exp_clus_ids.sort()
-        obs_clus_ids = obs_clusters.keys()
-        obs_clus_ids.sort()
-
-        msg = 'Identity result contains barcode IDs that were not expected.'
-        self.assertTrue(exp_clus_ids == obs_clus_ids, msg)
-
-        # Delete sa assay caller job
-        delete_url = add_url_argument(_IDENTITY_URL, UUID, identity_uuid, True)
-        delete_data(self, delete_url, 200)
-
-        # Ensure job no longer exists in the database
-        response = get_data(self, _IDENTITY_URL, 200)
-        for job in response[IDENTITY]:
-            msg = "PA process job %s still exists in database." % identity_uuid
-            self.assertNotEqual(identity_uuid, job[UUID], msg)
+    # def test_identity_on_abl(self):
+    #     """
+    #     Test the POST, GET and DELETE identity APIs.
+    #     """
+    #     # Construct url
+    #     url = _IDENTITY_URL
+    #     url = add_url_argument(url, UUID, self._abl_pa_record[UUID], True)
+    #     url = add_url_argument(url, JOB_NAME, _ABL_IDENTITY_JOB_NAME)
+    #     url = add_url_argument(url, NUM_PROBES, _ABL_ID_NUM_PROBES)
+    #     url = add_url_argument(url, DYE_LEVELS, _ABL_DYE_LEVELS)
+    #     url = add_url_argument(url, FILTERED_DYES, _ABL_FILTERED_DYES)
+    #
+    #     # Submit identity job
+    #     response      = post_data(self, url, 200)
+    #     identity_uuid = response[IDENTITY][0][UUID]
+    #
+    #     # Test that submitting two jobs with the same name fails and returns
+    #     # the appropriate error code.
+    #     post_data(self, url, 403)
+    #
+    #     running = True
+    #     while running:
+    #         time.sleep(10)
+    #         response = get_data(self, _IDENTITY_URL, 200)
+    #         for job in response[IDENTITY]:
+    #             if identity_uuid == job[UUID]:
+    #                 job_details = job
+    #                 running     = job_details[STATUS] == 'running'
+    #
+    #     msg = "%s doesn't exist in job_details." % REPORT
+    #     self.assertTrue(REPORT in job_details, msg)
+    #     obs_id_report_path = job_details[REPORT]
+    #
+    #     msg = "Report path doesn't exist: %s" % obs_id_report_path
+    #     self.assertTrue(os.path.isfile(obs_id_report_path), msg)
+    #
+    #     shutil.copy(obs_id_report_path, "abl_observed_report.yaml")
+    #
+    #     msg = "%s doesn't exist in job_details." % PLOT
+    #     self.assertTrue(PLOT in job_details, msg)
+    #     identity_plot_path = job_details[PLOT]
+    #
+    #     msg = "Plot path doesn't exist: %s" % identity_plot_path
+    #     self.assertTrue(os.path.isfile(identity_plot_path), msg)
+    #
+    #     shutil.copy(identity_plot_path, "abl_identity_plot.png")
+    #
+    #     msg = "%s doesn't exist in job_details." % RESULT
+    #     self.assertTrue(RESULT in job_details, msg)
+    #     result_path = job_details[RESULT]
+    #
+    #     msg = "Result path doesn't exist: %s" % result_path
+    #     self.assertTrue(os.path.isfile(result_path), msg)
+    #
+    #     shutil.copy(result_path, "abl_observed_identity.txt")
+    #
+    #     # check if expected clusters were found
+    #     with open(self._exp_abl_id_report_path) as f_exp, open(obs_id_report_path) as f_obs:
+    #         exp_report = yaml.load(f_exp)
+    #         obs_report = yaml.load(f_obs)
+    #     exp_clusters = exp_report[ID_MODEL_METRICS][0]['CLUSTERS']
+    #     obs_clusters = obs_report[ID_MODEL_METRICS][0]['CLUSTERS']
+    #
+    #     exp_clus_ids = exp_clusters.keys()
+    #     exp_clus_ids.sort()
+    #     obs_clus_ids = obs_clusters.keys()
+    #     obs_clus_ids.sort()
+    #
+    #     msg = 'Identity result contains barcode IDs that were not expected.'
+    #     self.assertTrue(exp_clus_ids == obs_clus_ids, msg)
+    #
+    #     # Delete sa assay caller job
+    #     delete_url = add_url_argument(_IDENTITY_URL, UUID, identity_uuid, True)
+    #     delete_data(self, delete_url, 200)
+    #
+    #     # Ensure job no longer exists in the database
+    #     response = get_data(self, _IDENTITY_URL, 200)
+    #     for job in response[IDENTITY]:
+    #         msg = "PA process job %s still exists in database." % identity_uuid
+    #         self.assertNotEqual(identity_uuid, job[UUID], msg)
 
     def test_assay_caller(self):
         """

@@ -20,13 +20,10 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import uuid4
 
-from enum import Enum
-
 from bioweb_api.apis.ApiConstants import UUID
-from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.model.gnubio_part import Cartridge, Kit, Syringe
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     CHIP_REVISION_TXT, DATETIME, DEVICE_NAME_TXT, EXIT_NOTES_TXT, \

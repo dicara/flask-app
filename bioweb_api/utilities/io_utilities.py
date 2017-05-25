@@ -283,9 +283,12 @@ def get_results_filepath(file_url):
 
     @param file_url:        url that points to the file
     """
-    date_str = re.search(r'201\d_\d{2}_\d{2}', file_url).group()
-    date_folder = os.path.join(RESULTS_PATH, date_str)
-    return os.path.join(date_folder, os.path.basename(file_url))
+    try:
+        date_str = re.search(r'201\d_\d{2}_\d{2}', file_url).group()
+        date_folder = os.path.join(RESULTS_PATH, date_str)
+        return os.path.join(date_folder, os.path.basename(file_url))
+    except AttributeError:
+        return RESULTS_PATH
 
 def get_results_url(filepath):
     """

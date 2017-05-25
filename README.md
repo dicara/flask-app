@@ -906,3 +906,7 @@ GnuBio Flask API.
        * changed format of pickle to work with bioweb
      * 3.20.3
        * bugfix with normalizing
+ * v3.82.1
+   * update secondary-analysis to 3.20.4:
+     * 3.20.4
+       * bugfix to handle matplotlib overflow error when plotting large data

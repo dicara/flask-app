@@ -20,31 +20,46 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import datetime
+from datetime import datetime
 from uuid import uuid4
 
-from enum import Enum
-
 from bioweb_api.apis.ApiConstants import UUID
-from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.model.gnubio_part import Cartridge, Kit, Syringe
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     CHIP_REVISION_TXT, DATETIME, DEVICE_NAME_TXT, EXIT_NOTES_TXT, \
     EXP_DEF_NAME_TXT, REAGENT_INFO_TXT, RUN_ID_TXT, RUN_DESCRIPTION_TXT, \
     TDI_STACKS_TXT, USER_TXT, CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
     DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, RUN_DESCRIPTION, \
-    TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, FA_UUID_MAP, CARTRIDGE_BC, \
+    TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, CARTRIDGE_BC, \
     EXP_DEF_UUID, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, FAIL_REASON, \
-    EXPERIMENT_PURPOSE, EXPERIMENT_CONFIGS, PICO1_DYE
+    EXPERIMENT_PURPOSE, EXPERIMENT_CONFIGS, PICO1_DYE, NOTE, NOTES, TIMESTAMP
 
 #=============================================================================
 # Classes
 #=============================================================================
 
+class Note(object):
+    def __init__(self, note, ts):
+        self._note = note
+
+        seconds = int(float(ts))
+        self._ts = datetime.fromtimestamp(seconds)
+
+    def __repr__(self):
+        return self.as_dict()
+
+    @classmethod
+    def from_dict(cls, src):
+        return cls(src[NOTE], src[TIMESTAMP])
+
+    def as_dict(self):
+        return {NOTE: self._note, TIMESTAMP: self._ts}
+
+
 class RunReportWebUI(object):
     def __init__(self, datetime, utag, run_id, cartridge_sn, chip_sn, run_description,
                  user_list, reagent_info, chip_rev, exp_def_name, device_name,
-                 exit_notes, tdi_stacks, exp_purpose, pico1_dye):
+                 exit_notes, tdi_stacks, exp_purpose, pico1_dye, notes=[]):
         self._uuid              = str(uuid4())
         self._datetime          = datetime
         self._utag              = utag
@@ -61,6 +76,7 @@ class RunReportWebUI(object):
         self._tdi_stacks        = tdi_stacks
         self._exp_purpose       = exp_purpose
         self._pico1_dye         = pico1_dye
+        self._notes             = notes
 
         self.verify()
 
@@ -68,7 +84,6 @@ class RunReportWebUI(object):
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
             self._image_stack_names = [path.split('/')[-1]
                                         for path in self._tdi_stacks]
-        self._fa_uuid_map = dict() # initiate a dict to store archive name, full analysis uuids as key, value
 
     @classmethod
     def from_dict(cls, **kwargs):
@@ -87,7 +102,8 @@ class RunReportWebUI(object):
                        kwargs.get(EXIT_NOTES_TXT),
                        kwargs.get(TDI_STACKS_TXT),
                        kwargs.get(EXPERIMENT_PURPOSE),
-                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
+                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None,
+                       [Note.from_dict(x) for x in kwargs.get(NOTES)] if NOTES in kwargs else [])
         elif kwargs.get(FILE_TYPE) == 'yaml':
             return cls(kwargs.get(DATETIME),
                        kwargs.get(UTAG),
@@ -103,7 +119,8 @@ class RunReportWebUI(object):
                        kwargs.get(EXIT_NOTES),
                        kwargs.get(TDI_STACKS),
                        kwargs.get(EXPERIMENT_PURPOSE),
-                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
+                       kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None,
+                       [Note.from_dict(x) for x in kwargs.get(NOTES)] if NOTES in kwargs else [])
         else:
             raise Exception("Unknown type of log file.")
 
@@ -140,8 +157,7 @@ class RunReportWebUI(object):
             raise Exception("Chip serial number is not a string.")
 
     def _verify_datetime(self):
-        if self._datetime is not None and not isinstance(self._datetime,
-                                                        datetime.datetime):
+        if self._datetime is not None and not isinstance(self._datetime, datetime):
             raise Exception("Date is not a Datetime object.")
 
     def _verify_run_description(self):
@@ -195,13 +211,14 @@ class RunReportWebUI(object):
                 UTAG:               self._utag,
                 EXPERIMENT_PURPOSE: self._exp_purpose,
                 PICO1_DYE:          self._pico1_dye,
+                NOTES:              [x.as_dict() for x in self._notes],
         }
 
 class RunReportClientUI(object):
     def __init__(self, datetime, utag, cartridge_bc, chip_rev, device_name,
                  fail_reason, exp_def_name, exp_def_uuid, kit_bc, mcp_mode,
                  run_id, sample_name, sample_type, syringe_bc, tdi_stacks,
-                 exp_purpose, pico1_dye):
+                 exp_purpose, pico1_dye, notes=[]):
         self._uuid                  = str(uuid4())
         self._datetime              = datetime
         self._utag                  = utag
@@ -221,12 +238,12 @@ class RunReportClientUI(object):
         self._tdi_stacks            = tdi_stacks
         self._exp_purpose           = exp_purpose
         self._pico1_dye             = pico1_dye
+        self._notes                 = notes
 
         self._image_stack_names     = []
         if self._tdi_stacks is not None and len(self._tdi_stacks) > 0:
             self._image_stack_names = [path.split('/')[-1]
                                         for path in self._tdi_stacks]
-        self._fa_uuid_map = dict() # initiate a dict to store archive name, full analysis uuids as key, value
 
     def __eq__(self, o):
         return self._uuid == o._uuid
@@ -252,7 +269,8 @@ class RunReportClientUI(object):
                    Syringe.from_dict(kwargs.get(SYRINGE_BC)),
                    kwargs.get(TDI_STACKS),
                    kwargs.get(EXPERIMENT_PURPOSE),
-                   kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None)
+                   kwargs[EXPERIMENT_CONFIGS].get(PICO1_DYE) if EXPERIMENT_CONFIGS in kwargs else None,
+                   [Note.from_dict(x) for x in kwargs.get(NOTES)] if NOTES in kwargs else [])
 
     def as_dict(self):
         return {
@@ -275,4 +293,5 @@ class RunReportClientUI(object):
                     IMAGE_STACKS:       self._image_stack_names,
                     EXPERIMENT_PURPOSE: self._exp_purpose,
                     PICO1_DYE:          self._pico1_dye,
+                    NOTES:              [x.as_dict() for x in self._notes],
                }

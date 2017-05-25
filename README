@@ -910,3 +910,5 @@ GnuBio Flask API.
    * update secondary-analysis to 3.20.4:
      * 3.20.4
        * bugfix to handle matplotlib overflow error when plotting large data
+ * v3.83.0
+   * Add notes field to run report model

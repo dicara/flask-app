@@ -37,7 +37,7 @@ from bioweb_api import TMP_PATH, FA_PROCESS_COLLECTION, EXP_DEF_COLLECTION, \
     RUN_REPORT_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.io_utilities import safe_make_dirs, get_results_folder, \
-    get_results_url
+    get_results_url, get_results_filepath
 from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUMENT, \
      AC_DOCUMENT, GT_DOCUMENT, OFFSETS, ID_TRAINING_FACTOR, UI_THRESHOLD, AC_TRAINING_FACTOR, \
      CTRL_THRESH, REQUIRED_DROPS, DIFF_PARAMS, TRAINING_FACTOR, UNIFIED_PDF, UNIFIED_PDF_URL, \
@@ -216,18 +216,17 @@ class MakeUnifiedPDF(PDFWriter):
         kde_url                  = fa_job[doc][KDE_PNG_URL]
         kde_sum_url              = fa_job[doc][KDE_PNG_SUM_URL]
 
-        results_folder           = get_results_folder()
-        self.id_report_path      = os.path.join(results_folder, os.path.basename(id_report_url))
-        self.png_path            = os.path.join(results_folder, os.path.basename(png_url))
-        self.png_sum_path        = os.path.join(results_folder, os.path.basename(png_sum_url))
-        self.kde_path            = os.path.join(results_folder, os.path.basename(kde_url))
-        self.kde_sum_path        = os.path.join(results_folder, os.path.basename(kde_sum_url))
+        self.id_report_path      = get_results_filepath(id_report_url)
+        self.png_path            = get_results_filepath(png_url)
+        self.png_sum_path        = get_results_filepath(png_sum_url)
+        self.kde_path            = get_results_filepath(kde_url)
+        self.kde_sum_path        = get_results_filepath(kde_sum_url)
 
         self.vcf_pdf_path        = None
         if vcf_pdf_url is not None:
-            self.vcf_pdf_path    = os.path.join(results_folder, os.path.basename(vcf_pdf_url))
+            self.vcf_pdf_path    = get_results_filepath(vcf_pdf_url)
 
-        self.fa_pdf_path         = os.path.join(results_folder, self.uuid + '.pdf')
+        self.fa_pdf_path         = os.path.join(get_results_folder(), self.uuid + '.pdf')
         self.tmp_path            = os.path.join(TMP_PATH, self.uuid)
         self.tmp_sa_path         = os.path.join(self.tmp_path, 'sa_combined.pdf')
         self.tmp_pdf_path        = os.path.join(self.tmp_path, 'fa_unified.pdf')

@@ -912,3 +912,5 @@ GnuBio Flask API.
        * bugfix to handle matplotlib overflow error when plotting large data
  * v3.83.0
    * Add notes field to run report model
+ * v3.83.1
+   * bugfix in generating PDF report failure

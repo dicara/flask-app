@@ -25,6 +25,7 @@ import errno
 import math
 import numbers
 import os
+import re
 import shutil
 import stat
 import time
@@ -275,6 +276,19 @@ def get_results_folder():
     if not os.path.exists(date_folder):
         os.makedirs(date_folder)
     return date_folder
+
+def get_results_filepath(file_url):
+    """
+    Get the filepath of analysis results from their nginx URL.
+
+    @param file_url:        url that points to the file
+    """
+    try:
+        date_str = re.search(r'20\d{2}_\d{2}_\d{2}', file_url).group()
+        date_folder = os.path.join(RESULTS_PATH, date_str)
+        return os.path.join(date_folder, os.path.basename(file_url))
+    except AttributeError:
+        return RESULTS_PATH
 
 def get_results_url(filepath):
     """

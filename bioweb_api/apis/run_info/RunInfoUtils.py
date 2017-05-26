@@ -284,10 +284,12 @@ def get_date_object(folder):
     if re.search('\d{2}_\d{2}_\d{2}', folder) is not None:
         # Old file location 05_10_17
         return datetime.strptime(re.search('\d{2}_\d{2}_\d{2}', folder).group(), '%m_%d_%y')
-    else:
+    elif re.search('20\d{2}_\d{2}/\d{1,2}', folder) is not None:
         # New file location 2017_05/10
-        return datetime.strptime(re.search('\d{4}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')
-
+        return datetime.strptime(re.search('20\d{2}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')
+    else:
+        raise Exception("Folder %s does not contain a valid date string." % folder)
+        
 
 def update_run_reports(date_folders=None):
     '''

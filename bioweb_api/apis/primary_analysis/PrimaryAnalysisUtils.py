@@ -144,54 +144,32 @@ def get_applications():
     '''
     return _DB_CONNECTOR.distinct_sorted(PROBE_METADATA_COLLECTION, APPLICATION)
 
-def is_year_month_folder(folder, regex='^201\d_[01]\d$'):
-    """
-    Check whether a folder basename has format 2017_05.
-    """
-    return bool(re.match(regex, os.path.basename(folder)))
-
-def is_date_folder(folder):
-    """
-    Check whether a folder basename has format representing date.
-    """
-    try:
-        return 1 <= int(os.path.basename(folder)) <= 31
-    except:
-        return False
-
-def is_time_pilot_folder(folder, regex='^\d{4}_pilot\d$'):
-    """
-    Check whether a folder basename has format 1530_pilot7.
-    """
-    return bool(re.match(regex, os.path.basename(folder)))
-
-def get_valid_subfolders(parent_folder, check_func=None):
-    """
-    Return valid subfolders in parent_folder that meet criteria specified by check_func.
-    """
-    subs = set(os.path.join(parent_folder, x) for x in os.listdir(parent_folder)
-               if os.path.isdir(os.path.join(parent_folder, x)))
-    if check_func is None: return subs
-    return [x for x in subs if check_func(x)]
-
 def get_date_folders():
     """
     Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/.
     """
-    date_folders = set()
-    year_month_folders = get_valid_subfolders(RUN_REPORT_PATH, is_year_month_folder)
-    for ym_folder in year_month_folders:
-        date_folders.update(set(get_valid_subfolders(ym_folder, is_date_folder)))
-    return date_folders
+    # find year month folders, e.g. 2017_05
+    year_month_regex = re.compile('20\d{2}_[01][0-9]$')
+    folders = [os.path.join(RUN_REPORT_PATH, f) for f in os.listdir(RUN_REPORT_PATH)
+               if year_month_regex.match(f)]
+    folders = [f for f in folders if os.path.isdir(f)]
+
+    # find date folders, e.g. 2017_05/20
+    date_regex = re.compile('[123]?\d$')
+    folders = [os.path.join(f, sf) for f in folders for sf in os.listdir(f)
+               if date_regex.match(sf)]
+    folders = [f for f in folders if os.path.isdir(f)]
+    return folders
 
 def get_run_folders():
     """
     Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/1530_pilot7/.
     """
-    run_folders = set()
-    for d_folder in get_date_folders():
-        run_folders.update(set(get_valid_subfolders(d_folder, is_time_pilot_folder)))
-    return run_folders
+    # find run subfolders, e.g. 2017_05/20/1530_pilot7
+    run_subfolder_regex = re.compile('\d{4}_pilot\d{1,2}$')
+    folders = [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)
+               if run_subfolder_regex.match(sf)]
+    return folders
 
 def update_archives():
     '''
@@ -204,14 +182,14 @@ def update_archives():
     _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
     if os.path.isdir(ARCHIVES_PATH):
         # Remove archives named similarly (same name, different capitalization)
-        archives    = get_valid_subfolders(ARCHIVES_PATH)
-        records     = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+        archives = io_utilities.get_subfolders(ARCHIVES_PATH)
+        records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
                        for archive in archives]
 
         # Check yyyy_mm/dd/HHMM_pilotX location
         run_folders = get_run_folders()
         for folder in run_folders:
-            archives = get_valid_subfolders(folder)
+            archives = io_utilities.get_subfolders(folder)
             records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
                             for archive in archives])
 

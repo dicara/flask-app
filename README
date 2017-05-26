@@ -914,3 +914,9 @@ GnuBio Flask API.
    * Add notes field to run report model
  * v3.83.1
    * bugfix in generating PDF report failure
+ * v3.84.0
+   * update secondary-analysis to 3.20.6:
+     * 3.20.5:
+       * minor cleanup and parameters added
+     * 3.20.6:
+       * fixed plot axis and tick label issue  

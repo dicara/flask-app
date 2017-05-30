@@ -165,11 +165,7 @@ def get_run_folders():
     """
     Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/1530_pilot7/.
     """
-    # find run subfolders, e.g. 2017_05/20/1530_pilot7
-    run_subfolder_regex = re.compile('\d{4}_pilot\d{1,2}$')
-    folders = [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)
-               if run_subfolder_regex.match(sf)]
-    return folders
+    return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
 
 def update_archives():
     '''

@@ -30,7 +30,7 @@ from secondary_analysis.assay_calling.classifier_utils import available_models
 #=============================================================================
 # Public Variables
 #=============================================================================
-MODEL_FILES = 'model_files'
+SUBMODELS = 'submodels'
 
 #=============================================================================
 # Class
@@ -42,7 +42,7 @@ class AssayCallerSubmodelGetFunction(AbstractGetFunction):
     #===========================================================================
     @staticmethod
     def name():
-        return ASSAY_CALLER + '/' + MODEL_FILES
+        return ASSAY_CALLER + '/' + SUBMODELS
 
     @staticmethod
     def summary():

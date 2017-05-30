@@ -44,7 +44,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     EXP_DEF_NAME, CTRL_THRESH, TRAINING_FACTOR_DESCRIPTION, \
     CTRL_THRESH_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, AC_MODEL, \
     ASSAY_CALLER_MODEL_DESCRIPTION, PICO1_DYE, DYES_SCATTER_PLOT, \
-    DYES_SCATTER_PLOT_URL
+    DYES_SCATTER_PLOT_URL, AC_SUBMODEL, AC_SUBMODEL_DESCRIPTION
 
 from primary_analysis.command import InvalidFileError
 from primary_analysis.pa_utils import sniff_delimiter
@@ -52,6 +52,7 @@ from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 from secondary_analysis.assay_calling.assay_caller_plotting import generate_dye_scatterplots
+from secondary_analysis.assay_calling.classifier_utils import available_models
 
 #=============================================================================
 # Public Static Variables
@@ -112,6 +113,9 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                        required=True)
         cls.assay_caller_model = ParameterFactory.assay_caller_model(AC_MODEL,
                                                                      ASSAY_CALLER_MODEL_DESCRIPTION)
+        cls.ac_submodel     = ParameterFactory.lc_string(AC_SUBMODEL,
+                                                         AC_SUBMODEL_DESCRIPTION,
+                                                         required=False)
 
         parameters = [
                       cls.job_uuid_param,
@@ -121,6 +125,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                       cls.ctrl_thresh,
                       cls.ctrl_filter,
                       cls.assay_caller_model,
+                      cls.ac_submodel,
                      ]
         return parameters
 
@@ -133,6 +138,11 @@ class AssayCallerPostFunction(AbstractPostFunction):
         ctrl_thresh     = params_dict[cls.ctrl_thresh][0]
         ctrl_filter     = params_dict[cls.ctrl_filter][0]
         assay_caller_model = params_dict[cls.assay_caller_model][0]
+
+        ac_submodel = None
+        if cls.ac_submodel in params_dict and params_dict[cls.ac_submodel][0]:
+            ac_submodel = params_dict[cls.ac_submodel][0]
+
         json_response = {ASSAY_CALLER: []}
 
         # Ensure analysis job exists
@@ -174,7 +184,8 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                          cls._DB_CONNECTOR,
                                                          cur_job_name,
                                                          ctrl_filter,
-                                                         assay_caller_model)
+                                                         assay_caller_model,
+                                                         ac_submodel)
                     response = copy.deepcopy(sac_callable.document)
                     callback = make_process_callback(sac_callable.uuid,
                                                      sac_callable.outfile_path,
@@ -207,9 +218,9 @@ class SaAssayCallerCallable(object):
     '''
     Callable that executes the assay caller command.
     '''
-    def __init__(self, identity_uuid, exp_def_name, training_factor, 
-                 ctrl_thresh, db_connector, job_name, ctrl_filter, 
-                 assay_caller_model):
+    def __init__(self, identity_uuid, exp_def_name, training_factor,
+                 ctrl_thresh, db_connector, job_name, ctrl_filter,
+                 assay_caller_model, ac_submodel):
 
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, identity_uuid)
 
@@ -226,6 +237,7 @@ class SaAssayCallerCallable(object):
         self.ctrl_thresh           = ctrl_thresh
         self.ctrl_filter           = ctrl_filter
         self.assay_caller_model    = assay_caller_model
+        self.ac_submodel           = ac_submodel
 
         results_folder             = get_results_folder()
         self.outfile_path          = os.path.join(results_folder, self.uuid)
@@ -254,6 +266,7 @@ class SaAssayCallerCallable(object):
                         SUBMIT_DATESTAMP: datetime.today(),
                         CTRL_FILTER: ctrl_filter,
                         AC_MODEL: assay_caller_model,
+                        AC_SUBMODEL: ac_submodel,
                        }
         if job_name in self.db_connector.distinct(SA_ASSAY_CALLER_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in assay caller collection' % job_name)
@@ -269,13 +282,13 @@ class SaAssayCallerCallable(object):
 
         def gen_dye_scatterplot(dyes):
             try:
-                analysis_df = pandas.read_table(self.analysis_file, 
+                analysis_df = pandas.read_table(self.analysis_file,
                     sep=sniff_delimiter(self.analysis_file))
-                ac_df = pandas.read_table(self.tmp_outfile_path, 
+                ac_df = pandas.read_table(self.tmp_outfile_path,
                     sep=sniff_delimiter(self.tmp_outfile_path))
                 analysis_df['assay'] = False
                 analysis_df.loc[analysis_df['identity'].notnull(), 'assay'] = ac_df['assay'].values
-                generate_dye_scatterplots(analysis_df, dyes, 
+                generate_dye_scatterplots(analysis_df, dyes,
                     self.tmp_dyes_plot_path, self.job_name, self.pico1_dye)
                 shutil.copy(self.tmp_dyes_plot_path, self.dyes_plot_path)
                 APP_LOGGER.info("Dyes scatter plot generated for %s." % \
@@ -289,6 +302,12 @@ class SaAssayCallerCallable(object):
             exp_def_fetcher = ExpDefHandler()
             experiment = exp_def_fetcher.get_experiment_definition(self.exp_def_name)
 
+            model_file_dict = available_models(self.assay_caller_model)
+            if self.ac_submodel is not None and self.ac_submodel in model_file_dict:
+                classifier_file = model_file_dict[self.ac_submodel]
+            else:
+                classifier_file = None
+
             AssayCallManager(self.num_probes, in_file=self.analysis_file,
                              out_file=self.tmp_outfile_path,
                              scatter_plot_file=self.tmp_scatter_plot_path,
@@ -299,7 +318,8 @@ class SaAssayCallerCallable(object):
                              ctrl_thresh=self.ctrl_thresh,
                              n_jobs=8,
                              controls_filtering=self.ctrl_filter,
-                             assay_type=self.assay_caller_model)
+                             assay_type=self.assay_caller_model,
+                             classifier_file=classifier_file)
 
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception('Secondary analysis assay caller job ' +
@@ -315,7 +335,7 @@ class SaAssayCallerCallable(object):
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
 
-def make_process_callback(uuid, outfile_path, scatter_plot_path, 
+def make_process_callback(uuid, outfile_path, scatter_plot_path,
     dyes_scatter_plot_path, db_connector):
     '''
     Return a closure that is fired when the job finishes. This

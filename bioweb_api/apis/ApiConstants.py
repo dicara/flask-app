@@ -255,7 +255,7 @@ OUTLIERS           = "outliers"
 THRESHOLD          = "threshold"
 UI_THRESHOLD       = "ui_threshold"
 TRAINING_FACTOR    = "training_factor"
-
+AC_SUBMODEL        = "ac_submodel"
 
 #=============================================================================
 # Secondary Analysis Parameter Descriptions
@@ -280,6 +280,7 @@ MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
 ASSAY_CALLER_MODEL_DESCRIPTION = "The model used by assay caller to tag " \
                                  "positive/negative drops"
 USE_PICO1_FILTER_DESCRIPTION = "Turn on/off picoinjection 1 filtering"
+AC_SUBMODEL_DESCRIPTION = "The submodel used by assay caller."
 
 #=============================================================================
 # Probe Experiment Constants

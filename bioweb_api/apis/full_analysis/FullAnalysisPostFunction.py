@@ -36,7 +36,7 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
     ASSAY_CALLER_MODEL_DESCRIPTION, AC_MODEL, USE_PICO1_FILTER, DEV_MODE, \
-    USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE
+    USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE, AC_SUBMODEL, AC_SUBMODEL_DESCRIPTION
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -196,6 +196,9 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        required=True)
         cls.assay_caller_model = ParameterFactory.assay_caller_model(AC_MODEL,
                                                                      ASSAY_CALLER_MODEL_DESCRIPTION)
+        cls.ac_submodel     = ParameterFactory.lc_string(AC_SUBMODEL,
+                                                         AC_SUBMODEL_DESCRIPTION,
+                                                         required=False)
 
         # genotyper params
         cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS,
@@ -235,6 +238,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ctrl_thresh,
                       cls.ctrl_filter,
                       cls.assay_caller_model,
+                      cls.ac_submodel,
                       cls.req_drops_param,
                       cls.exp_def_param,
                       cls.fa_uuid_param,

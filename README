@@ -922,3 +922,14 @@ GnuBio Flask API.
        * fixed plot axis and tick label issue
  * v3.85.0
    * Upload data from two locations
+ * v3.86.0
+   * update secondary-analysis to 3.22.0:
+     * 3.21.0
+       * assay caller command line bug fix where two arguments has the same name
+       * Identity uses record array instead of DecomposedDrop/IdentifiedDrop classes
+       * LowBarcode filter is faster
+       * PrimaryAnalysisData is message generator is faster
+     * 3.21.1
+       * provide info on model locations and names
+     * 3.22.0
+       * Limit the number of data points in scatter plot to 1 million

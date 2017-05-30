@@ -45,7 +45,7 @@ from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, 
     OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5
 
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
-    parse_pa_data_src, get_hdf5_dataset_path
+    parse_pa_data_src, get_hdf5_dataset_path, get_archive_path
 
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
@@ -285,7 +285,8 @@ class PaProcessCallable(object):
                                         dataset=self.archive,
                                         output_path=self.outfile_path)
         else:
-            execute_process(self.archive, self.dyes, self.device, self.major,
+            archive_path = get_archive_path(self.archive)
+            execute_process(archive_path, self.dyes, self.device, self.major,
                             self.minor, self.offsets, self.use_iid,
                             self.outfile_path, self.config_path,
                             self.uuid)

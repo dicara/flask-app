@@ -36,7 +36,7 @@ from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.ApiConstants import ARCHIVE, DYE, DEVICE, ID, \
     VALID_HAM_IMAGE_EXTENSIONS, APPLICATION, HDF5_PATH, HDF5_DATASET, \
-    PA_MIN_NUM_IMAGES, VALID_HDF5_EXTENSIONS
+    PA_MIN_NUM_IMAGES, VALID_HDF5_EXTENSIONS, ARCHIVE_PATH
 from primary_analysis.dye_datastore import Datastore
 from primary_analysis.cmds.process import process
 from primary_analysis.pa_images import convert_images
@@ -91,6 +91,13 @@ def get_hdf5_dataset_path(dataset_name):
     documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: dataset_name}, [HDF5_PATH])
     return documents[0][HDF5_PATH]
 
+def get_archive_path(archive_name):
+    documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: archive_name})
+    if ARCHIVE_PATH in documents[0]:
+        return documents[0][ARCHIVE_PATH]
+    else:
+        return os.path.join(ARCHIVES_PATH, documents[0][ARCHIVE])
+
 def parse_pa_data_src(pa_data_src_name):
     """
     Determine primary analysis data source type (HDF5 or image stack) and return
@@ -137,30 +144,54 @@ def get_applications():
     '''
     return _DB_CONNECTOR.distinct_sorted(PROBE_METADATA_COLLECTION, APPLICATION)
 
+def get_date_folders():
+    """
+    Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/.
+    """
+    # find year month folders, e.g. 2017_05
+    year_month_regex = re.compile('20\d{2}_[01][0-9]$')
+    folders = [os.path.join(RUN_REPORT_PATH, f) for f in os.listdir(RUN_REPORT_PATH)
+               if year_month_regex.match(f)]
+    folders = [f for f in folders if os.path.isdir(f)]
+
+    # find date folders, e.g. 2017_05/20
+    date_regex = re.compile('[123]?\d$')
+    folders = [os.path.join(f, sf) for f in folders for sf in os.listdir(f)
+               if date_regex.match(sf)]
+    folders = [f for f in folders if os.path.isdir(f)]
+    return folders
+
+def get_run_folders():
+    """
+    Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/1530_pilot7/.
+    """
+    return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
+
 def update_archives():
     '''
     Update the database with available primary analysis archives.  It is not
     an error if zero archives are available at this moment.
-    
+
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available archives...")
     _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
     if os.path.isdir(ARCHIVES_PATH):
-
-        
         # Remove archives named similarly (same name, different capitalization)
-        archives    = os.listdir(ARCHIVES_PATH)
-        lc_archives = [a.lower() for a in archives]
-        dups        = set(a for a in archives if lc_archives.count(a.lower()) > 1)
-        archives    = [a for a in archives if a not in dups]
-        archives    = [x for x in archives 
-                       if os.path.isdir(os.path.join(ARCHIVES_PATH,x))]
-        records     = [{ARCHIVE: archive} for archive in archives]
-        
-        APP_LOGGER.info("Found %d archives" % (len(archives)))
+        archives = io_utilities.get_subfolders(ARCHIVES_PATH)
+        records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                       for archive in archives]
+
+        # Check yyyy_mm/dd/HHMM_pilotX location
+        run_folders = get_run_folders()
+        for folder in run_folders:
+            archives = io_utilities.get_subfolders(folder)
+            records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                            for archive in archives])
+
+        APP_LOGGER.info("Found %d archives" % (len(records)))
         if len(records) > 0:
-            # There is a possible race condition here. Ideally these operations 
+            # There is a possible race condition here. Ideally these operations
             # would be performed in concert atomically
             _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
     else:
@@ -193,6 +224,13 @@ def update_hdf5s():
                     hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
                     current_paths.update(hdf5_paths)
 
+    # Check yyyy_mm/dd/HHMM_pilotX location
+    run_folders = get_run_folders()
+    for folder in run_folders:
+        hdf5s = [f for f in os.listdir(folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+        hdf5_paths = [os.path.join(folder, f) for f in hdf5s]
+        current_paths.update(hdf5_paths)
+
     # remove obsolete paths
     obsolete_paths = list(database_paths - current_paths)
     _DB_CONNECTOR.remove(HDF5_COLLECTION, {HDF5_PATH: {'$in': obsolete_paths}})
@@ -205,7 +243,8 @@ def update_hdf5s():
             with h5py.File(hdf5_path) as h5_file:
                 dataset_names = h5_file.keys()
             for dsname in dataset_names:
-                if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
+                if any(re.match(pat, dsname) for pat in [r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}',
+                                                         r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}']):
                     new_records.append({
                         HDF5_PATH: hdf5_path,
                         HDF5_DATASET: dsname,
@@ -226,56 +265,56 @@ def update_hdf5s():
 def update_dyes():
     '''
     Update the database with available dyes.
-    
+
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available dyes...")
     try:
         records = [{DYE: dye} for dye in _DATASTORE.dyes()]
-        
+
         assert len(records) > 0, "Internal error: No dyes found"
-        # There is a possible race condition here. Ideally these operations 
+        # There is a possible race condition here. Ideally these operations
         # would be performed in concert atomically
         _DB_CONNECTOR.remove(DYES_COLLECTION, {})
         _DB_CONNECTOR.insert(DYES_COLLECTION, records)
     except:
-        APP_LOGGER.info("Failed to update database with available dyes: %s", 
+        APP_LOGGER.info("Failed to update database with available dyes: %s",
                         str(sys.exc_info()))
         raise
-    
+
     APP_LOGGER.info("Database successfully updated with available dyes.")
     return True
 
 def update_devices():
     '''
     Update the database with available devices.
-    
+
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available devices...")
     try:
-        # devices are printed to stderr 
+        # devices are printed to stderr
         records   = [{DEVICE: device} for device in _DATASTORE.devices()]
-        
+
         assert len(records) > 0, "Internal error: No devices found"
-        # There is a possible race condition here. Ideally these operations 
+        # There is a possible race condition here. Ideally these operations
         # would be performed in concert atomically
         _DB_CONNECTOR.remove(DEVICES_COLLECTION, {})
         _DB_CONNECTOR.insert(DEVICES_COLLECTION, records)
     except:
-        APP_LOGGER.info("Failed to update database with available devices: %s", 
+        APP_LOGGER.info("Failed to update database with available devices: %s",
                         str(sys.exc_info()))
         raise
-    
+
     APP_LOGGER.info("Database successfully updated with available devices.")
     return True
 
 def execute_convert_images(archive, outfile_path, uuid):
     '''
-    Execute the primary analysis convert_imgs command. This function copies the 
-    provided archive to tmp space and executes primary analysis convert_imgs on 
+    Execute the primary analysis convert_imgs command. This function copies the
+    provided archive to tmp space and executes primary analysis convert_imgs on
     all binaries found in the archive.
-    
+
     @param archive      - Archive directory name where the TDI images live.
     @param outfile_path - File path to final destination of image tar.gz file.
     @param uuid         - Unique identifier for this job.
@@ -289,23 +328,23 @@ def execute_convert_images(archive, outfile_path, uuid):
         # Mac, so use a system command.
         io_utilities.safe_make_dirs(TMP_PATH)
         os.system("cp -fr %s %s" % (archive_path, tmp_path))
-        
-        images = io_utilities.filter_files(os.listdir(tmp_path), 
-                                           extensions=["bin"]) 
+
+        images = io_utilities.filter_files(os.listdir(tmp_path),
+                                           extensions=["bin"])
         images =[os.path.join(tmp_path, image) for image in images]
-        
+
         # Run primary analysis process
         convert_images(images, "png", destination)
-        
+
         # Ensure images were converted, and if so create archive
         if os.path.exists(destination) and \
            len([x for x in os.listdir(destination) if x.endswith(".png")]) > 0:
-            shutil.make_archive(destination, format='gztar', 
+            shutil.make_archive(destination, format='gztar',
                                 root_dir=os.path.dirname(destination),
                                 base_dir=os.path.basename(destination))
         else:
             raise Exception("Convert images job failed: no images converted.")
-        
+
         # Ensure archive exists
         out_tar_gz = destination + ".tar.gz"
         if os.path.exists(out_tar_gz):
@@ -316,28 +355,27 @@ def execute_convert_images(archive, outfile_path, uuid):
         pass
         # Regardless of success or failure, remove the copied archive directory
         shutil.rmtree(tmp_path, ignore_errors=True)
-        
-def execute_process(archive, dyes, device, major, minor, offsets, use_iid, 
+
+def execute_process(archive_path, dyes, device, major, minor, offsets, use_iid,
                     outfile_path, config_path, uuid):
     '''
-    Execute the primary analysis process command. This function copies the 
-    provided archive to tmp space and executes primary analysis process on 
+    Execute the primary analysis process command. This function copies the
+    provided archive to tmp space and executes primary analysis process on
     all PNGs found in the archive.
-    
-    @param archive      - Archive directory name where the TDI images live.
+
+    @param archive_path - Archive directory path where the TDI images live.
     @param dyes         - Set of dyes used in this run.
     @param device       - Device used to generate the TDI images for this run.
     @param major        - Major dye profile version.
     @param minor        - Minor dye profile version.
-    @param offsets      - Range of offsets used to infer a dye model. The 
+    @param offsets      - Range of offsets used to infer a dye model. The
                           inference will offset the dye profiles in this range
-                          to determine an optimal offset. 
+                          to determine an optimal offset.
     @param use_iid      - Use IID Peak Detection.
     @param outfile_path - Path where the final analysis.txt file should live.
     @param config_path  - Path where the final configuration file should live.
     @param uuid         - Unique identifier for this job.
     '''
-    archive_path     = os.path.join(ARCHIVES_PATH, archive)
     tmp_path         = os.path.join(TMP_PATH, uuid)
     tmp_config_path  = os.path.join(tmp_path, "config.txt")
     try:
@@ -355,17 +393,17 @@ def execute_process(archive, dyes, device, major, minor, offsets, use_iid,
                 print >>f, "  minor: %s" % minor
             print >>f, "  dyes: [%s]" % ", ".join([ "\"%s\"" % x for x in dyes])
 
-        images = io_utilities.filter_files(os.listdir(tmp_path), 
+        images = io_utilities.filter_files(os.listdir(tmp_path),
                                            VALID_HAM_IMAGE_EXTENSIONS)
         images =[os.path.join(tmp_path, image) for image in images]
-        
+
         # Run primary analysis process
-        process(tmp_config_path, images, tmp_path, offsets=offsets, 
+        process(tmp_config_path, images, tmp_path, offsets=offsets,
                 use_iid=use_iid)
-        
+
         # Ensure output file exists
         analysis_output_path = os.path.join(tmp_path, "analysis.txt")
-        if not os.path.isfile(analysis_output_path): 
+        if not os.path.isfile(analysis_output_path):
             raise Exception("Process job failed: analysis.txt not generated.")
         else:
             shutil.copy(analysis_output_path, outfile_path)

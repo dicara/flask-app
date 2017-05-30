@@ -40,6 +40,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders
 
 #=============================================================================
 # Private Static Variables
@@ -215,17 +216,17 @@ def get_run_info_path(path, sub_folder):
             return run_info_path
     return None
 
-def get_hdf5_datasets(log_data, date_folder, time_folder):
+def get_hdf5_datasets(log_data, data_folder):
     """
     Fetch the HDF5 archives associated with a run report.
 
     @param log_data:            the document of run report yaml
-    @param date_folder:         the date folder where run report lives
-    @param time_folder:         the time sub folder where run report lives
+    @param date_folder:         folder where data is located
     """
     run_id = log_data[RUN_ID]
-    hdf5_paths = [os.path.join(RUN_REPORT_PATH, date_folder, time_folder, f + '.h5')
-                  for f in [run_id, run_id + '-baseline']]
+    hdf5_paths = [os.path.join(data_folder, f + '.h5')
+                  for f in [run_id, run_id + '-baseline']
+                  if os.path.isfile(os.path.join(data_folder, f + '.h5'))]
     all_datasets = set()
 
     for path in hdf5_paths:
@@ -255,23 +256,40 @@ def get_hdf5_datasets(log_data, date_folder, time_folder):
     return all_datasets
 
 
-def update_image_stacks(log_data):
+def update_image_stacks(log_data, data_folder):
     """
     Check whether the image_stacks in a run report document exist in archive collection.
     If not, add them to database.
+
+    @param log_data:            the document of run report yaml
+    @param date_folder:         folder where data is located
     """
     if log_data is None or IMAGE_STACKS not in log_data: return
 
     new_records = list()
     for image_stack in log_data[IMAGE_STACKS]:
         exist_record = _DB_CONNECTOR.find_one(ARCHIVES_COLLECTION, ARCHIVE, image_stack)
-        if not exist_record and os.path.isdir(os.path.join(ARCHIVES_PATH, image_stack)):
-            new_records.append({ARCHIVE: image_stack})
+        if not exist_record:
+            archive_path = os.path.join(data_folder, image_stack)
+            if os.path.isdir(archive_path):
+                new_records.append({ARCHIVE: image_stack, ARCHIVE_PATH: archive_path})
+                break
 
     if new_records:
         APP_LOGGER.info('Found %d image stacks: %s' % (len(new_records), new_records))
         _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, new_records)
 
+
+def get_date_object(folder):
+    if re.search('\d{2}_\d{2}_\d{2}', folder) is not None:
+        # Old file location 05_10_17
+        return datetime.strptime(re.search('\d{2}_\d{2}_\d{2}', folder).group(), '%m_%d_%y')
+    elif re.search('20\d{2}_\d{2}/\d{1,2}', folder) is not None:
+        # New file location 2017_05/10
+        return datetime.strptime(re.search('20\d{2}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')
+    else:
+        raise Exception("Folder %s does not contain a valid date string." % folder)
+        
 
 def update_run_reports(date_folders=None):
     '''
@@ -294,11 +312,15 @@ def update_run_reports(date_folders=None):
 
             def valid_date(folder):
                 if latest_date is None: return True
-                date_obj = datetime.strptime(folder, '%m_%d_%y')
+                date_obj = get_date_object(folder)
                 return date_obj >= latest_date - timedelta(days=6)
 
             date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
-                            if re.match('\d+_\d+_\d+', folder) and valid_date(folder)]
+                            if re.match('\d{2}_\d{2}_\d{2}', folder) and valid_date(folder)]
+
+            # New file location
+            new_date_folders = get_date_folders()
+            date_folders.extend(f for f in new_date_folders if valid_date(f))
 
         date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
         date_folders = [f for f in date_folders if os.path.isdir(f)]
@@ -309,7 +331,9 @@ def update_run_reports(date_folders=None):
                 report_file_path = get_run_info_path(folder, sf)
                 if report_file_path is None: continue
 
-                date_obj = datetime.strptime(os.path.basename(folder), '%m_%d_%y')
+                date_obj = get_date_object(folder)
+                data_folder = os.path.join(RUN_REPORT_PATH, folder, sf)
+
                 utag = set_utag(date_obj, sf)
                 if utag not in db_utags: # if not exists, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)
@@ -317,9 +341,9 @@ def update_run_reports(date_folders=None):
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
                         # add image stacks to archive collection
-                        update_image_stacks(log_data)
+                        update_image_stacks(log_data, data_folder)
                         # find HDF5 datasets and add them to HDF5 collection
-                        hdf5_datasets = get_hdf5_datasets(log_data, folder, sf)
+                        hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
                     reports.append(log_data)
@@ -332,11 +356,11 @@ def update_run_reports(date_folders=None):
                     if len(log_data.keys()) == 3:
                         log_data = read_report_file(report_file_path, date_obj, utag)
                         # add image stacks to archive collection
-                        update_image_stacks(log_data)
+                        update_image_stacks(log_data, data_folder)
 
                     if log_data is not None and IMAGE_STACKS in log_data:
                         # find HDF5 datasets and add new records to HDF5 collection
-                        new_datasets = set(get_hdf5_datasets(log_data, folder, sf))
+                        new_datasets = set(get_hdf5_datasets(log_data, data_folder))
                         if new_datasets:
                             # exclude uploaded HDF5 datasets
                             exist_datasets = set([d for d in log_data[IMAGE_STACKS]

@@ -94,6 +94,7 @@ PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 ABSORB           = "absorb"
 AC_DOCUMENT      = 'ac_document'
 ARCHIVE          = "archive"
+ARCHIVE_PATH     = "archive_path"
 ARCHIVES         = "archives"
 AC_MODEL         = 'assay_caller_model'
 CARTRIDGE_SN     = 'cart_serial'

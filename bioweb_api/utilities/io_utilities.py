@@ -298,3 +298,10 @@ def get_results_url(filepath):
     filename = os.path.basename(filepath)
     date_str = os.path.basename(os.path.dirname(filepath))
     return 'http://%s/results/%s/%s/%s' % (HOSTNAME, PORT, date_str, filename)
+
+def get_subfolders(folder):
+    """
+    Return subfolders in a parent folder.
+    """
+    subs = [os.path.join(folder, sf) for sf in os.listdir(folder)]
+    return [f for f in subs if os.path.isdir(f)]

@@ -63,7 +63,7 @@ setup(
                           'PyPDF2>=1.26.0',
                           'redis>=2.10.5',
                           'reportlab>=3.4.0',
-                          'scikit-learn==0.18.0'
+                          'scikit-learn==0.18.0',
                           'secondary-analysis>=3.22.0',
                           'simplejson>=3.10.0',
                           'tornado>=4.5.1',

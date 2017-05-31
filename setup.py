@@ -34,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = '3.87.0',
+      version          = '3.88.0',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com',
       entry_points     = {'console_scripts': [
@@ -64,7 +64,7 @@ setup(
                           'redis>=2.10.5',
                           'reportlab>=3.4.0',
                           'scikit-learn==0.18.0',
-                          'secondary-analysis>=3.22.0',
+                          'secondary-analysis>=3.23.0',
                           'simplejson>=3.10.0',
                           'tornado>=4.5.1',
                          ],

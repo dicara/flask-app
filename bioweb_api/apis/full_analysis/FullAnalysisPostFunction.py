@@ -36,7 +36,8 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     IS_HDF5, MAX_UNINJECTED_RATIO, MAX_UI_RATIO_DESCRIPTION, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
     AC_METHOD_DESCRIPTION, AC_METHOD, USE_PICO1_FILTER, DEV_MODE, \
-    USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE, AC_MODEL, AC_MODEL_DESCRIPTION
+    USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE, AC_MODEL, AC_MODEL_DESCRIPTION, \
+    DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -177,6 +178,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         'Use development mode (more forgiving of mistakes).',
                                                         default_value=DEFAULT_DEV_MODE,
                                                         required=False)
+        cls.drift_compensate_param   = ParameterFactory.boolean(DRIFT_COMPENSATE,
+                                                        'Compensate for data drift.',
+                                                        default_value=DEFAULT_DRIFT_COMPENSATE,
+                                                        required=False)
 
         # assay caller params
         cls.ac_training_param = ParameterFactory.integer(AC_TRAINING_FACTOR,
@@ -228,6 +233,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.dye_levels_param,
                       cls.ignored_dyes_param,
                       cls.dev_mode_param,
+                      cls.drift_compensate_param,
                       cls.use_pico1_filter,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,

@@ -21,8 +21,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     IS_HDF5, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, TEMPORAL_PLOT_URL, \
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_METHOD, PICO1_DYE, USE_PICO1_FILTER, \
     HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID, \
-    DYES_SCATTER_PLOT_URL, AC_MODEL
-
+    AC_MODEL, DYES_SCATTER_PLOT_URL, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
@@ -133,6 +132,9 @@ class FullAnalysisWorkFlowCallable(object):
 
         if DEV_MODE not in self.parameters:
             self.parameters[DEV_MODE] = DEFAULT_DEV_MODE
+
+        if DRIFT_COMPENSATE not in self.parameters:
+            self.parameters[DRIFT_COMPENSATE] = DEFAULT_DRIFT_COMPENSATE
 
     def resume_workflow(self):
         """
@@ -258,7 +260,8 @@ class FullAnalysisWorkFlowCallable(object):
                                     job_name=job_name,
                                     use_pico_thresh=self.parameters[CONTINUOUS_PHASE],
                                     ignore_lowest_barcode=self.parameters[IGNORE_LOWEST_BARCODE],
-                                    dev_mode=self.parameters[DEV_MODE])
+                                    dev_mode=self.parameters[DEV_MODE],
+                                    drift_compensate=self.parameters[DRIFT_COMPENSATE])
         callback = id_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             plot_path=callable.plot_path,
@@ -277,7 +280,8 @@ class FullAnalysisWorkFlowCallable(object):
                                                          PICO1_DYE: self.parameters[PICO1_DYE],
                                                          MAX_UNINJECTED_RATIO: self.parameters[MAX_UNINJECTED_RATIO],
                                                          USE_PICO1_FILTER: self.parameters[USE_PICO1_FILTER],
-                                                         DEV_MODE: self.parameters[DEV_MODE]}}})
+                                                         DEV_MODE: self.parameters[DEV_MODE],
+                                                         DRIFT_COMPENSATE: self.parameters[DRIFT_COMPENSATE]}}})
 
         # run identity job
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -289,7 +293,7 @@ class FullAnalysisWorkFlowCallable(object):
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
                 FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, MAX_UNINJECTED_RATIO,
                 PLATE_PLOT_URL, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, PICO1_DYE,
-                USE_PICO1_FILTER, DEV_MODE]
+                USE_PICO1_FILTER, DEV_MODE, DRIFT_COMPENSATE]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

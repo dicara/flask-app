@@ -45,7 +45,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER, DEV_MODE, \
-    DEFAULT_DEV_MODE
+    DEFAULT_DEV_MODE, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
+    DEFAULT_IGNORE_LOWEST_BARCODE
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, UNINJECTED_THRESHOLD, \
     UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX
@@ -130,13 +131,17 @@ class IdentityPostFunction(AbstractPostFunction):
                                                         'Use development mode (more forgiving of mistakes).',
                                                         default_value=DEFAULT_DEV_MODE,
                                                         required=False)
+        cls.drift_compensate_param   = ParameterFactory.boolean(DRIFT_COMPENSATE,
+                                                        'Compensate for data drift.',
+                                                        default_value=DEFAULT_DRIFT_COMPENSATE,
+                                                        required=False)
         cls.max_ui_ratio_param = ParameterFactory.float(MAX_UNINJECTED_RATIO,
                                                         MAX_UI_RATIO_DESCRIPTION,
                                                         default=UNINJECTED_RATIO,
                                                         minimum=0.0)
         cls.ignore_lowest_barcode = ParameterFactory.boolean(IGNORE_LOWEST_BARCODE,
                                                              IGNORE_LOWEST_BARCODE_DESCRIPTION,
-                                                             default_value=True,
+                                                             default_value=DEFAULT_IGNORE_LOWEST_BARCODE,
                                                              required=False)
 
         parameters = [
@@ -155,6 +160,7 @@ class IdentityPostFunction(AbstractPostFunction):
                       cls.max_ui_ratio_param,
                       cls.ignore_lowest_barcode,
                       cls.dev_mode_param,
+                      cls.drift_compensate_param,
                      ]
         return parameters
 
@@ -194,9 +200,15 @@ class IdentityPostFunction(AbstractPostFunction):
 
         if cls.dev_mode_param in params_dict and \
            params_dict[cls.dev_mode_param][0]:
-            dev_mode = True
+            dev_mode = params_dict[cls.dev_mode_param][0]
         else:
-            dev_mode = False
+            dev_mode = DEFAULT_DEV_MODE
+
+        if cls.drift_compensate_param in params_dict and \
+           params_dict[cls.drift_compensate_param][0]:
+            drift_compensate = params_dict[cls.drift_compensate_param][0]
+        else:
+            drift_compensate = DEFAULT_DRIFT_COMPENSATE
 
         if cls.continuous_phase_param in params_dict and \
            params_dict[cls.continuous_phase_param][0]:
@@ -206,9 +218,9 @@ class IdentityPostFunction(AbstractPostFunction):
 
         if cls.ignore_lowest_barcode in params_dict and \
            params_dict[cls.ignore_lowest_barcode][0]:
-            ignore_lowest_barcode = True
+            ignore_lowest_barcode = params_dict[cls.ignore_lowest_barcode][0]
         else:
-            ignore_lowest_barcode = False
+            ignore_lowest_barcode = DEFAULT_IGNORE_LOWEST_BARCODE
 
         max_uninj_ratio = params_dict[cls.max_ui_ratio_param][0]
 
@@ -263,7 +275,8 @@ class IdentityPostFunction(AbstractPostFunction):
                                                       job_name,
                                                       use_pico_thresh,
                                                       ignore_lowest_barcode,
-                                                      dev_mode)
+                                                      dev_mode,
+                                                      drift_compensate)
                     response = copy.deepcopy(sai_callable.document)
                     callback = make_process_callback(sai_callable.uuid,
                                                      sai_callable.outfile_path,
@@ -303,7 +316,7 @@ class SaIdentityCallable(object):
     def __init__(self, primary_analysis_uuid, num_probes, training_factor, assay_dye,
                  use_pico1_filter, pico1_dye, pico2_dye, dye_levels, ignored_dyes, filtered_dyes,
                  ui_threshold, max_uninj_ratio, db_connector, job_name,
-                 use_pico_thresh, ignore_lowest_barcode, dev_mode):
+                 use_pico_thresh, ignore_lowest_barcode, dev_mode, drift_compensate):
         self.uuid                  = str(uuid4())
         self.primary_analysis_uuid = primary_analysis_uuid
         self.dye_levels            = map(list, dye_levels)
@@ -328,7 +341,8 @@ class SaIdentityCallable(object):
         self.job_name              = job_name
         self.use_pico_thresh       = use_pico_thresh
         self.ignore_lowest_barcode = ignore_lowest_barcode
-        self.dev_mode = dev_mode
+        self.dev_mode              = dev_mode
+        self.drift_compensate      = drift_compensate
 
         self.tmp_path              = os.path.join(TMP_PATH, self.uuid)
         self.tmp_outfile_path      = os.path.join(self.tmp_path, "identity.txt")
@@ -353,7 +367,8 @@ class SaIdentityCallable(object):
                         SUBMIT_DATESTAMP: datetime.today(),
                         CONTINUOUS_PHASE: use_pico_thresh,
                         IGNORE_LOWEST_BARCODE: ignore_lowest_barcode,
-                        DEV_MODE: dev_mode
+                        DEV_MODE: dev_mode,
+                        DRIFT_COMPENSATE: drift_compensate
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)
@@ -408,7 +423,8 @@ class SaIdentityCallable(object):
                      dev_mode=self.dev_mode,
                      use_pico_thresh=self.use_pico_thresh,
                      max_uninj_ratio=self.max_uninj_ratio,
-                     ignore_lowest_barcode=self.ignore_lowest_barcode).execute()
+                     ignore_lowest_barcode=self.ignore_lowest_barcode,
+                     drift_compensate=self.drift_compensate).execute()
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:

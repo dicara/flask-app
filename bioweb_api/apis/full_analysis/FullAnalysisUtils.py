@@ -44,7 +44,7 @@ from bioweb_api.apis.ApiConstants import ID, UUID, STATUS, PA_DOCUMENT, ID_DOCUM
      SUCCEEDED, REPORT_URL, PNG_URL, PNG_SUM_URL, KDE_PNG_URL, KDE_PNG_SUM_URL, \
      PDF_URL, VARIANTS, NAME, MAX_UNINJECTED_RATIO, CTRL_FILTER, IGNORE_LOWEST_BARCODE, \
      AC_MODEL, PICO1_DYE, USE_PICO1_FILTER, EP_DOCUMENT, ARCHIVE, DEV_MODE, DEFAULT_DEV_MODE, \
-     IMAGE_STACKS, EXP_DEF
+     IMAGE_STACKS, EXP_DEF, AC_SUBMODEL
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINING_FACTOR
@@ -66,6 +66,7 @@ PARAM_MAP = {OFFSETS:               PA_DOCUMENT,
              USE_PICO1_FILTER:      ID_DOCUMENT,
              PICO1_DYE:             ID_DOCUMENT,
              AC_TRAINING_FACTOR:    AC_DOCUMENT,
+             AC_SUBMODEL:           AC_DOCUMENT,
              CTRL_THRESH:           AC_DOCUMENT,
              REQUIRED_DROPS:        GT_DOCUMENT,
              CTRL_FILTER:           AC_DOCUMENT,
@@ -124,7 +125,7 @@ def add_diff_params(fa_job):
         param_name = convert_param_name(param)
         if param_name in fa_job[doc_name]:
             val = fa_job[doc_name][param_name]
-            if val != DEFAULTS[param]:
+            if param in DEFAULTS and val != DEFAULTS[param]:
                 diff_params[param] = val
 
     fa_job[DIFF_PARAMS] = diff_params

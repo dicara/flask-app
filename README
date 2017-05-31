@@ -933,3 +933,5 @@ GnuBio Flask API.
        * provide info on model locations and names
      * 3.22.0
        * Limit the number of data points in scatter plot to 1 million
+ * v3.87.0
+   * expose assay caller submodel parameter

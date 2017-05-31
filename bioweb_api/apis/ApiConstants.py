@@ -113,6 +113,7 @@ DESIGN           = "design"
 DEV_MODE         = 'dev_mode'
 DEFAULT_DEV_MODE = True
 DEFAULT_DRIFT_COMPENSATE = False
+DEFAULT_IGNORE_LOWEST_BARCODE = True
 DEVICE           = "device"
 DEVICES          = "devices"
 DESCRIPTION      = "description"

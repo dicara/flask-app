@@ -45,7 +45,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     UI_THRESHOLD_DESCRIPTION, PLATE_PLOT_URL, DYES, MAX_UNINJECTED_RATIO, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER, DEV_MODE, \
-    DEFAULT_DEV_MODE, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE
+    DEFAULT_DEV_MODE, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
+    DEFAULT_IGNORE_LOWEST_BARCODE
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, UNINJECTED_THRESHOLD, \
     UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX
@@ -140,7 +141,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                         minimum=0.0)
         cls.ignore_lowest_barcode = ParameterFactory.boolean(IGNORE_LOWEST_BARCODE,
                                                              IGNORE_LOWEST_BARCODE_DESCRIPTION,
-                                                             default_value=True,
+                                                             default_value=DEFAULT_IGNORE_LOWEST_BARCODE,
                                                              required=False)
 
         parameters = [
@@ -199,15 +200,15 @@ class IdentityPostFunction(AbstractPostFunction):
 
         if cls.dev_mode_param in params_dict and \
            params_dict[cls.dev_mode_param][0]:
-            dev_mode = True
+            dev_mode = params_dict[cls.dev_mode_param][0]
         else:
-            dev_mode = False
+            dev_mode = DEFAULT_DEV_MODE
 
         if cls.drift_compensate_param in params_dict and \
            params_dict[cls.drift_compensate_param][0]:
-            drift_compensate = True
+            drift_compensate = params_dict[cls.drift_compensate_param][0]
         else:
-            drift_compensate = False
+            drift_compensate = DEFAULT_DRIFT_COMPENSATE
 
         if cls.continuous_phase_param in params_dict and \
            params_dict[cls.continuous_phase_param][0]:
@@ -217,9 +218,9 @@ class IdentityPostFunction(AbstractPostFunction):
 
         if cls.ignore_lowest_barcode in params_dict and \
            params_dict[cls.ignore_lowest_barcode][0]:
-            ignore_lowest_barcode = True
+            ignore_lowest_barcode = params_dict[cls.ignore_lowest_barcode][0]
         else:
-            ignore_lowest_barcode = False
+            ignore_lowest_barcode = DEFAULT_IGNORE_LOWEST_BARCODE
 
         max_uninj_ratio = params_dict[cls.max_ui_ratio_param][0]
 

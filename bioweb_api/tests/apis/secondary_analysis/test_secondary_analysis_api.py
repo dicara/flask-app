@@ -38,11 +38,13 @@ from bioweb_api.apis.ApiConstants import UUID, PICO1_DYE, PICO2_DYE, ASSAY_DYE,\
     CONFIG, FILTERED_DYES, IGNORED_DYES, UI_THRESHOLD,PA_PROCESS_UUID, \
     PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, JOE, FAM, JOB_STATUS, \
     SCATTER_PLOT, SCATTER_PLOT_URL, REQUIRED_DROPS, EXP_DEF, PDF, PNG, \
-    PNG_SUM, VCF, KDE_PNG, KDE_PNG_SUM, DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL
+    PNG_SUM, VCF, KDE_PNG, KDE_PNG_SUM, DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL, \
+    AC_METHOD
 from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,\
     SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
+from bioweb_api.apis.secondary_analysis.AssayCallerModelGetFunction import MODELS
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
 from secondary_analysis.constants import AC_TRAINING_FACTOR, ID_MODEL_METRICS
 
@@ -60,7 +62,6 @@ tornado.options.parse_command_line()
 _TEST_DIR                 = os.path.abspath(os.path.dirname(__file__))
 _ARCHIVE_DIR              = "/mnt/runs/bamboo_test_data/bioweb-api/secondary_analysis"
 _DB_CONNECTOR             = DbConnector.Instance()
-_EXPECTED_IDENTITY_REPORT = "expected_report.yaml"
 _SECONDARY_ANALYSIS_URL   = "/api/v1/SecondaryAnalysis"
 _IDENTITY_URL             = os.path.join(_SECONDARY_ANALYSIS_URL, IDENTITY)
 _ASSAY_CALLER_URL         = os.path.join(_SECONDARY_ANALYSIS_URL, ASSAY_CALLER)
@@ -141,7 +142,7 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
                               FINISH_DATESTAMP : datetime.today(),
                               URL : "http://bioweb/results/8020/" + cls._abl_pa_uuid,
                               CONFIG_URL : "http://bioweb/results/8020/" + cls._abl_pa_uuid + ".cfg",
-                              RESULT : os.path.join(_ARCHIVE_DIR, cls._abl_pa_uuid),
+                              RESULT : os.path.join(_ARCHIVE_DIR, 'primary_analysis_output_abl.txt'),
                               CONFIG : os.path.join(_ARCHIVE_DIR, cls._abl_pa_uuid + ".cfg"),
                              }
         _DB_CONNECTOR.insert(PA_PROCESS_COLLECTION, [cls._pa_record,
@@ -220,11 +221,6 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
 
     def setUp(self):
         self._client = app.test_client(self)
-        self._exp_id_report_path = os.path.join(_TEST_DIR, _EXPECTED_IDENTITY_REPORT)
-
-        self.assertTrue(os.path.isfile(self._exp_id_report_path),
-                        "Expected identity result file doesn't exist: %s" % \
-                        self._exp_id_report_path)
 
         self._exp_abl_id_report_path = os.path.join(_ARCHIVE_DIR, _ABL_EXPECTED_IDENTITY_REPORT)
 
@@ -477,6 +473,21 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         for job in response[GENOTYPER]:
             msg = "Genotyper job %s still exists in database." % genotyper_uuid
             self.assertNotEqual(genotyper_uuid, job[UUID], msg)
+
+    def test_get_assay_caller_submodel(self):
+        """
+        Test GET assay caller model files.
+        """
+        # Construct url
+        url = _ASSAY_CALLER_URL + '/' + MODELS
+        url1 = add_url_argument(url, AC_METHOD, 'naive_bayes', True)
+        response = get_data(self, url1, 200)
+        self.assertEquals(response[ASSAY_CALLER + '/' + MODELS],
+                          ["LNA/scrubber", "original"])
+
+        url1 = add_url_argument(url, AC_METHOD, 'kde', True)
+        response = get_data(self, url1, 200)
+        self.assertEquals(response[ASSAY_CALLER + '/' + MODELS], [])
 
     def ensure_and_copy_genotyper_result(self, job_details, key, file_ext=None):
         self.assertTrue(key in job_details, "%s not in job_details." % key)

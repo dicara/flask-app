@@ -202,7 +202,7 @@ class ParameterFactory(object):
                                             enum=get_dyes())
 
     @staticmethod
-    def assay_caller_model(name, description, required=True, default=AC_MODEL_NAIVE_BAYES):
+    def ac_method(name, description, required=True, default=AC_MODEL_NAIVE_BAYES):
         return CaseSensitiveStringParameter(name, description,
                                             required=required,
                                             allow_multiple=False,

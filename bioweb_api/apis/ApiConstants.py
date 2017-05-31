@@ -96,7 +96,7 @@ AC_DOCUMENT      = 'ac_document'
 ARCHIVE          = "archive"
 ARCHIVE_PATH     = "archive_path"
 ARCHIVES         = "archives"
-AC_MODEL         = 'assay_caller_model'
+AC_METHOD        = 'ac_method'
 CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"
@@ -255,7 +255,7 @@ OUTLIERS           = "outliers"
 THRESHOLD          = "threshold"
 UI_THRESHOLD       = "ui_threshold"
 TRAINING_FACTOR    = "training_factor"
-
+AC_MODEL        = "ac_model"
 
 #=============================================================================
 # Secondary Analysis Parameter Descriptions
@@ -277,9 +277,10 @@ CONTINUOUS_PHASE_DESCRIPTION = "Check this if picoinjection was done with " \
                               "continuous phase instead of slugs."
 MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
                             "for the pico KDE filter."
-ASSAY_CALLER_MODEL_DESCRIPTION = "The model used by assay caller to tag " \
+AC_METHOD_DESCRIPTION = "The model used by assay caller to tag " \
                                  "positive/negative drops"
 USE_PICO1_FILTER_DESCRIPTION = "Turn on/off picoinjection 1 filtering"
+AC_MODEL_DESCRIPTION = "The submodel used by assay caller."
 
 #=============================================================================
 # Probe Experiment Constants

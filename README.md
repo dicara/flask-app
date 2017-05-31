@@ -935,3 +935,7 @@ GnuBio Flask API.
        * Limit the number of data points in scatter plot to 1 million
  * v3.87.0
    * expose assay caller submodel parameter
+ * v3.88.0
+   * Identity can cope with data drift
+   * updated secondary analysis to 3.23.0
+     * Standard scaling of incoming data is used to cope with data drift

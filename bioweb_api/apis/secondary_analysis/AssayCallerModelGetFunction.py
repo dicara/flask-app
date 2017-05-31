@@ -22,7 +22,7 @@ limitations under the License.
 #=============================================================================
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api.apis.ApiConstants import AC_MODEL, ASSAY_CALLER_MODEL_DESCRIPTION
+from bioweb_api.apis.ApiConstants import AC_METHOD, AC_METHOD_DESCRIPTION
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
 
 from secondary_analysis.assay_calling.classifier_utils import available_models
@@ -30,19 +30,19 @@ from secondary_analysis.assay_calling.classifier_utils import available_models
 #=============================================================================
 # Public Variables
 #=============================================================================
-SUBMODELS = 'submodels'
+MODELS = 'models'
 
 #=============================================================================
 # Class
 #=============================================================================
-class AssayCallerSubmodelGetFunction(AbstractGetFunction):
+class AssayCallerModelGetFunction(AbstractGetFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return ASSAY_CALLER + '/' + SUBMODELS
+        return ASSAY_CALLER + '/' + MODELS
 
     @staticmethod
     def summary():
@@ -54,18 +54,17 @@ class AssayCallerSubmodelGetFunction(AbstractGetFunction):
 
     @classmethod
     def parameters(cls):
-        cls.assay_caller_model = ParameterFactory.assay_caller_model(AC_MODEL,
-                                                                     ASSAY_CALLER_MODEL_DESCRIPTION)
+        cls.ac_method = ParameterFactory.ac_method(AC_METHOD, AC_METHOD_DESCRIPTION)
         parameters = [
-                      cls.assay_caller_model,
+                      cls.ac_method,
                       ParameterFactory.format(),
                      ]
         return parameters
 
     @classmethod
     def process_request(cls, params_dict):
-        assay_caller_model = params_dict[cls.assay_caller_model][0]
-        model_file_dict = available_models(assay_caller_model)
+        ac_method = params_dict[cls.ac_method][0]
+        model_file_dict = available_models(ac_method)
 
         return (sorted(model_file_dict.keys()), None, None)
 
@@ -73,5 +72,5 @@ class AssayCallerSubmodelGetFunction(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = AssayCallerSubmodelGetFunction()
+    function = AssayCallerModelGetFunction()
     print function

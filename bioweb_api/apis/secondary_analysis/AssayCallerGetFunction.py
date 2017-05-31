@@ -28,7 +28,7 @@ from bioweb_api import SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
-    START_DATESTAMP, SCATTER_PLOT, SCATTER_PLOT_URL, AC_MODEL, \
+    START_DATESTAMP, SCATTER_PLOT, SCATTER_PLOT_URL, AC_METHOD, \
     FINISH_DATESTAMP, URL, EXP_DEF_NAME, EXP_DEF_UUID, CTRL_THRESH, \
     DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
@@ -86,7 +86,7 @@ class AssayCallerGetFunction(AbstractGetFunction):
         columns[SCATTER_PLOT_URL]      = 1
         columns[DYES_SCATTER_PLOT]     = 1
         columns[DYES_SCATTER_PLOT_URL] = 1
-        columns[AC_MODEL]              = 1
+        columns[AC_METHOD]              = 1
 
         column_names = columns.keys()
         column_names.remove(ID)

@@ -27,7 +27,7 @@ from bioweb_api.apis.secondary_analysis.IdentityDeleteFunction import IdentityDe
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import AssayCallerPostFunction
 from bioweb_api.apis.secondary_analysis.AssayCallerGetFunction import AssayCallerGetFunction
 from bioweb_api.apis.secondary_analysis.AssayCallerDeleteFunction import AssayCallerDeleteFunction
-from bioweb_api.apis.secondary_analysis.AssayCallerSubmodelGetFunction import AssayCallerSubmodelGetFunction
+from bioweb_api.apis.secondary_analysis.AssayCallerModelGetFunction import AssayCallerModelGetFunction
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GenotyperPostFunction
 from bioweb_api.apis.secondary_analysis.GenotyperGetFunction import GenotyperGetFunction
 from bioweb_api.apis.secondary_analysis.GenotyperDeleteFunction import GenotyperDeleteFunction
@@ -46,7 +46,7 @@ class SecondaryAnalysisAPIV1(AbstractApiV1):
                   AssayCallerPostFunction(),
                   AssayCallerGetFunction(),
                   AssayCallerDeleteFunction(),
-                  AssayCallerSubmodelGetFunction(),
+                  AssayCallerModelGetFunction(),
                   GenotyperPostFunction(),
                   GenotyperGetFunction(),
                   GenotyperDeleteFunction(),

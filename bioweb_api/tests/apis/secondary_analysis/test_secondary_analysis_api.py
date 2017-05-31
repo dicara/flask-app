@@ -39,12 +39,12 @@ from bioweb_api.apis.ApiConstants import UUID, PICO1_DYE, PICO2_DYE, ASSAY_DYE,\
     PLOT_URL, REPORT_URL, SA_IDENTITY_UUID, JOE, FAM, JOB_STATUS, \
     SCATTER_PLOT, SCATTER_PLOT_URL, REQUIRED_DROPS, EXP_DEF, PDF, PNG, \
     PNG_SUM, VCF, KDE_PNG, KDE_PNG_SUM, DYES_SCATTER_PLOT, DYES_SCATTER_PLOT_URL, \
-    AC_MODEL
+    AC_METHOD
 from bioweb_api import app, HOME_DIR, TMP_PATH, PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,\
     SA_ASSAY_CALLER_COLLECTION
 from bioweb_api.apis.secondary_analysis.IdentityPostFunction import IDENTITY
 from bioweb_api.apis.secondary_analysis.AssayCallerPostFunction import ASSAY_CALLER
-from bioweb_api.apis.secondary_analysis.AssayCallerSubmodelGetFunction import SUBMODELS
+from bioweb_api.apis.secondary_analysis.AssayCallerModelGetFunction import MODELS
 from bioweb_api.apis.secondary_analysis.GenotyperPostFunction import GENOTYPER
 from secondary_analysis.constants import AC_TRAINING_FACTOR, ID_MODEL_METRICS
 
@@ -479,15 +479,15 @@ class TestSecondaryAnalysisAPI(unittest.TestCase):
         Test GET assay caller model files.
         """
         # Construct url
-        url = _ASSAY_CALLER_URL + '/' + SUBMODELS
-        url1 = add_url_argument(url, AC_MODEL, 'naive_bayes', True)
+        url = _ASSAY_CALLER_URL + '/' + MODELS
+        url1 = add_url_argument(url, AC_METHOD, 'naive_bayes', True)
         response = get_data(self, url1, 200)
-        self.assertEquals(response[ASSAY_CALLER + '/' + SUBMODELS],
+        self.assertEquals(response[ASSAY_CALLER + '/' + MODELS],
                           ["LNA/scrubber", "original"])
 
-        url1 = add_url_argument(url, AC_MODEL, 'kde', True)
+        url1 = add_url_argument(url, AC_METHOD, 'kde', True)
         response = get_data(self, url1, 200)
-        self.assertEquals(response[ASSAY_CALLER + '/' + SUBMODELS], [])
+        self.assertEquals(response[ASSAY_CALLER + '/' + MODELS], [])
 
     def ensure_and_copy_genotyper_result(self, job_details, key, file_ext=None):
         self.assertTrue(key in job_details, "%s not in job_details." % key)

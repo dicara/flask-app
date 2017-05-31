@@ -46,7 +46,7 @@ class AssayCallerSubmodelGetFunction(AbstractGetFunction):
 
     @staticmethod
     def summary():
-        return "Retrieve assay caller submodels and their pkl files."
+        return "Retrieve list of assay caller submodel names."
 
     @staticmethod
     def notes():

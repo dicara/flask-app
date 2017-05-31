@@ -52,7 +52,8 @@ from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from secondary_analysis.assay_calling.assay_call_manager import AssayCallManager
 from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 from secondary_analysis.assay_calling.assay_caller_plotting import generate_dye_scatterplots
-from secondary_analysis.assay_calling.classifier_utils import available_models
+from secondary_analysis.assay_calling.classifier_utils import available_models, \
+    MODEL_FILES
 
 #=============================================================================
 # Public Static Variables
@@ -114,7 +115,9 @@ class AssayCallerPostFunction(AbstractPostFunction):
         cls.ac_method       = ParameterFactory.ac_method(AC_METHOD, AC_METHOD_DESCRIPTION)
         cls.ac_model        = ParameterFactory.lc_string(AC_MODEL,
                                                          AC_MODEL_DESCRIPTION,
-                                                         required=False)
+                                                         required=False,
+                                                         enum=[m for model_dict in MODEL_FILES.values()
+                                                               for m in model_dict])
 
         parameters = [
                       cls.job_uuid_param,
@@ -302,10 +305,16 @@ class SaAssayCallerCallable(object):
             experiment = exp_def_fetcher.get_experiment_definition(self.exp_def_name)
 
             model_file_dict = available_models(self.ac_method)
-            if self.ac_model is not None and self.ac_model in model_file_dict:
-                classifier_file = model_file_dict[self.ac_model]
-            else:
+            if self.ac_model is None:
                 classifier_file = None
+            else:
+                if self.ac_model in model_file_dict:
+                    classifier_file = model_file_dict[self.ac_model]
+                else:
+                    APP_LOGGER.exception("Assay caller model %s is unavailable for method %s."
+                                         % (self.ac_method ,self.ac_model))
+                    raise Exception("Assay caller model %s is unavailable for method %s."
+                                    % (self.ac_method ,self.ac_model))
 
             AssayCallManager(self.num_probes, in_file=self.analysis_file,
                              out_file=self.tmp_outfile_path,

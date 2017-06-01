@@ -51,7 +51,7 @@ from secondary_analysis.constants import AC_TRAINING_FACTOR as DEFAULT_AC_TRAINI
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
-from secondary_analysis.constants import AC_MODEL_NAIVE_BAYES as DEFAULT_AC_MODEL
+from secondary_analysis.constants import AC_MODEL_NAIVE_BAYES as DEFAULT_AC_METHOD
 from gbutils.vcf_pdf_writer import PDFWriter, FONT_NAME_STD, FONT_SIZE
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 
@@ -85,7 +85,8 @@ DEFAULTS = {OFFSETS:            abs(DEFAULT_OFFSETS[0]),
             CTRL_THRESH:        DEFAULT_AC_CTRL_THRESHOLD,
             REQUIRED_DROPS:     0,
             CTRL_FILTER:        False,
-            AC_METHOD:          DEFAULT_AC_MODEL,
+            AC_METHOD:          DEFAULT_AC_METHOD,
+            AC_MODEL:           "LNA/scrubber",
             IGNORE_LOWEST_BARCODE: True,
             DEV_MODE:           DEFAULT_DEV_MODE,
             DRIFT_COMPENSATE:   DEFAULT_DRIFT_COMPENSATE}
@@ -127,6 +128,8 @@ def add_diff_params(fa_job):
         param_name = convert_param_name(param)
         if param_name in fa_job[doc_name]:
             val = fa_job[doc_name][param_name]
+            # skip if assay caller model is None
+            if param_name == AC_MODEL and not val: continue
             if param in DEFAULTS and val != DEFAULTS[param]:
                 diff_params[param] = val
 

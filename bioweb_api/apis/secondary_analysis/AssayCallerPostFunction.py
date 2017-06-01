@@ -113,7 +113,7 @@ class AssayCallerPostFunction(AbstractPostFunction):
                                                        default_value=False,
                                                        required=True)
         cls.ac_method       = ParameterFactory.ac_method(AC_METHOD, AC_METHOD_DESCRIPTION)
-        cls.ac_model        = ParameterFactory.lc_string(AC_MODEL,
+        cls.ac_model        = ParameterFactory.cs_string(AC_MODEL,
                                                          AC_MODEL_DESCRIPTION,
                                                          required=False,
                                                          enum=[m for model_dict in MODEL_FILES.values()

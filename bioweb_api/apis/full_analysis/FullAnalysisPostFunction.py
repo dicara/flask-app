@@ -54,6 +54,8 @@ from secondary_analysis.constants import PICO2_DYE as DEFAULT_PICO2_DYE
 from secondary_analysis.constants import UNINJECTED_THRESHOLD as DEFAULT_UNINJECTED_THRESHOLD
 from secondary_analysis.constants import UNINJECTED_RATIO as DEFAULT_UNINJECTED_RATIO
 from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_THRESHOLD
+from secondary_analysis.assay_calling.classifier_utils import available_models, \
+    MODEL_FILES
 
 FULL_ANALYSIS = 'FullAnalysis'
 
@@ -201,9 +203,11 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        required=True)
         cls.ac_method = ParameterFactory.ac_method(AC_METHOD,
                                                    AC_METHOD_DESCRIPTION)
-        cls.ac_model     = ParameterFactory.lc_string(AC_MODEL,
+        cls.ac_model     = ParameterFactory.cs_string(AC_MODEL,
                                                       AC_MODEL_DESCRIPTION,
-                                                      required=False)
+                                                      required=False,
+                                                      enum=[m for model_dict in MODEL_FILES.values()
+                                                            for m in model_dict])
 
         # genotyper params
         cls.req_drops_param = ParameterFactory.integer(REQUIRED_DROPS,

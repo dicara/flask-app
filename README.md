@@ -939,3 +939,6 @@ GnuBio Flask API.
    * Identity can cope with data drift
    * updated secondary analysis to 3.23.0
      * Standard scaling of incoming data is used to cope with data drift
+ * v3.88.1
+   * Add default value for assay caller model
+   * Add enum for assay caller model parameter

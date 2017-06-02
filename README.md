@@ -942,3 +942,5 @@ GnuBio Flask API.
  * v3.88.1
    * Add default value for assay caller model
    * Add enum for assay caller model parameter
+ * v3.88.2
+   * Only add run reports with device name starting with pilot or beta

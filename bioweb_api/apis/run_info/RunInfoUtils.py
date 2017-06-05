@@ -289,7 +289,7 @@ def get_date_object(folder):
         return datetime.strptime(re.search('20\d{2}_\d{2}/\d{1,2}', folder).group(), '%Y_%m/%d')
     else:
         raise Exception("Folder %s does not contain a valid date string." % folder)
-        
+
 
 def update_run_reports(date_folders=None):
     '''
@@ -337,7 +337,8 @@ def update_run_reports(date_folders=None):
                 utag = set_utag(date_obj, sf)
                 if utag not in db_utags: # if not exists, need to insert to collection
                     log_data = read_report_file(report_file_path, date_obj, utag)
-                    if log_data is None:
+                    if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
+                                               for x in ['pilot', 'beta']):
                         log_data = {DATETIME: date_obj, UTAG: utag}
                     if IMAGE_STACKS in log_data:
                         # add image stacks to archive collection
@@ -355,10 +356,13 @@ def update_run_reports(date_folders=None):
                     # unique_tag. If this occurs, try reading the run report again.
                     if len(log_data.keys()) == 3:
                         log_data = read_report_file(report_file_path, date_obj, utag)
+                        if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
+                                                   for x in ['pilot', 'beta']):
+                            continue
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 
-                    if log_data is not None and IMAGE_STACKS in log_data:
+                    if IMAGE_STACKS in log_data:
                         # find HDF5 datasets and add new records to HDF5 collection
                         new_datasets = set(get_hdf5_datasets(log_data, data_folder))
                         if new_datasets:

@@ -944,3 +944,5 @@ GnuBio Flask API.
    * Add enum for assay caller model parameter
  * v3.88.2
    * Only add run reports with device name starting with pilot or beta
+ * v3.89.0
+   * Add use pico2 filter parameter

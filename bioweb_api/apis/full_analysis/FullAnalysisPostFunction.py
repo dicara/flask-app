@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
     AC_METHOD_DESCRIPTION, AC_METHOD, USE_PICO1_FILTER, DEV_MODE, \
     USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE, AC_MODEL, AC_MODEL_DESCRIPTION, \
-    DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE
+    DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, USE_PICO2_FILTER, USE_PICO2_FILTER_DESCRIPTION
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
 from bioweb_api.utilities.io_utilities import make_clean_response
@@ -176,6 +176,10 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                         USE_PICO1_FILTER_DESCRIPTION,
                                                         default_value=True,
                                                         required=False)
+        cls.use_pico2_filter = ParameterFactory.boolean(USE_PICO2_FILTER,
+                                                        USE_PICO2_FILTER_DESCRIPTION,
+                                                        default_value=True,
+                                                        required=False)
         cls.dev_mode_param   = ParameterFactory.boolean(DEV_MODE,
                                                         'Use development mode (more forgiving of mistakes).',
                                                         default_value=DEFAULT_DEV_MODE,
@@ -239,6 +243,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.dev_mode_param,
                       cls.drift_compensate_param,
                       cls.use_pico1_filter,
+                      cls.use_pico2_filter,
                       cls.filtered_dyes_param,
                       cls.ui_threshold_param,
                       cls.continuous_phase_param,

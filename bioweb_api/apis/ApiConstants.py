@@ -229,6 +229,7 @@ URL              = "url"
 UUID             = "uuid"
 USE_IID          = "use_iid"
 USE_PICO1_FILTER = 'use_pico1_filter'
+USE_PICO2_FILTER = 'use_pico2_filter'
 VARIANT_MASK     = "variant_mask"
 VARIANTS         = "variants"
 VCF              = "vcf"
@@ -283,6 +284,7 @@ MAX_UI_RATIO_DESCRIPTION = "The maximum allowed uninjected to injected ratio" \
 AC_METHOD_DESCRIPTION = "The model used by assay caller to tag " \
                                  "positive/negative drops"
 USE_PICO1_FILTER_DESCRIPTION = "Turn on/off picoinjection 1 filtering"
+USE_PICO2_FILTER_DESCRIPTION = "Turn on/off picoinjection 2 filtering"
 AC_MODEL_DESCRIPTION = "The submodel used by assay caller."
 
 #=============================================================================

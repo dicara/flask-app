@@ -946,3 +946,18 @@ GnuBio Flask API.
    * Only add run reports with device name starting with pilot or beta
  * v3.89.0
    * Add use pico2 filter parameter
+ * v3.90.0
+   * update secondary-analysis to 3.24.3
+	 * 3.24.0
+	   * Identity matrix uses corner first fitting
+	   * Low fit score clusters included in offline identity report
+	   * Data drift compensation argument exposed in command line
+	   * Offline identity output file contains data drift column
+	 * 3.24.1
+	   * Assay caller scatter plot now displays low confidence drops in blue rather than calling them all positive.
+	 * 3.24.2
+	   * Fixed inconsistent types bug when computing bhattacharyya distance.
+	   * Added test to run naive bayes classifier.
+	 * 3.24.3
+	   * Add results comparison back into assay caller testing.
+	   * Don't include low confidence assay called drops in genotyping.

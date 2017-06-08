@@ -961,3 +961,7 @@ GnuBio Flask API.
 	 * 3.24.3
 	   * Add results comparison back into assay caller testing.
 	   * Don't include low confidence assay called drops in genotyping.
+ * v3.90.1
+   * update secondary-analysis to 3.24.4
+	 * 3.24.4
+	   * Bugfix where offline identity would not process chunks with no identified drops.

@@ -36,7 +36,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, RUN_DESCRIPTION, \
     FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, \
-    CARTRIDGE_BC, EXPERIMENT_CONFIGS
+    CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -68,6 +68,7 @@ def get_run_reports(cartridge_sn=None):
     columns[CARTRIDGE_SN_OLD]   = 1
     columns[CARTRIDGE_BC]       = 1
     columns[IMAGE_STACKS]       = 1
+    columns[PICO1_DYE]          = 1
     columns[EXPERIMENT_CONFIGS] = 1
 
     column_names = columns.keys()

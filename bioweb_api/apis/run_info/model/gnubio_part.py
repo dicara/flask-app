@@ -136,6 +136,13 @@ class Syringe(GnubioPart):
 
     @classmethod
     def from_dict(cls, src):
+        # mask_code sits in 'exp_def' field in old run reports 
+        mask_code = None
+        if VARIANT_MASK in src:
+            mask_code = src[VARIANT_MASK]
+        elif 'exp_def' in src:
+            mask_code = src['exp_def']
+
         return cls(src[APP_TYPE],
                    src[CATALOG_NUM],
                    src[CUSTOMER_APP_NAME],
@@ -145,7 +152,7 @@ class Syringe(GnubioPart):
                    src[LOT_NUM],
                    src[MANUFACTURE_DATE],
                    src[SERIAL_NUM],
-                   src.get(VARIANT_MASK))
+                   mask_code)
 
 class Kit(GnubioPart):
     def __init__(self, app_type, catalog_num, cust_app_name, exp_date, gnubio_part_type,

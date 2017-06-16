@@ -972,3 +972,5 @@ GnuBio Flask API.
      * 3.25.1
        * concentration calculation added as util in experimental module
        * concentration calculation added for each barcode in exploratory mode
+ * v3.92.0
+   * Handle run reports of new format (new barcode)

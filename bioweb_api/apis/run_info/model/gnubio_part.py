@@ -132,11 +132,11 @@ class Syringe(GnubioPart):
         return ret
 
     def __repr__(self):
-        return "Kit: %s" % self.as_dict()
+        return "Syringe: %s" % self.as_dict()
 
     @classmethod
     def from_dict(cls, src):
-        # mask_code sits in 'exp_def' field in old run reports 
+        # mask_code sits in 'exp_def' field in old run reports
         mask_code = None
         if VARIANT_MASK in src:
             mask_code = src[VARIANT_MASK]

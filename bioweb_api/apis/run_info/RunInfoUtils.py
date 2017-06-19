@@ -36,7 +36,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, RUN_DESCRIPTION, \
     FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, \
-    PICO1_DYE
+    CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -69,6 +69,7 @@ def get_run_reports(cartridge_sn=None):
     columns[CARTRIDGE_BC]       = 1
     columns[IMAGE_STACKS]       = 1
     columns[PICO1_DYE]          = 1
+    columns[EXPERIMENT_CONFIGS] = 1
 
     column_names = columns.keys()
     column_names.remove(ID)
@@ -173,19 +174,17 @@ def read_report_file_yaml(report_file, date_obj, utag):
         data[DATETIME] = date_obj
         data[FILE_TYPE] = 'yaml'
         data[UTAG] = utag
-        data[USER] = [user.strip() for user in data[USER].split(',')]
-        report_obj = RunReportWebUI.from_dict(**data)
-        return report_obj.as_dict()
-    except KeyError as e:
-        APP_LOGGER.info("Try making RunReportClientUI object from YAML file, %s"
-                        % report_file)
-        try:
+        if USER in data and isinstance(data[USER], str):
+            data[USER] = [user.strip() for user in data[USER].split(',')]
+
+        # distinguish reports from Web UI and Client UI
+        if CARTRIDGE_BC not in data:
+            report_obj = RunReportWebUI.from_dict(**data)
+        else:
             report_obj = RunReportClientUI.from_dict(**data)
-            return report_obj.as_dict()
-        except:
-            return None
-    except IOError as e:
-        APP_LOGGER.error("IOError raised: %s" % e)
+        return report_obj.as_dict()
+    except Exception as e:
+        APP_LOGGER.error("Error raised for report %s: %s" % (report_file, e))
         return None
 
 def read_report_file(report_file, date_obj, utag):

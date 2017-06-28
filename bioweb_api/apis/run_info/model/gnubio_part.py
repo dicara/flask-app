@@ -24,7 +24,8 @@ limitations under the License.
 from bioweb_api.apis.run_info.constants import APP_TYPE, CATALOG_NUM, EXPIRE_DATE, \
     GNUBIO_PART_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
     CUSTOMER_APP_NAME, VARIANT_MASK, PICO1_DYE, PICO2_DYE, PCR_LOW, PCR_MEDIUM, \
-    PCR_HIGH, SMALL_PELTIER_1, SMALL_PELTIER_2, INCUBATION, ASSAY_DYE, TEMPERATURE
+    PCR_HIGH, SMALL_PELTIER_1, SMALL_PELTIER_2, INCUBATION, ASSAY_DYE, TEMPERATURE, \
+    MASTER_LOT
 
 #=============================================================================
 # Classes
@@ -103,7 +104,7 @@ class Cartridge(GnubioPart):
 
 class Syringe(GnubioPart):
     def __init__(self, app_type, catalog_num, cust_app_name, exp_date, gnubio_part_type,
-                 internal_part_num, lot_num, mfg_date, serial_num, variant_mask):
+                 internal_part_num, lot_num, mfg_date, master_lot, variant_mask):
         super(Syringe, self).__init__(app_type,
                                       catalog_num,
                                       exp_date,
@@ -111,7 +112,7 @@ class Syringe(GnubioPart):
                                       internal_part_num,
                                       lot_num,
                                       mfg_date,
-                                      serial_num)
+                                      master_lot)
         self._cust_app_name = cust_app_name
         self._variant_mask = variant_mask
 
@@ -125,6 +126,8 @@ class Syringe(GnubioPart):
 
     def as_dict(self):
         ret = super(Syringe, self).as_dict()
+        ret[MASTER_LOT] = ret[SERIAL_NUM]
+        ret.pop(SERIAL_NUM)
         ret.update({
             CUSTOMER_APP_NAME:      self.cust_app_name,
             VARIANT_MASK:           self.variant_mask
@@ -143,6 +146,12 @@ class Syringe(GnubioPart):
         elif 'exp_def' in src:
             mask_code = src['exp_def']
 
+        master_lot = None
+        if MASTER_LOT in src:
+            master_lot = src[MASTER_LOT]
+        elif SERIAL_NUM in src:
+            master_lot = src[SERIAL_NUM]
+
         return cls(src[APP_TYPE],
                    src[CATALOG_NUM],
                    src[CUSTOMER_APP_NAME],
@@ -151,12 +160,12 @@ class Syringe(GnubioPart):
                    src[INTERNAL_PART_NUM],
                    src[LOT_NUM],
                    src[MANUFACTURE_DATE],
-                   src[SERIAL_NUM],
+                   master_lot,
                    mask_code)
 
 class Kit(GnubioPart):
     def __init__(self, app_type, catalog_num, cust_app_name, exp_date, gnubio_part_type,
-                 internal_part_num, lot_num, mfg_date, serial_num, assay_dye,
+                 internal_part_num, lot_num, mfg_date, master_lot, assay_dye,
                  pico1_dye, pico2_dye, pcr_low, pcr_medium, pcr_high, small_peltier1,
                  small_peltier2):
         super(Kit, self).__init__(app_type,
@@ -166,7 +175,7 @@ class Kit(GnubioPart):
                                       internal_part_num,
                                       lot_num,
                                       mfg_date,
-                                      serial_num)
+                                      master_lot)
         self._cust_app_name     = cust_app_name
         self._assay_dye         = assay_dye
         self._pico1_dye         = pico1_dye
@@ -215,6 +224,8 @@ class Kit(GnubioPart):
 
     def as_dict(self):
         ret = super(Kit, self).as_dict()
+        ret[MASTER_LOT] = ret[SERIAL_NUM]
+        ret.pop(SERIAL_NUM)
         ret.update({
             CUSTOMER_APP_NAME:      self.cust_app_name,
             ASSAY_DYE:              self.assay_dye,
@@ -233,6 +244,12 @@ class Kit(GnubioPart):
 
     @classmethod
     def from_dict(cls, src):
+        master_lot = None
+        if MASTER_LOT in src:
+            master_lot = src[MASTER_LOT]
+        elif SERIAL_NUM in src:
+            master_lot = src[SERIAL_NUM]
+
         return cls(src[APP_TYPE],
                    src[CATALOG_NUM],
                    src[CUSTOMER_APP_NAME],
@@ -241,7 +258,7 @@ class Kit(GnubioPart):
                    src[INTERNAL_PART_NUM],
                    src[LOT_NUM],
                    src[MANUFACTURE_DATE],
-                   src[SERIAL_NUM],
+                   master_lot,
                    src.get(ASSAY_DYE),
                    src.get(PICO1_DYE),
                    src.get(PICO2_DYE),

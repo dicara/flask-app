@@ -20,6 +20,7 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
+from abc import ABCMeta
 
 from bioweb_api.apis.run_info.constants import APP_TYPE, CATALOG_NUM, EXPIRE_DATE, \
     GNUBIO_PART_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
@@ -32,8 +33,10 @@ from bioweb_api.apis.run_info.constants import APP_TYPE, CATALOG_NUM, EXPIRE_DAT
 #=============================================================================
 
 class GnubioPart(object):
+    __metaclass__ = ABCMeta
+
     def __init__(self, app_type, catalog_num, exp_date, gnubio_part_type,
-                 internal_part_num, lot_num, mfg_date, serial_num):
+                 internal_part_num, lot_num, mfg_date):
         self._app_type          = app_type
         self._catalog_num       = catalog_num
         self._exp_date          = exp_date
@@ -41,7 +44,6 @@ class GnubioPart(object):
         self._internal_part_num = internal_part_num
         self._lot_num           = lot_num
         self._mfg_date          = mfg_date
-        self._serial_num        = serial_num
 
     @property
     def app_type(self):
@@ -71,10 +73,6 @@ class GnubioPart(object):
     def mfg_date(self):
         return self._mfg_date
 
-    @property
-    def serial_num(self):
-        return self._serial_num
-
     def as_dict(self):
         return {
                     APP_TYPE:           self._app_type,
@@ -84,8 +82,37 @@ class GnubioPart(object):
                     INTERNAL_PART_NUM:  self._internal_part_num,
                     LOT_NUM:            self._lot_num,
                     MANUFACTURE_DATE:   self._mfg_date,
-                    SERIAL_NUM:         self._serial_num
                }
+
+    @classmethod
+    def from_dict(cls, src):
+        return NotImplementedError("GnubioPart subclass must implement " \
+                                "from_dict method.")
+
+
+class Cartridge(GnubioPart):
+    def __init__(self, app_type, catalog_num, exp_date, gnubio_part_type,
+                 internal_part_num, lot_num, mfg_date, serial_num):
+        super(Cartridge, self).__init__(app_type,
+                                        catalog_num,
+                                        exp_date,
+                                        gnubio_part_type,
+                                        internal_part_num,
+                                        lot_num,
+                                        mfg_date)
+        self._serial_num = serial_num
+
+    @property
+    def serial_num(self):
+        return self._serial_num
+
+    def __repr__(self):
+        return "Cartridge: %s" % self.as_dict()
+
+    def as_dict(self):
+        ret = super(Cartridge, self).as_dict()
+        ret.update({SERIAL_NUM: self.serial_num})
+        return ret
 
     @classmethod
     def from_dict(cls, src):
@@ -98,9 +125,6 @@ class GnubioPart(object):
                    src[MANUFACTURE_DATE],
                    src[SERIAL_NUM])
 
-class Cartridge(GnubioPart):
-    def __repr__(self):
-        return "Cartridge: %s" % self.as_dict()
 
 class Syringe(GnubioPart):
     def __init__(self, app_type, catalog_num, cust_app_name, exp_date, gnubio_part_type,
@@ -111,8 +135,8 @@ class Syringe(GnubioPart):
                                       gnubio_part_type,
                                       internal_part_num,
                                       lot_num,
-                                      mfg_date,
-                                      master_lot)
+                                      mfg_date)
+        self._master_lot = master_lot
         self._cust_app_name = cust_app_name
         self._variant_mask = variant_mask
 
@@ -121,15 +145,18 @@ class Syringe(GnubioPart):
         return self._cust_app_name
 
     @property
+    def master_lot(self):
+        return self._master_lot
+
+    @property
     def variant_mask(self):
         return self._variant_mask
 
     def as_dict(self):
         ret = super(Syringe, self).as_dict()
-        ret[MASTER_LOT] = ret[SERIAL_NUM]
-        ret.pop(SERIAL_NUM)
         ret.update({
             CUSTOMER_APP_NAME:      self.cust_app_name,
+            MASTER_LOT:             self.master_lot,
             VARIANT_MASK:           self.variant_mask
         })
         return ret
@@ -174,9 +201,9 @@ class Kit(GnubioPart):
                                       gnubio_part_type,
                                       internal_part_num,
                                       lot_num,
-                                      mfg_date,
-                                      master_lot)
+                                      mfg_date)
         self._cust_app_name     = cust_app_name
+        self._master_lot        = master_lot
         self._assay_dye         = assay_dye
         self._pico1_dye         = pico1_dye
         self._pico2_dye         = pico2_dye
@@ -189,6 +216,10 @@ class Kit(GnubioPart):
     @property
     def cust_app_name(self):
         return self._cust_app_name
+
+    @property
+    def master_lot(self):
+        return self._master_lot
 
     @property
     def assay_dye(self):
@@ -224,10 +255,9 @@ class Kit(GnubioPart):
 
     def as_dict(self):
         ret = super(Kit, self).as_dict()
-        ret[MASTER_LOT] = ret[SERIAL_NUM]
-        ret.pop(SERIAL_NUM)
         ret.update({
             CUSTOMER_APP_NAME:      self.cust_app_name,
+            MASTER_LOT:             self.master_lot,
             ASSAY_DYE:              self.assay_dye,
             PICO1_DYE:              self.pico1_dye,
             PICO2_DYE:              self.pico2_dye,

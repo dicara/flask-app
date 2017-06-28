@@ -31,7 +31,7 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVIS
     DATETIME, DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, \
     RUN_DESCRIPTION, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
     CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
-    APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, SERIAL_NUM, \
+    APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, MASTER_LOT, \
     CUSTOMER_APP_NAME, DATETIME
 from bioweb_api.apis.ApiConstants import UUID
 from bioweb_api.apis.run_info.RunInfoUtils import read_report_file, \
@@ -107,7 +107,7 @@ class TestRunReportAPI(unittest.TestCase):
         self.assertEqual(report_doc[KIT_BC][CUSTOMER_APP_NAME], 'Beta kit 2016 May')
         self.assertEqual(report_doc[KIT_BC][MANUFACTURE_DATE], '20160609')
         self.assertEqual(report_doc[SYRINGE_BC][INTERNAL_PART_NUM], 'P0000000r0')
-        self.assertEqual(report_doc[SYRINGE_BC][SERIAL_NUM], 'S0032128')
+        self.assertEqual(report_doc[SYRINGE_BC][MASTER_LOT], 'S0032128')
 
     def test_get_run_info(self):
         """

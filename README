@@ -974,3 +974,6 @@ GnuBio Flask API.
        * concentration calculation added for each barcode in exploratory mode
  * v3.92.0
    * Handle run reports of new format (new barcode)
+ * v3.92.1
+   * Change identity development mode and drift compensation defaults
+   * Rename kit/syringe serial number to master lot

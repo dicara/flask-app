@@ -326,7 +326,8 @@ class FullAnalysisWorkFlowCallable(object):
                                          job_name=job_name,
                                          ctrl_filter=self.parameters[CTRL_FILTER],
                                          ac_method=self.parameters[AC_METHOD],
-                                         ac_model=ac_model)
+                                         ac_model=ac_model,
+                                         fa_job_uuid=self.uuid)
         callback = ac_make_process_callback(uuid=callable.uuid,
                                             outfile_path=callable.outfile_path,
                                             scatter_plot_path=callable.scatter_plot_path,

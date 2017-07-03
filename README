@@ -977,3 +977,5 @@ GnuBio Flask API.
  * v3.92.1
    * Change identity development mode and drift compensation defaults
    * Rename kit/syringe serial number to master lot
+ * v3.93.0
+   * Add run report directory to MongoDB collection, and retrieve from assay caller job

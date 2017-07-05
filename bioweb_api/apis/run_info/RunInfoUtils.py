@@ -36,7 +36,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, RUN_DESCRIPTION, \
     FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, \
-    CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE
+    CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE, DIR_PATH
 from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
@@ -346,18 +346,21 @@ def update_run_reports(date_folders=None):
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
+                    log_data[DIR_PATH] = os.path.dirname(report_file_path)
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
 
                     # If previously a run report was not there or had wrong format,
-                    # the mongo documents only has three fields, _id, datetime, and
-                    # unique_tag. If this occurs, try reading the run report again.
-                    if len(log_data.keys()) == 3:
+                    # the mongo documents only has three or four fields, _id, datetime,
+                    # unique_tag, and maybe dir_path. If this occurs, try reading the
+                    # run report again.
+                    if not set(log_data.keys()) - set([ID, DATETIME, UTAG, DIR_PATH]):
                         log_data = read_report_file(report_file_path, date_obj, utag)
                         if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
                                                    for x in ['pilot', 'beta']):
                             continue
+                        log_data[DIR_PATH] = os.path.dirname(report_file_path)
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 

@@ -35,7 +35,8 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
-from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION
+from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, \
+    FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION
 from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
@@ -44,7 +45,9 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     EXP_DEF_NAME, CTRL_THRESH, TRAINING_FACTOR_DESCRIPTION, \
     CTRL_THRESH_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, AC_METHOD, \
     AC_METHOD_DESCRIPTION, PICO1_DYE, DYES_SCATTER_PLOT, \
-    DYES_SCATTER_PLOT_URL, AC_MODEL, AC_MODEL_DESCRIPTION
+    DYES_SCATTER_PLOT_URL, AC_MODEL, AC_MODEL_DESCRIPTION, AC_DOCUMENT, ARCHIVE, \
+    IMAGE_STACKS
+from bioweb_api.apis.run_info.constants import DIR_PATH
 
 from primary_analysis.command import InvalidFileError
 from primary_analysis.pa_utils import sniff_delimiter
@@ -222,7 +225,7 @@ class SaAssayCallerCallable(object):
     '''
     def __init__(self, identity_uuid, exp_def_name, training_factor,
                  ctrl_thresh, db_connector, job_name, ctrl_filter,
-                 ac_method, ac_model):
+                 ac_method, ac_model, fa_job_uuid=None):
 
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, identity_uuid)
 
@@ -240,6 +243,9 @@ class SaAssayCallerCallable(object):
         self.ctrl_filter           = ctrl_filter
         self.ac_method             = ac_method
         self.ac_model              = ac_model
+
+        # full analysis job uuid
+        self.fa_job_uuid           = fa_job_uuid
 
         results_folder             = get_results_folder()
         self.outfile_path          = os.path.join(results_folder, self.uuid)
@@ -341,6 +347,17 @@ class SaAssayCallerCallable(object):
         finally:
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
+
+    def get_run_report_directory(self):
+        """
+        Return the run report directory of the run whose data is processed in this job.
+        """
+        if self.fa_job_uuid is None: return None
+        fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.fa_job_uuid)
+        run_report = self.db_connector.find_one(RUN_REPORT_COLLECTION,
+                                                IMAGE_STACKS,
+                                                fa_job[ARCHIVE])
+        return run_report.get(DIR_PATH)
 
 
 def make_process_callback(uuid, outfile_path, scatter_plot_path,

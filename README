@@ -979,3 +979,7 @@ GnuBio Flask API.
    * Rename kit/syringe serial number to master lot
  * v3.93.0
    * Add run report directory to MongoDB collection, and retrieve from assay caller job
+ * v3.94.0
+   * Add system listener data to dye scatter plots
+   * Remove base run report path from report directory in run report records
+   * Remove unused imports

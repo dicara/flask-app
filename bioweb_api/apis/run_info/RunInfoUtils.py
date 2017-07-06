@@ -29,15 +29,19 @@ import yaml
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
-    HDF5_COLLECTION, ARCHIVES_COLLECTION, ARCHIVES_PATH, FA_PROCESS_COLLECTION
-from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, ARCHIVE, \
-    STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS
+    HDF5_COLLECTION, ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION
+from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, \
+    ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS
 from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
-    TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, RUN_DESCRIPTION, \
-    FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, CARTRIDGE_BC, CARTRIDGE_SN_OLD, RUN_ID, \
-    CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE, DIR_PATH
-from bioweb_api.apis.run_info.model.run_report import RunReportWebUI, RunReportClientUI
+    TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, \
+    RUN_DESCRIPTION, FILE_TYPE, UTAG, SAMPLE_NAME, CARTRIDGE_SN, \
+    CARTRIDGE_SN_OLD, RUN_ID, CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE, \
+    DIR_PATH
+from bioweb_api.apis.run_info.model.run_report import (
+    RunReportWebUI, 
+    RunReportClientUI,
+)
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders
@@ -271,7 +275,7 @@ def update_image_stacks(log_data, data_folder):
         if not exist_record:
             archive_path = os.path.join(data_folder, image_stack)
             if os.path.isdir(archive_path):
-                new_records.append({ARCHIVE: image_stack, ARCHIVE_PATH: archive_path})
+                new_records.append({ARCHIVE: image_stack, ARCHIVES_PATH: archive_path})
                 break
 
     if new_records:
@@ -346,7 +350,7 @@ def update_run_reports(date_folders=None):
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
 
-                    log_data[DIR_PATH] = os.path.dirname(report_file_path)
+                    log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(RUN_REPORT_PATH)
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
@@ -360,7 +364,7 @@ def update_run_reports(date_folders=None):
                         if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
                                                    for x in ['pilot', 'beta']):
                             continue
-                        log_data[DIR_PATH] = os.path.dirname(report_file_path)
+                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(RUN_REPORT_PATH)
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 

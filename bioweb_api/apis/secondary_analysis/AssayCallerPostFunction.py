@@ -36,7 +36,7 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, \
-    FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION
+    FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
 from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
@@ -45,8 +45,8 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     EXP_DEF_NAME, CTRL_THRESH, TRAINING_FACTOR_DESCRIPTION, \
     CTRL_THRESH_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, AC_METHOD, \
     AC_METHOD_DESCRIPTION, PICO1_DYE, DYES_SCATTER_PLOT, \
-    DYES_SCATTER_PLOT_URL, AC_MODEL, AC_MODEL_DESCRIPTION, AC_DOCUMENT, ARCHIVE, \
-    IMAGE_STACKS
+    DYES_SCATTER_PLOT_URL, AC_MODEL, AC_MODEL_DESCRIPTION, ARCHIVE, \
+    IMAGE_STACKS, ID_DOCUMENT
 from bioweb_api.apis.run_info.constants import DIR_PATH
 
 from primary_analysis.command import InvalidFileError
@@ -57,12 +57,19 @@ from secondary_analysis.constants import AC_TRAINING_FACTOR, AC_CTRL_THRESHOLD
 from secondary_analysis.assay_calling.assay_caller_plotting import generate_dye_scatterplots
 from secondary_analysis.assay_calling.classifier_utils import available_models, \
     MODEL_FILES
+from secondary_analysis.parsers.system_listener_parser import (
+    ChannelOffsetTopicParser, 
+    ClampTempTopicParser, 
+    DynamicAlignStepsParser, 
+    OldChannelOffsetTopicParser,
+    SystemListenerParser,
+)
 
 #=============================================================================
 # Public Static Variables
 #=============================================================================
 ASSAY_CALLER = 'AssayCaller'
-
+SYS_LISTENER = 'sysListener.json'
 
 #=============================================================================
 # Class
@@ -225,7 +232,7 @@ class SaAssayCallerCallable(object):
     '''
     def __init__(self, identity_uuid, exp_def_name, training_factor,
                  ctrl_thresh, db_connector, job_name, ctrl_filter,
-                 ac_method, ac_model, fa_job_uuid=None):
+                 ac_method, ac_model):
 
         identity_doc = db_connector.find_one(SA_IDENTITY_COLLECTION, UUID, identity_uuid)
 
@@ -244,9 +251,6 @@ class SaAssayCallerCallable(object):
         self.ac_method             = ac_method
         self.ac_model              = ac_model
 
-        # full analysis job uuid
-        self.fa_job_uuid           = fa_job_uuid
-
         results_folder             = get_results_folder()
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.scatter_plot_path     = os.path.join(results_folder, self.uuid + '_scatter.png')
@@ -256,6 +260,7 @@ class SaAssayCallerCallable(object):
                                                   'assay_calls.txt')
         self.tmp_scatter_plot_path = os.path.join(self.tmp_path,
                                                   'assay_calls_scatter.png')
+        self.tmp_sys_listener_path = os.path.join(self.tmp_path, SYS_LISTENER)
         self.tmp_dyes_plot_path    = os.path.join(self.tmp_path,
                                                   'assay_calls_dyes_scatter.png')
         self.document = {
@@ -288,7 +293,7 @@ class SaAssayCallerCallable(object):
         query = {UUID: self.uuid}
         self.db_connector.update(SA_ASSAY_CALLER_COLLECTION, query, update)
 
-        def gen_dye_scatterplot(dyes):
+        def gen_dye_scatterplot(dyes, sys_listener_path):
             try:
                 analysis_df = pandas.read_table(self.analysis_file,
                     sep=sniff_delimiter(self.analysis_file))
@@ -296,8 +301,33 @@ class SaAssayCallerCallable(object):
                     sep=sniff_delimiter(self.tmp_outfile_path))
                 analysis_df['assay'] = False
                 analysis_df.loc[analysis_df['identity'].notnull(), 'assay'] = ac_df['assay'].values
+
+                # System listener inputs
+                dyn_align_offsets = {}
+                temps = {}
+                steps = {}
+                if sys_listener_path is not None:
+                    clamp_temp_tp = ClampTempTopicParser()
+                    old_channel_offset_tp = OldChannelOffsetTopicParser()
+                    channel_offset_tp = ChannelOffsetTopicParser()
+                    dyn_align_steps_tp = DynamicAlignStepsParser()
+                    topic_parsers = [clamp_temp_tp, old_channel_offset_tp, 
+                        channel_offset_tp, dyn_align_steps_tp]
+                    sys_listener_parser = SystemListenerParser(sys_listener_path, 
+                        topic_parsers=topic_parsers)
+                    temps = sys_listener_parser.get_topic_results(clamp_temp_tp.topic)
+                    dyn_align_offsets = sys_listener_parser.get_topic_results(channel_offset_tp.topic)
+                    if len(dyn_align_offsets) < 1:
+                        APP_LOGGER.info("Using old channel offset parser...")
+                        dyn_align_offsets = sys_listener_parser.get_topic_results(old_channel_offset_tp.topic)
+                    else:
+                        APP_LOGGER.info("Using new channel offset parser...")
+                    steps = sys_listener_parser.get_topic_results(dyn_align_steps_tp.topic)
+
                 generate_dye_scatterplots(analysis_df, dyes,
-                    self.tmp_dyes_plot_path, self.job_name, self.pico1_dye)
+                    self.tmp_dyes_plot_path, self.job_name, self.pico1_dye,
+                    dyn_align_offsets=dyn_align_offsets, temps=temps, 
+                    steps=steps)
                 shutil.copy(self.tmp_dyes_plot_path, self.dyes_plot_path)
                 APP_LOGGER.info("Dyes scatter plot generated for %s." % \
                     self.job_name)
@@ -338,9 +368,9 @@ class SaAssayCallerCallable(object):
             if not os.path.isfile(self.tmp_outfile_path):
                 raise Exception('Secondary analysis assay caller job ' +
                                 'failed: output file not generated.')
-            else:
-                shutil.copy(self.tmp_outfile_path, self.outfile_path)
-                gen_dye_scatterplot(experiment.dyes)
+
+            shutil.copy(self.tmp_outfile_path, self.outfile_path)
+            gen_dye_scatterplot(experiment.dyes, self.get_sys_listener_path())
 
             if os.path.isfile(self.tmp_scatter_plot_path):
                 shutil.copy(self.tmp_scatter_plot_path, self.scatter_plot_path)
@@ -348,16 +378,31 @@ class SaAssayCallerCallable(object):
             # Regardless of success or failure, remove the copied archive directory
             shutil.rmtree(self.tmp_path, ignore_errors=True)
 
-    def get_run_report_directory(self):
+    def get_sys_listener_path(self):
         """
-        Return the run report directory of the run whose data is processed in this job.
+        Return system listener path if found, otherwise return None.
         """
-        if self.fa_job_uuid is None: return None
-        fa_job = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.fa_job_uuid)
+        full_analysis_doc = self.db_connector.find_one(FA_PROCESS_COLLECTION, 
+            '.'.join([ID_DOCUMENT, UUID], self.document[SA_IDENTITY_UUID]))
+        if full_analysis_doc is None: 
+            return None
+
         run_report = self.db_connector.find_one(RUN_REPORT_COLLECTION,
-                                                IMAGE_STACKS,
-                                                fa_job[ARCHIVE])
-        return run_report.get(DIR_PATH)
+            IMAGE_STACKS, full_analysis_doc[ARCHIVE])
+        if run_report is None:
+            return None
+
+        report_dir = run_report.get(DIR_PATH)
+        if report_dir is None:
+            return None
+
+        sys_listener_path = os.path.join(RUN_REPORT_PATH, report_dir,
+            SYS_LISTENER)
+        if os.path.isfile(sys_listener_path):
+            shutil.copy(sys_listener_path, self.tmp_sys_listener_path)
+            return self.tmp_sys_listener_path
+
+        return None
 
 
 def make_process_callback(uuid, outfile_path, scatter_plot_path,

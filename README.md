@@ -948,23 +948,23 @@ GnuBio Flask API.
    * Add use pico2 filter parameter
  * v3.90.0
    * update secondary-analysis to 3.24.3
-   * 3.24.0
-     * Identity matrix uses corner first fitting
-     * Low fit score clusters included in offline identity report
-     * Data drift compensation argument exposed in command line
-     * Offline identity output file contains data drift column
-   * 3.24.1
-     * Assay caller scatter plot now displays low confidence drops in blue rather than calling them all positive.
-   * 3.24.2
-     * Fixed inconsistent types bug when computing bhattacharyya distance.
-     * Added test to run naive bayes classifier.
-   * 3.24.3
-     * Add results comparison back into assay caller testing.
-     * Don't include low confidence assay called drops in genotyping.
+     * 3.24.0
+       * Identity matrix uses corner first fitting
+       * Low fit score clusters included in offline identity report
+       * Data drift compensation argument exposed in command line
+       * Offline identity output file contains data drift column
+     * 3.24.1
+       * Assay caller scatter plot now displays low confidence drops in blue rather than calling them all positive.
+     * 3.24.2
+       * Fixed inconsistent types bug when computing bhattacharyya distance.
+       * Added test to run naive bayes classifier.
+     * 3.24.3
+       * Add results comparison back into assay caller testing.
+       * Don't include low confidence assay called drops in genotyping.
  * v3.90.1
    * update secondary-analysis to 3.24.4
-   * 3.24.4
-     * Bugfix where offline identity would not process chunks with no identified drops.
+     * 3.24.4
+       * Bugfix where offline identity would not process chunks with no identified drops.
  * v3.91.0
    * update secondary-analysis to 3.25.1
      * 3.25.0
@@ -979,3 +979,7 @@ GnuBio Flask API.
    * Rename kit/syringe serial number to master lot
  * v3.93.0
    * Add run report directory to MongoDB collection, and retrieve from assay caller job
+ * v3.94.0
+   * Add system listener data to dye scatter plots
+   * Remove base run report path from report directory in run report records
+   * Remove unused imports

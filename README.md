@@ -983,3 +983,6 @@ GnuBio Flask API.
    * Add system listener data to dye scatter plots
    * Remove base run report path from report directory in run report records
    * Remove unused imports
+ * v3.94.1
+   * Bugfix: Need to strip forward slash from relative run report path.
+   * Bugfix: Need to provide parser with sys listener directory path

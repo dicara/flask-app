@@ -307,13 +307,14 @@ class SaAssayCallerCallable(object):
                 temps = {}
                 steps = {}
                 if sys_listener_path is not None:
+                    sys_listener_dir = os.path.dirname(sys_listener_path)
                     clamp_temp_tp = ClampTempTopicParser()
                     old_channel_offset_tp = OldChannelOffsetTopicParser()
                     channel_offset_tp = ChannelOffsetTopicParser()
                     dyn_align_steps_tp = DynamicAlignStepsParser()
                     topic_parsers = [clamp_temp_tp, old_channel_offset_tp, 
                         channel_offset_tp, dyn_align_steps_tp]
-                    sys_listener_parser = SystemListenerParser(sys_listener_path, 
+                    sys_listener_parser = SystemListenerParser(sys_listener_dir, 
                         topic_parsers=topic_parsers)
                     temps = sys_listener_parser.get_topic_results(clamp_temp_tp.topic)
                     dyn_align_offsets = sys_listener_parser.get_topic_results(channel_offset_tp.topic)

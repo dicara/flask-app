@@ -21,6 +21,7 @@ limitations under the License.
 # Imports
 #===============================================================================
 from pymongo import MongoClient
+from pymongo.results import BulkWriteResult
 
 from . import DATABASE_URL, DATABASE_PORT, DATABASE_NAME
 
@@ -78,7 +79,7 @@ class DbConnector(object):
         if len(records) > 0:
             return _DB[collection].insert(records)
         else:
-            return WriteResult({ "nInserted" : 0 })
+            return BulkWriteResult({ "nInserted" : 0 })
 
     @staticmethod
     def find(collection, criteria, projection=None):

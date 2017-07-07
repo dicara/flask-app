@@ -383,7 +383,7 @@ class SaAssayCallerCallable(object):
         Return system listener path if found, otherwise return None.
         """
         full_analysis_doc = self.db_connector.find_one(FA_PROCESS_COLLECTION, 
-            '.'.join([ID_DOCUMENT, UUID], self.document[SA_IDENTITY_UUID]))
+            '.'.join([ID_DOCUMENT, UUID]), self.document[SA_IDENTITY_UUID])
         if full_analysis_doc is None: 
             return None
 

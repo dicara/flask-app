@@ -31,7 +31,8 @@ import h5py
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
     HDF5_COLLECTION, ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, \
-    ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS
+    ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS, \
+    ARCHIVE_PATH
 from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, \
@@ -275,7 +276,7 @@ def update_image_stacks(log_data, data_folder):
         if not exist_record:
             archive_path = os.path.join(data_folder, image_stack)
             if os.path.isdir(archive_path):
-                new_records.append({ARCHIVE: image_stack, ARCHIVES_PATH: archive_path})
+                new_records.append({ARCHIVE: image_stack, ARCHIVE_PATH: archive_path})
                 break
 
     if new_records:

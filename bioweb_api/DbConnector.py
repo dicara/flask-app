@@ -27,7 +27,7 @@ from . import DATABASE_URL, DATABASE_PORT, DATABASE_NAME
 #=============================================================================
 # Connect to MongoDB
 #=============================================================================
-_CLIENT = MongoClient(DATABASE_URL, DATABASE_PORT)
+_CLIENT = MongoClient(DATABASE_URL, DATABASE_PORT, connect=False)
 _DB     = _CLIENT[DATABASE_NAME]
 
 #===============================================================================

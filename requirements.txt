@@ -5,7 +5,7 @@ experiment-database==0.17.3
 Flask==0.12.2
 futures==3.0.5
 gb-algorithms==0.12.7
-gbutils==2.5.4
+gbutils==2.7.0
 idt-analyzer==0.3
 matplotlib==1.5.3
 ncbi-utilities==0.2
@@ -21,6 +21,6 @@ PyPDF2==1.26.0
 redis==2.10.5
 reportlab==3.4.0
 scikit-learn==0.18.0
-secondary-analysis==3.25.1
+secondary-analysis==3.29.0
 simplejson==3.10.0
 tornado==4.5.1

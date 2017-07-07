@@ -24,18 +24,17 @@ import datetime
 import os
 import unittest
 
-from bioweb_api import app, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
+from bioweb_api import app, RUN_REPORT_COLLECTION
 from bioweb_api.tests.test_utils import get_data
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, CHIP_REVISION, \
-    DATETIME, DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, \
-    RUN_DESCRIPTION, USER, RUN_REPORT_TXTFILE, IMAGE_STACKS, \
+from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, \
+    DEVICE_NAME, EXP_DEF_NAME, RUN_ID, \
+    RUN_DESCRIPTION, USER, IMAGE_STACKS, \
     CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
     APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, MASTER_LOT, \
-    CUSTOMER_APP_NAME, DATETIME
+    CUSTOMER_APP_NAME
 from bioweb_api.apis.ApiConstants import UUID
-from bioweb_api.apis.run_info.RunInfoUtils import read_report_file, \
-        get_run_reports, update_run_reports
+from bioweb_api.apis.run_info.RunInfoUtils import read_report_file
 
 #===============================================================================
 # Private Static Variables

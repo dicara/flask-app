@@ -26,8 +26,7 @@ import traceback
 
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import UPLOAD_FILE, FILENAMES, RUN_REPORT_UUID, \
-    ERROR
+from bioweb_api.apis.ApiConstants import UPLOAD_FILE, ERROR
 from bioweb_api import MODIFIED_ARCHIVES_PATH
 from bioweb_api.apis.run_info.RunInfoUtils import allowed_file
 

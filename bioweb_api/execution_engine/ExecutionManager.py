@@ -24,7 +24,6 @@ from bioweb_api import MAX_WORKERS
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 import threading
-import time
 
 #===============================================================================
 # Class

@@ -1,7 +1,3 @@
-import os
-
-from bioweb_api import ARCHIVES_PATH
-
 # constants ending with _TXT are field names in run_info.txt
 ARCHIVE_IDX                 = 'archive_idx'
 APP_TYPE                    = 'app_type'

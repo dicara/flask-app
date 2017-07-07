@@ -20,8 +20,6 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import math
-
 from abc import ABCMeta
 from flask import jsonify, make_response
 

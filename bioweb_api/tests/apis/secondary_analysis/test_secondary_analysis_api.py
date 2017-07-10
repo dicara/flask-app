@@ -24,7 +24,6 @@ import os
 import shutil
 import time
 import unittest
-import yaml
 
 from datetime import datetime
 

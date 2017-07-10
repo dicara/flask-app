@@ -59,7 +59,7 @@ class GnubioPart(object):
 
     @property
     def gnubio_part_type(self):
-        return gnubio_part_type
+        return self._gnubio_part_type
 
     @property
     def internal_part_num(self):
@@ -75,13 +75,13 @@ class GnubioPart(object):
 
     def as_dict(self):
         return {
-                    APP_TYPE:           self._app_type,
-                    CATALOG_NUM:        self._catalog_num,
-                    EXPIRE_DATE:        self._exp_date,
-                    GNUBIO_PART_TYPE:   self._gnubio_part_type,
-                    INTERNAL_PART_NUM:  self._internal_part_num,
-                    LOT_NUM:            self._lot_num,
-                    MANUFACTURE_DATE:   self._mfg_date,
+                    APP_TYPE:           self.app_type,
+                    CATALOG_NUM:        self.catalog_num,
+                    EXPIRE_DATE:        self.exp_date,
+                    GNUBIO_PART_TYPE:   self.gnubio_part_type,
+                    INTERNAL_PART_NUM:  self.internal_part_num,
+                    LOT_NUM:            self.lot_num,
+                    MANUFACTURE_DATE:   self.mfg_date,
                }
 
     @classmethod

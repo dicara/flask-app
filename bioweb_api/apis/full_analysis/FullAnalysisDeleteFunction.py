@@ -20,15 +20,9 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-from collections import defaultdict
-
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.AbstractDeleteJobFunction import AbstractDeleteJobFunction
 from bioweb_api import FA_PROCESS_COLLECTION
-from bioweb_api.apis.primary_analysis.ProcessDeleteFunction import ProcessDeleteFunction
-from bioweb_api.apis.secondary_analysis.IdentityDeleteFunction import IdentityDeleteFunction
-from bioweb_api.apis.secondary_analysis.AssayCallerDeleteFunction import AssayCallerDeleteFunction
-from bioweb_api.apis.secondary_analysis.GenotyperDeleteFunction import GenotyperDeleteFunction
 
 #=============================================================================
 # Class

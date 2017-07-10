@@ -25,8 +25,7 @@ from collections import OrderedDict
 from bioweb_api import EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, EXP_DEF, NAME, DYES, \
-    TYPE
+from bioweb_api.apis.ApiConstants import VARIANTS, UUID, ID, NAME, DYES, TYPE
 
 from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from expdb.utils import get_target_id

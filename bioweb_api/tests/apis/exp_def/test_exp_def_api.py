@@ -23,12 +23,9 @@ limitations under the License.
 import os
 import unittest
 
-from bioweb_api import app, EXP_DEF_COLLECTION, HOSTNAME, PORT
+from bioweb_api import app, EXP_DEF_COLLECTION
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.tests.test_utils import get_data, add_url_argument
-# from bioweb_api.apis.ApiConstants import *
-
-from bioweb_api.apis.exp_def.ExpDefGetFunction import ExpDefGetFunction
+from bioweb_api.tests.test_utils import get_data
 
 #=============================================================================
 # Setup Logging

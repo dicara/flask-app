@@ -986,3 +986,6 @@ GnuBio Flask API.
  * v3.94.1
    * Bugfix: Need to strip forward slash from relative run report path.
    * Bugfix: Need to provide parser with sys listener directory path
+ * v3.94.2
+   * Fix pymongo import WriteResult Error
+   * Clean up old imports

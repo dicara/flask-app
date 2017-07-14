@@ -63,7 +63,7 @@ class UploadFileGetFunction(AbstractGetFunction):
             return (valid_files, [], None)
         except:
             APP_LOGGER.exception(traceback.format_exc())
-            return ({ERROR: str(sys.exc_info()[1])}, [ERROR], None)
+            return ([{ERROR: str(sys.exc_info()[1])}], [ERROR], None)
 
 #===============================================================================
 # Run Main

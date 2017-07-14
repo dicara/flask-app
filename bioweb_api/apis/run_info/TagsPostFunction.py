@@ -49,8 +49,7 @@ class TagsPostFunction(AbstractPostFunction):
 
     @staticmethod
     def notes():
-        return "Add custom tags to a run report. Tags can be sample type, amplicons, " \
-               "barcode library, or user-specified."
+        return "Add custom tags to a run report. Tags are case insensitive."
 
     def response_messages(self):
         msgs = super(TagsPostFunction, self).response_messages()
@@ -92,8 +91,11 @@ class TagsPostFunction(AbstractPostFunction):
         else:
             try:
                 # tags are case insensitive
-                exist_lc_tags = set(t.lower() for t in report[TAGS])
-                new_tags = [t for t in tags if t.lower() not in exist_lc_tags]
+                if TAGS in report:
+                    exist_lc_tags = set(t.lower() for t in report[TAGS])
+                    new_tags = [t for t in tags if t.lower() not in exist_lc_tags]
+                else:
+                    new_tags = tags
 
                 cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
                                  {UUID: report_uuid},

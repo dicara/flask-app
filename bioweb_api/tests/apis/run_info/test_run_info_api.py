@@ -23,17 +23,18 @@ limitations under the License.
 import datetime
 import os
 import unittest
+from uuid import uuid4
 
 from bioweb_api import app, RUN_REPORT_COLLECTION
-from bioweb_api.tests.test_utils import get_data
+from bioweb_api.tests.test_utils import get_data, post_data, delete_data, \
+    add_url_argument
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.apis.run_info.constants import CARTRIDGE_SN, CHIP_SN, \
-    DEVICE_NAME, EXP_DEF_NAME, RUN_ID, \
-    RUN_DESCRIPTION, USER, IMAGE_STACKS, \
+    DEVICE_NAME, EXP_DEF_NAME, RUN_ID, RUN_DESCRIPTION, USER, IMAGE_STACKS, \
     CARTRIDGE_BC, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, \
     APP_TYPE, INTERNAL_PART_NUM, LOT_NUM, MANUFACTURE_DATE, MASTER_LOT, \
     CUSTOMER_APP_NAME
-from bioweb_api.apis.ApiConstants import UUID
+from bioweb_api.apis.ApiConstants import UUID, TAGS
 from bioweb_api.apis.run_info.RunInfoUtils import read_report_file
 
 #===============================================================================
@@ -46,6 +47,7 @@ _RUN_REPORT_YAMLFILE        = 'run_info.yaml'
 _RUN_REPORT_CLIENTUI        = 'run_info_clientUI.yaml'
 _RUN_INFO_URL               = '/api/v1/RunInfo'
 _RUN_INFO_GET_URL           = os.path.join(_RUN_INFO_URL, 'run_report')
+_RUN_INFO_TAG_URL           = os.path.join(_RUN_INFO_URL, 'tags')
 _START_DATE                 = datetime.datetime(2017, 1, 1)
 _END_DATE                   = datetime.datetime(2017, 1, 10)
 
@@ -157,6 +159,36 @@ class TestRunReportAPI(unittest.TestCase):
         msg = "Numebr of observed run reports (%s) doesn't match expected number (%s)." \
                 % (len_observed_reports, len_expected_reports)
         self.assertEqual(len_expected_reports, len_observed_reports, msg)
+
+    def test_tags_api(self):
+        """
+        test TagsGetFunction, TagsDeleteFunction, and TagsPostFunction.
+        """
+        report_uuid = str(uuid4())
+        _DB_CONNECTOR.insert(RUN_REPORT_COLLECTION,
+                             [{UUID: report_uuid, 'name': 'dummy run report'}])
+
+        # test TagsPostFunction, add tags to a run report
+        post_url = _RUN_INFO_TAG_URL
+        post_url = add_url_argument(post_url, UUID, report_uuid, True)
+        post_url = add_url_argument(post_url, TAGS, ','.join(["BRAF e15", "FFPE"]))
+
+        response = post_data(self, post_url, 200)
+
+        # test TagsGetFunction, get tags from all run reports
+        response = get_data(self, _RUN_INFO_TAG_URL, 200)
+        self.assertIn("BRAF e15", response[TAGS])
+
+        # test TagsDeleteFunction, delete a tag from a run report
+        delete_url = _RUN_INFO_TAG_URL
+        delete_url = add_url_argument(delete_url, UUID, report_uuid, True)
+        delete_url = add_url_argument(delete_url, TAGS, "FFPE")
+
+        delete_data(self, delete_url, 200)
+        response = get_data(self, _RUN_INFO_TAG_URL, 200)
+        self.assertIn("BRAF e15", response[TAGS])
+        self.assertNotIn("FFPE", response[TAGS])
+
 
 if __name__ == '__main__':
     unittest.main()

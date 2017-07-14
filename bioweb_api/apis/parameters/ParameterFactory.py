@@ -269,7 +269,7 @@ class ParameterFactory(object):
 
     @classmethod
     def tags(cls, description, required=True):
-        _parameter = cls.cs_string("name", description)
+        _parameter = cls.lc_string("name", description)
         return ListParameter(TAGS, description, _parameter, required=required)
 
     @classmethod

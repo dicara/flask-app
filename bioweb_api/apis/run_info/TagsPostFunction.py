@@ -53,10 +53,6 @@ class TagsPostFunction(AbstractPostFunction):
 
     def response_messages(self):
         msgs = super(TagsPostFunction, self).response_messages()
-        msgs.extend([
-                     { "code": 400,
-                       "message": "Run report uuid is missing or run report does not exist."},
-                    ])
         return msgs
 
     @classmethod
@@ -73,42 +69,25 @@ class TagsPostFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        tags = list()
-        if cls.tags_parameter in params_dict:
-            tags = [t for t in params_dict[cls.tags_parameter] if t]
-
-        report_uuid = None
-        if cls.report_uuid_parameter in params_dict:
-            report_uuid = params_dict[cls.report_uuid_parameter][0]
+        tags = [t for t in params_dict[cls.tags_parameter] if t]
+        report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, TAGS: tags}
 
-        report = cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION,
-                                            UUID, report_uuid)
-        if report_uuid is None or report is None:
-            http_status_code = 400
-        else:
-            try:
-                # tags are case insensitive
-                if TAGS in report:
-                    exist_lc_tags = set(t.lower() for t in report[TAGS])
-                    new_tags = [t for t in tags if t.lower() not in exist_lc_tags]
-                else:
-                    new_tags = tags
+        try:
+            cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                             {UUID: report_uuid},
+                             {'$addToSet': {TAGS: {'$each': tags}}})
+            APP_LOGGER.info("Updated run report uuid=%s with tags %s."
+                            % (report_uuid, tags))
 
-                cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                 {UUID: report_uuid},
-                                 {'$addToSet': {TAGS: {'$each': new_tags}}})
-                APP_LOGGER.info("Updated run report uuid=%s with tags %s."
-                                % (report_uuid, tags))
-
-                json_response[STATUS] = SUCCEEDED
-            except:
-                APP_LOGGER.exception(traceback.format_exc())
-                json_response[STATUS] = FAILED
-                json_response[ERROR] = str(sys.exc_info()[1])
-                http_status_code     = 500
+            json_response[STATUS] = SUCCEEDED
+        except:
+            APP_LOGGER.exception(traceback.format_exc())
+            json_response[STATUS] = FAILED
+            json_response[ERROR] = str(sys.exc_info()[1])
+            http_status_code     = 500
 
         return make_clean_response(json_response, http_status_code)
 

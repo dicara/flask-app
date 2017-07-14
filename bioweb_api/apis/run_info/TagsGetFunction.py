@@ -50,8 +50,7 @@ class TagsGetFunction(AbstractGetFunction):
 
     @classmethod
     def parameters(cls):
-        parameters = []
-        return parameters
+        return []
 
     @classmethod
     def process_request(cls, params_dict):

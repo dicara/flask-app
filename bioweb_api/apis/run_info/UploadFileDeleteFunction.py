@@ -52,10 +52,6 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
 
     def response_messages(self):
         msgs = super(UploadFileDeleteFunction, self).response_messages()
-        msgs.extend([
-                     { "code": 400,
-                       "message": "Run report does not exist."},
-                    ])
         return msgs
 
     @classmethod
@@ -72,33 +68,25 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        dataset = None
-        if cls.dataset_parameter in params_dict:
-            dataset = params_dict[cls.dataset_parameter][0]
-
-        report_uuid = None
-        if cls.report_uuid_parameter in params_dict:
-            report_uuid = params_dict[cls.report_uuid_parameter][0]
+        dataset = params_dict[cls.dataset_parameter][0]
+        report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, HDF5_DATASET: dataset}
 
-        if cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid) is None:
-            http_status_code = 400
-        else:
-            try:
-                cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                         {UUID: report_uuid},
-                                         {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
-                cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
-                                         {HDF5_DATASET: dataset})
-                json_response.update({"unassociate": True})
-                APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
-                                (dataset, report_uuid))
-            except:
-                APP_LOGGER.exception(traceback.format_exc())
-                json_response[ERROR] = str(sys.exc_info()[1])
-                http_status_code     = 500
+        try:
+            cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                     {UUID: report_uuid},
+                                     {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
+            cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
+                                     {HDF5_DATASET: dataset})
+            json_response.update({"unassociate": True})
+            APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
+                            (dataset, report_uuid))
+        except:
+            APP_LOGGER.exception(traceback.format_exc())
+            json_response[ERROR] = str(sys.exc_info()[1])
+            http_status_code     = 500
 
         return json_response, http_status_code
 

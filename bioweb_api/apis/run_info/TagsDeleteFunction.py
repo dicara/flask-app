@@ -52,10 +52,6 @@ class TagsDeleteFunction(AbstractDeleteFunction):
 
     def response_messages(self):
         msgs = super(TagsDeleteFunction, self).response_messages()
-        msgs.extend([
-                     { "code": 400,
-                       "message": "Run report does not exist."},
-                    ])
         return msgs
 
     @classmethod
@@ -72,32 +68,24 @@ class TagsDeleteFunction(AbstractDeleteFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        tag = None
-        if cls.tag_parameter in params_dict:
-            tag = params_dict[cls.tag_parameter][0]
-
-        report_uuid = None
-        if cls.report_uuid_parameter in params_dict:
-            report_uuid = params_dict[cls.report_uuid_parameter][0]
+        tag = params_dict[cls.tag_parameter][0]
+        report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, TAGS: [tag]}
 
-        if cls._DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UUID, report_uuid) is None:
-            http_status_code = 400
-        else:
-            try:
-                cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                         {UUID: report_uuid},
-                                         {'$pull': {TAGS: tag}})
-                json_response[STATUS] = SUCCEEDED
-                APP_LOGGER.info("Removed tag name=%s from run report uuid=%s" %
-                                (tag, report_uuid))
-            except:
-                APP_LOGGER.exception(traceback.format_exc())
-                json_response[ERROR] = str(sys.exc_info()[1])
-                json_response[STATUS] = FAILED
-                http_status_code     = 500
+        try:
+            cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
+                                     {UUID: report_uuid},
+                                     {'$pull': {TAGS: tag}})
+            json_response[STATUS] = SUCCEEDED
+            APP_LOGGER.info("Removed tag name=%s from run report uuid=%s" %
+                            (tag, report_uuid))
+        except:
+            APP_LOGGER.exception(traceback.format_exc())
+            json_response[ERROR] = str(sys.exc_info()[1])
+            json_response[STATUS] = FAILED
+            http_status_code     = 500
 
         return json_response, http_status_code
 

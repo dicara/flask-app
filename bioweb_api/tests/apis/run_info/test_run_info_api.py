@@ -177,17 +177,19 @@ class TestRunReportAPI(unittest.TestCase):
 
         # test TagsGetFunction, get tags from all run reports
         response = get_data(self, _RUN_INFO_TAG_URL, 200)
-        self.assertIn("BRAF e15", response[TAGS])
+        self.assertIn("braf e15", response[TAGS])
 
         # test TagsDeleteFunction, delete a tag from a run report
         delete_url = _RUN_INFO_TAG_URL
         delete_url = add_url_argument(delete_url, UUID, report_uuid, True)
-        delete_url = add_url_argument(delete_url, TAGS, "FFPE")
+        delete_url = add_url_argument(delete_url, TAGS, "ffpe")
 
         delete_data(self, delete_url, 200)
         response = get_data(self, _RUN_INFO_TAG_URL, 200)
-        self.assertIn("BRAF e15", response[TAGS])
-        self.assertNotIn("FFPE", response[TAGS])
+        self.assertIn("braf e15", response[TAGS])
+        self.assertNotIn("ffpe", response[TAGS])
+
+        _DB_CONNECTOR.remove(RUN_REPORT_COLLECTION, {UUID: report_uuid})
 
 
 if __name__ == '__main__':

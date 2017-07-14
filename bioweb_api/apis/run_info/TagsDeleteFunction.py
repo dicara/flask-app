@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Yuewei Sheng
-@date:   April 5th, 2017
+@date:   July 13th, 2017
 '''
 
 #=============================================================================
@@ -26,41 +26,41 @@ import traceback
 from bioweb_api.apis.AbstractDeleteFunction import AbstractDeleteFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import UPLOAD_FILE, RUN_REPORT_UUID, \
-    ERROR, HDF5_DATASET, UUID, IMAGE_STACKS
-from bioweb_api import HDF5_COLLECTION, RUN_REPORT_COLLECTION
+from bioweb_api.apis.ApiConstants import RUN_REPORT_UUID, ERROR, UUID, TAGS, STATUS, \
+    SUCCEEDED, FAILED
+from bioweb_api import RUN_REPORT_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class UploadFileDeleteFunction(AbstractDeleteFunction):
+class TagsDeleteFunction(AbstractDeleteFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return UPLOAD_FILE
+        return TAGS
 
     @staticmethod
     def summary():
-        return "Unassociate a HDF5/image stack file."
+        return "Remove a tag from a run report."
 
     @staticmethod
     def notes():
-        return "Unassociate a HDF5/image stack file from a run report."
+        return "Remove a tag from a run report document."
 
     def response_messages(self):
-        msgs = super(UploadFileDeleteFunction, self).response_messages()
+        msgs = super(TagsDeleteFunction, self).response_messages()
         return msgs
 
     @classmethod
     def parameters(cls):
-        cls.dataset_parameter = ParameterFactory.pa_data_source()
+        cls.tag_parameter = ParameterFactory.tags("Run report tags.")
         cls.report_uuid_parameter = ParameterFactory.uuid(allow_multiple=False)
 
         parameters = [
-                      cls.dataset_parameter,
+                      cls.tag_parameter,
                       cls.report_uuid_parameter,
                       ParameterFactory.format(),
                      ]
@@ -68,24 +68,23 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        dataset = params_dict[cls.dataset_parameter][0]
+        tag = params_dict[cls.tag_parameter][0]
         report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
-        json_response = {RUN_REPORT_UUID: report_uuid, HDF5_DATASET: dataset}
+        json_response = {RUN_REPORT_UUID: report_uuid, TAGS: [tag]}
 
         try:
             cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
                                      {UUID: report_uuid},
-                                     {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
-            cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
-                                     {HDF5_DATASET: dataset})
-            json_response.update({"unassociate": True})
-            APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
-                            (dataset, report_uuid))
+                                     {'$pull': {TAGS: tag}})
+            json_response[STATUS] = SUCCEEDED
+            APP_LOGGER.info("Removed tag name=%s from run report uuid=%s" %
+                            (tag, report_uuid))
         except:
             APP_LOGGER.exception(traceback.format_exc())
             json_response[ERROR] = str(sys.exc_info()[1])
+            json_response[STATUS] = FAILED
             http_status_code     = 500
 
         return json_response, http_status_code
@@ -94,5 +93,5 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = UploadFileDeleteFunction()
+    function = TagsDeleteFunction()
     print function

@@ -24,6 +24,7 @@ from bioweb_api import MAX_WORKERS
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 import threading
+import time
 
 #===============================================================================
 # Class
@@ -34,7 +35,7 @@ class ExecutionManager(object):
     """
     _INSTANCE  = None
     # List of futures for submitted jobs.
-    _JOB_QUEUE = {} 
+    _JOB_QUEUE = {}
 
     #===========================================================================
     # Constructor
@@ -98,13 +99,13 @@ class ExecutionManager(object):
         Is this job done running.
         """
         return self._get_future(uuid).done()
-    
+
     def running(self, uuid):
         """
         Is this job running.
         """
         return self._get_future(uuid).running()
-    
+
     def result(self, uuid):
         """
         :raise exception: If run raised exception.
@@ -113,7 +114,7 @@ class ExecutionManager(object):
         if future.running():
             return None
         return future.result()
-    
+
     def cancel(self, uuid):
         """
         Cancel job.
@@ -122,13 +123,13 @@ class ExecutionManager(object):
             return False
         else:
             return self._get_future(uuid).cancel()
-    
+
     def _get_future(self, uuid):
         return self._JOB_QUEUE[uuid]
-    
+
 #===========================================================================
 # Ensure the initial instance is created.
-#===========================================================================    
+#===========================================================================
 ExecutionManager.Instance()
 
 #===============================================================================
@@ -139,7 +140,7 @@ class my_add(object):
         self.x = x
         self.y = y
         self.z = z
-        
+
     def __call__(self):
         time.sleep(2)
         return self.x+self.y+self.z
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     import time
 
     em = ExecutionManager.Instance()
-        
+
     uuid = str(uuid4())
     em.add_job(uuid, my_add(1,2,3), None)
     print em.result(uuid)

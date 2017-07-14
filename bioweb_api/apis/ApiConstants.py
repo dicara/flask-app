@@ -221,6 +221,7 @@ STRICT           = "strict"
 SUBMIT_DATESTAMP = "submit_datestamp"
 SUBMITTED        = 'submitted'
 SUCCEEDED        = 'succeeded'
+TAGS             = 'tags'
 TARGETS          = "targets"
 TEMPORAL_PLOT_URL = 'temporal_plot_url'
 TOTAL_VOL        = "total_vol"

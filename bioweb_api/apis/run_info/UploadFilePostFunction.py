@@ -80,13 +80,8 @@ class UploadFilePostFunction(AbstractPostFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        filenames = list()
-        if cls.filenames_parameter in params_dict:
-            filenames = params_dict[cls.filenames_parameter]
-
-        report_uuid = None
-        if cls.report_uuid_parameter in params_dict:
-            report_uuid = params_dict[cls.report_uuid_parameter][0]
+        filenames = params_dict[cls.filenames_parameter]
+        report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
         json_response = {RUN_REPORT_UUID: report_uuid, FILENAMES: filenames}

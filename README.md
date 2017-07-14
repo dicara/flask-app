@@ -989,3 +989,5 @@ GnuBio Flask API.
  * v3.94.2
    * Fix pymongo import WriteResult Error
    * Clean up old imports
+ * 3.95.0
+   * Add new API for adding tags to run reports

@@ -25,6 +25,9 @@ from bioweb_api.apis.run_info.RunInfoGetFunction import RunInfoGetFunction
 from bioweb_api.apis.run_info.UploadFilePostFunction import UploadFilePostFunction
 from bioweb_api.apis.run_info.UploadFileGetFunction import UploadFileGetFunction
 from bioweb_api.apis.run_info.UploadFileDeleteFunction import UploadFileDeleteFunction
+from bioweb_api.apis.run_info.TagsPostFunction import TagsPostFunction
+from bioweb_api.apis.run_info.TagsDeleteFunction import TagsDeleteFunction
+from bioweb_api.apis.run_info.TagsGetFunction import TagsGetFunction
 
 #=============================================================================
 # Class
@@ -36,6 +39,9 @@ class RunInfoAPIV1(AbstractApiV1):
                   UploadFilePostFunction(),
                   UploadFileGetFunction(),
                   UploadFileDeleteFunction(),
+                  TagsPostFunction(),
+                  TagsDeleteFunction(),
+                  TagsGetFunction(),
                  ]
 
     @staticmethod

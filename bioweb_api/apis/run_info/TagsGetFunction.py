@@ -20,47 +20,45 @@ limitations under the License.
 #=============================================================================
 # Imports
 #=============================================================================
-import os
 import sys
 import traceback
 
 from bioweb_api.apis.AbstractGetFunction import AbstractGetFunction
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import UPLOAD_FILE, ERROR
-from bioweb_api import MODIFIED_ARCHIVES_PATH
-from bioweb_api.apis.run_info.RunInfoUtils import allowed_file
+from bioweb_api.apis.ApiConstants import ERROR, TAGS
+from bioweb_api import RUN_REPORT_COLLECTION
 
 #=============================================================================
 # Class
 #=============================================================================
-class UploadFileGetFunction(AbstractGetFunction):
+class TagsGetFunction(AbstractGetFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return UPLOAD_FILE
+        return TAGS
 
     @staticmethod
     def summary():
-        return "Get modified HDF5 files."
+        return "Get existing run report tags."
 
     @staticmethod
     def notes():
-        return "Get available HDF5 files in archive location."
+        return "Get existing run report tags stored in database."
 
     @classmethod
     def parameters(cls):
-        parameters = []
-        return parameters
+        return []
 
     @classmethod
     def process_request(cls, params_dict):
         try:
-            valid_files = [fp for fp in os.listdir(MODIFIED_ARCHIVES_PATH)
-                           if allowed_file(os.path.join(MODIFIED_ARCHIVES_PATH, fp))]
-            return (valid_files, [], None)
+            reports = cls._DB_CONNECTOR.find(RUN_REPORT_COLLECTION,
+                                             {TAGS: {'$exists': True}})
+            user_tags = set(t for r in reports for t in r[TAGS])
+            return (list(user_tags), [], None)
         except:
             APP_LOGGER.exception(traceback.format_exc())
             return ([{ERROR: str(sys.exc_info()[1])}], [ERROR], None)
@@ -69,5 +67,5 @@ class UploadFileGetFunction(AbstractGetFunction):
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = UploadFileGetFunction()
+    function = TagsGetFunction()
     print function

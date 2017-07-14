@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Yuewei Sheng
-@date:   April 5th, 2017
+@date:   July 12th, 2017
 '''
 
 #=============================================================================
@@ -23,44 +23,45 @@ limitations under the License.
 import sys
 import traceback
 
-from bioweb_api.apis.AbstractDeleteFunction import AbstractDeleteFunction
+from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
-from bioweb_api.apis.ApiConstants import UPLOAD_FILE, RUN_REPORT_UUID, \
-    ERROR, HDF5_DATASET, UUID, IMAGE_STACKS
-from bioweb_api import HDF5_COLLECTION, RUN_REPORT_COLLECTION
+from bioweb_api.apis.ApiConstants import RUN_REPORT_UUID, ERROR, UUID, TAGS, \
+    STATUS, SUCCEEDED, FAILED
+from bioweb_api import RUN_REPORT_COLLECTION
+from bioweb_api.utilities.io_utilities import make_clean_response
 
 #=============================================================================
 # Class
 #=============================================================================
-class UploadFileDeleteFunction(AbstractDeleteFunction):
+class TagsPostFunction(AbstractPostFunction):
 
     #===========================================================================
     # Overridden Methods
     #===========================================================================
     @staticmethod
     def name():
-        return UPLOAD_FILE
+        return TAGS
 
     @staticmethod
     def summary():
-        return "Unassociate a HDF5/image stack file."
+        return "Add tags to a run report."
 
     @staticmethod
     def notes():
-        return "Unassociate a HDF5/image stack file from a run report."
+        return "Add custom tags to a run report. Tags are case insensitive."
 
     def response_messages(self):
-        msgs = super(UploadFileDeleteFunction, self).response_messages()
+        msgs = super(TagsPostFunction, self).response_messages()
         return msgs
 
     @classmethod
     def parameters(cls):
-        cls.dataset_parameter = ParameterFactory.pa_data_source()
+        cls.tags_parameter = ParameterFactory.tags("Run report tags.")
         cls.report_uuid_parameter = ParameterFactory.uuid(allow_multiple=False)
 
         parameters = [
-                      cls.dataset_parameter,
+                      cls.tags_parameter,
                       cls.report_uuid_parameter,
                       ParameterFactory.format(),
                      ]
@@ -68,31 +69,31 @@ class UploadFileDeleteFunction(AbstractDeleteFunction):
 
     @classmethod
     def process_request(cls, params_dict):
-        dataset = params_dict[cls.dataset_parameter][0]
+        tags = [t for t in params_dict[cls.tags_parameter] if t]
         report_uuid = params_dict[cls.report_uuid_parameter][0]
 
         http_status_code = 200
-        json_response = {RUN_REPORT_UUID: report_uuid, HDF5_DATASET: dataset}
+        json_response = {RUN_REPORT_UUID: report_uuid, TAGS: tags}
 
         try:
             cls._DB_CONNECTOR.update(RUN_REPORT_COLLECTION,
-                                     {UUID: report_uuid},
-                                     {'$pull': {IMAGE_STACKS: {'name': dataset, 'upload': True}}})
-            cls._DB_CONNECTOR.remove(HDF5_COLLECTION,
-                                     {HDF5_DATASET: dataset})
-            json_response.update({"unassociate": True})
-            APP_LOGGER.info("Removed dataset name=%s from run report uuid=%s" %
-                            (dataset, report_uuid))
+                             {UUID: report_uuid},
+                             {'$addToSet': {TAGS: {'$each': tags}}})
+            APP_LOGGER.info("Updated run report uuid=%s with tags %s."
+                            % (report_uuid, tags))
+
+            json_response[STATUS] = SUCCEEDED
         except:
             APP_LOGGER.exception(traceback.format_exc())
+            json_response[STATUS] = FAILED
             json_response[ERROR] = str(sys.exc_info()[1])
             http_status_code     = 500
 
-        return json_response, http_status_code
+        return make_clean_response(json_response, http_status_code)
 
 #===============================================================================
 # Run Main
 #===============================================================================
 if __name__ == "__main__":
-    function = UploadFileDeleteFunction()
+    function = TagsPostFunction()
     print function

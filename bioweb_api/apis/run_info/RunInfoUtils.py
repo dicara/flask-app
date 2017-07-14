@@ -32,7 +32,7 @@ from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
     HDF5_COLLECTION, ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, \
     ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS, \
-    ARCHIVE_PATH
+    ARCHIVE_PATH, TAGS
 from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     RUN_DESCRIPTION_TXT, USER_TXT, RUN_REPORT_TXTFILE, RUN_REPORT_YAMLFILE, \
     TDI_STACKS_TXT, DEVICE_NAME, EXP_DEF_NAME, USER, IMAGE_STACKS, \
@@ -40,7 +40,7 @@ from bioweb_api.apis.run_info.constants import DATETIME, EXIT_NOTES_TXT, \
     CARTRIDGE_SN_OLD, RUN_ID, CARTRIDGE_BC, EXPERIMENT_CONFIGS, PICO1_DYE, \
     DIR_PATH
 from bioweb_api.apis.run_info.model.run_report import (
-    RunReportWebUI, 
+    RunReportWebUI,
     RunReportClientUI,
 )
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -75,6 +75,7 @@ def get_run_reports(cartridge_sn=None):
     columns[IMAGE_STACKS]       = 1
     columns[PICO1_DYE]          = 1
     columns[EXPERIMENT_CONFIGS] = 1
+    columns[TAGS]               = 1
 
     column_names = columns.keys()
     column_names.remove(ID)

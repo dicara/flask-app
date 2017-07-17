@@ -24,6 +24,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 import os
 import re
+import traceback
 import yaml
 
 import h5py
@@ -159,8 +160,9 @@ def read_report_file_txt(report_file, date_obj, utag):
                     continue
         report_obj = RunReportWebUI.from_dict(**data)
         return report_obj.as_dict()
-    except IOError as e:
-        APP_LOGGER.error("IOError raised: %s" % e)
+    except:
+        APP_LOGGER.error("Error raised for report %s: %s"
+                         % (report_file, traceback.format_exc()))
         return None
 
 def read_report_file_yaml(report_file, date_obj, utag):
@@ -189,8 +191,9 @@ def read_report_file_yaml(report_file, date_obj, utag):
         else:
             report_obj = RunReportClientUI.from_dict(**data)
         return report_obj.as_dict()
-    except Exception as e:
-        APP_LOGGER.error("Error raised for report %s: %s" % (report_file, e))
+    except:
+        APP_LOGGER.error("Error raised for report %s: %s"
+                         % (report_file, traceback.format_exc()))
         return None
 
 def read_report_file(report_file, date_obj, utag):

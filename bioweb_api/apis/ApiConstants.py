@@ -93,6 +93,7 @@ PARAMETER_TYPES = PARAMETER_TYPES_TUPLE(*PARAMETER_TYPES_TUPLE._fields)
 #=============================================================================
 ABSORB           = "absorb"
 AC_DOCUMENT      = 'ac_document'
+API_VERSION      = 'api_version'
 ARCHIVE          = "archive"
 ARCHIVE_PATH     = "archive_path"
 ARCHIVES         = "archives"

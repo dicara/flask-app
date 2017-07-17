@@ -33,7 +33,7 @@ import numpy
 from uuid import uuid4
 
 from bioweb_api.utilities.io_utilities import make_clean_response
-from bioweb_api.utilities.logging_utilities import APP_LOGGER
+from bioweb_api.utilities.logging_utilities import APP_LOGGER, VERSION
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file, get_results_folder, \
@@ -42,7 +42,7 @@ from bioweb_api import PA_PROCESS_COLLECTION
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
-    OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5
+    OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5, API_VERSION
 
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
     parse_pa_data_src, get_hdf5_dataset_path, get_archive_path
@@ -249,7 +249,8 @@ class PaProcessCallable(object):
                              STATUS: JOB_STATUS.submitted, # @UndefinedVariable
                              JOB_NAME: job_name,
                              JOB_TYPE_NAME: JOB_TYPE.pa_process, # @UndefinedVariable
-                             SUBMIT_DATESTAMP: datetime.today()}
+                             SUBMIT_DATESTAMP: datetime.today(),
+                             API_VERSION: VERSION}
 
         self.db_connector.insert(PA_PROCESS_COLLECTION, [self.document])
 

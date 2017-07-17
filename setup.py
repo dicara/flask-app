@@ -23,8 +23,6 @@ limitations under the License.
 import os
 from setuptools import setup, find_packages
 
-from bioweb_api.version import __version__
-
 #===============================================================================
 # Private global variables
 #===============================================================================
@@ -36,7 +34,7 @@ _LONG_DESCRIPTION = open(_README).read()
 #===============================================================================
 setup(
       name             = 'bioweb-api',
-      version          = __version__,
+      version          = '3.96.0',
       author           = 'Dan DiCara',
       author_email     = 'ddicara@gnubio.com',
       entry_points     = {'console_scripts': [

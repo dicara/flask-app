@@ -20,6 +20,7 @@ limitations under the License.
 # Imports
 #===============================================================================
 import logging
+import pkg_resources
 
 #===============================================================================
 # Public global variables
@@ -27,6 +28,8 @@ import logging
 ACCESS_LOGGER  = logging.getLogger("tornado.access")
 APP_LOGGER     = logging.getLogger("tornado.application")
 GENERAL_LOGGER = logging.getLogger("tornado.general")
+
+VERSION        = pkg_resources.get_distribution('bioweb-api').version
 
 #===============================================================================
 # Utility Methods

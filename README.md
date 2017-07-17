@@ -992,6 +992,6 @@ GnuBio Flask API.
  * 3.95.0
    * Add new API for adding tags to run reports
  * 3.96.0
-   * Put package version in separate file
    * Add API version to analysis MongoDB document
    * Add parsing run report error traceback to log
+   * Bugfix in setting report directory

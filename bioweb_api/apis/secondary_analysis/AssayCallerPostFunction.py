@@ -33,12 +33,11 @@ from datetime import datetime
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
-from bioweb_api.utilities.logging_utilities import APP_LOGGER
+from bioweb_api.utilities.logging_utilities import APP_LOGGER, VERSION
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, \
     FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
 from bioweb_api import TMP_PATH
-from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -281,7 +280,7 @@ class SaAssayCallerCallable(object):
                         CTRL_FILTER: ctrl_filter,
                         AC_METHOD: ac_method,
                         AC_MODEL: ac_model,
-                        API_VERSION: __version__,
+                        API_VERSION: VERSION,
                        }
         if job_name in self.db_connector.distinct(SA_ASSAY_CALLER_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in assay caller collection' % job_name)

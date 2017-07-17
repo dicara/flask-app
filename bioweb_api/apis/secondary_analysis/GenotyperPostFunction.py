@@ -33,7 +33,6 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_GENOTYPER_COLLECTION, SA_ASSAY_CALLER_COLLECTION, \
     SA_IDENTITY_COLLECTION, TMP_PATH
-from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
@@ -43,7 +42,7 @@ from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     KDE_PNG_SUM_URL, KDE_PNG_URL, API_VERSION
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
-from bioweb_api.utilities.logging_utilities import APP_LOGGER
+from bioweb_api.utilities.logging_utilities import APP_LOGGER, VERSION
 
 from gbutils.exp_def.exp_def_handler import ExpDefHandler
 from primary_analysis.command import InvalidFileError
@@ -207,7 +206,7 @@ class SaGenotyperCallable(object):
                         JOB_TYPE_NAME: JOB_TYPE.sa_genotyping, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
                         VARIANT_MASK: self.mask_code,
-                        API_VERSION: __version__,
+                        API_VERSION: VERSION,
                        }
 
         if job_name in self.db_connector.distinct(SA_GENOTYPER_COLLECTION, JOB_NAME):

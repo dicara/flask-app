@@ -33,13 +33,14 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_EXPLORATORY_COLLECTION, SA_ASSAY_CALLER_COLLECTION, \
     SA_IDENTITY_COLLECTION, TMP_PATH
+from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import JOB_NAME, UUID, ERROR, ID, \
     RESULT, EXP_DEF_NAME, SA_ASSAY_CALLER_UUID, SUBMIT_DATESTAMP,\
     SA_IDENTITY_UUID, IGNORED_DYES, FILTERED_DYES, REQUIRED_DROPS, \
     JOB_NAME_DESC, START_DATESTAMP, FINISH_DATESTAMP, URL, JOB_STATUS, \
     STATUS, JOB_TYPE, JOB_TYPE_NAME, PNG, PNG_URL, PNG_SUM, \
     PNG_SUM_URL, REQ_DROPS_DESCRIPTION, KDE_PNG, KDE_PNG_SUM, \
-    KDE_PNG_SUM_URL, KDE_PNG_URL, PDF
+    KDE_PNG_SUM_URL, KDE_PNG_URL, PDF, API_VERSION
 from bioweb_api.utilities.io_utilities import make_clean_response, \
     silently_remove_file, safe_make_dirs, get_results_folder, get_results_url
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
@@ -213,6 +214,7 @@ class SaExploratoryCallable(object):
                         JOB_NAME: job_name,
                         JOB_TYPE_NAME: JOB_TYPE.sa_genotyping, # @UndefinedVariable
                         SUBMIT_DATESTAMP: datetime.today(),
+                        API_VERSION: __version__,
                        }
 
         if job_name in self.db_connector.distinct(SA_EXPLORATORY_COLLECTION, JOB_NAME):

@@ -36,6 +36,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, TMP_PATH
+from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, CONFIG, \
     ERROR, PA_PROCESS_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -46,7 +47,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER, DEV_MODE, \
     DEFAULT_DEV_MODE, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
-    DEFAULT_IGNORE_LOWEST_BARCODE, USE_PICO2_FILTER
+    DEFAULT_IGNORE_LOWEST_BARCODE, USE_PICO2_FILTER, API_VERSION
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, UNINJECTED_THRESHOLD, \
     UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX
@@ -375,7 +376,8 @@ class SaIdentityCallable(object):
                         CONTINUOUS_PHASE: use_pico_thresh,
                         IGNORE_LOWEST_BARCODE: ignore_lowest_barcode,
                         DEV_MODE: dev_mode,
-                        DRIFT_COMPENSATE: drift_compensate
+                        DRIFT_COMPENSATE: drift_compensate,
+                        API_VERSION: __version__,
                        }
         if job_name in self.db_connector.distinct(SA_IDENTITY_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in identity collection' % job_name)

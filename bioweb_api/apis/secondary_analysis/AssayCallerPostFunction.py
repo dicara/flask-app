@@ -38,6 +38,7 @@ from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, \
     FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
 from bioweb_api import TMP_PATH
+from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
     ERROR, SA_IDENTITY_UUID, SUBMIT_DATESTAMP, NUM_PROBES, TRAINING_FACTOR, \
@@ -46,7 +47,7 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     CTRL_THRESH_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, AC_METHOD, \
     AC_METHOD_DESCRIPTION, PICO1_DYE, DYES_SCATTER_PLOT, \
     DYES_SCATTER_PLOT_URL, AC_MODEL, AC_MODEL_DESCRIPTION, ARCHIVE, \
-    IMAGE_STACKS, ID_DOCUMENT
+    IMAGE_STACKS, ID_DOCUMENT, API_VERSION
 from bioweb_api.apis.run_info.constants import DIR_PATH
 
 from primary_analysis.command import InvalidFileError
@@ -58,9 +59,9 @@ from secondary_analysis.assay_calling.assay_caller_plotting import generate_dye_
 from secondary_analysis.assay_calling.classifier_utils import available_models, \
     MODEL_FILES
 from secondary_analysis.parsers.system_listener_parser import (
-    ChannelOffsetTopicParser, 
-    ClampTempTopicParser, 
-    DynamicAlignStepsParser, 
+    ChannelOffsetTopicParser,
+    ClampTempTopicParser,
+    DynamicAlignStepsParser,
     OldChannelOffsetTopicParser,
     SystemListenerParser,
 )
@@ -280,6 +281,7 @@ class SaAssayCallerCallable(object):
                         CTRL_FILTER: ctrl_filter,
                         AC_METHOD: ac_method,
                         AC_MODEL: ac_model,
+                        API_VERSION: __version__,
                        }
         if job_name in self.db_connector.distinct(SA_ASSAY_CALLER_COLLECTION, JOB_NAME):
             raise Exception('Job name %s already exists in assay caller collection' % job_name)
@@ -312,9 +314,9 @@ class SaAssayCallerCallable(object):
                     old_channel_offset_tp = OldChannelOffsetTopicParser()
                     channel_offset_tp = ChannelOffsetTopicParser()
                     dyn_align_steps_tp = DynamicAlignStepsParser()
-                    topic_parsers = [clamp_temp_tp, old_channel_offset_tp, 
+                    topic_parsers = [clamp_temp_tp, old_channel_offset_tp,
                         channel_offset_tp, dyn_align_steps_tp]
-                    sys_listener_parser = SystemListenerParser(sys_listener_dir, 
+                    sys_listener_parser = SystemListenerParser(sys_listener_dir,
                         topic_parsers=topic_parsers)
                     temps = sys_listener_parser.get_topic_results(clamp_temp_tp.topic)
                     dyn_align_offsets = sys_listener_parser.get_topic_results(channel_offset_tp.topic)
@@ -327,7 +329,7 @@ class SaAssayCallerCallable(object):
 
                 generate_dye_scatterplots(analysis_df, dyes,
                     self.tmp_dyes_plot_path, self.job_name, self.pico1_dye,
-                    dyn_align_offsets=dyn_align_offsets, temps=temps, 
+                    dyn_align_offsets=dyn_align_offsets, temps=temps,
                     steps=steps)
                 shutil.copy(self.tmp_dyes_plot_path, self.dyes_plot_path)
                 APP_LOGGER.info("Dyes scatter plot generated for %s." % \
@@ -383,9 +385,9 @@ class SaAssayCallerCallable(object):
         """
         Return system listener path if found, otherwise return None.
         """
-        full_analysis_doc = self.db_connector.find_one(FA_PROCESS_COLLECTION, 
+        full_analysis_doc = self.db_connector.find_one(FA_PROCESS_COLLECTION,
             '.'.join([ID_DOCUMENT, UUID]), self.document[SA_IDENTITY_UUID])
-        if full_analysis_doc is None: 
+        if full_analysis_doc is None:
             return None
 
         run_report = self.db_connector.find_one(RUN_REPORT_COLLECTION,

@@ -9,6 +9,7 @@ from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api import FA_PROCESS_COLLECTION, SA_GENOTYPER_COLLECTION, \
     SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, PA_PROCESS_COLLECTION, \
     SA_EXPLORATORY_COLLECTION
+from bioweb_api.version import __version__
 from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP, \
     MAJOR, MINOR, USE_IID, DYES, DEVICE, ARCHIVE, UUID, JOB_NAME, \
     OFFSETS, NUM_PROBES, ID_TRAINING_FACTOR, DYE_LEVELS, IGNORED_DYES, FILTERED_DYES, \
@@ -22,7 +23,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_METHOD, PICO1_DYE, USE_PICO1_FILTER, \
     HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID, \
     AC_MODEL, DYES_SCATTER_PLOT_URL, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
-    USE_PICO2_FILTER
+    USE_PICO2_FILTER, API_VERSION
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
@@ -62,7 +63,8 @@ class FullAnalysisWorkFlowCallable(object):
             SUBMIT_DATESTAMP:   datetime.today(),
             ARCHIVE:            parameters[ARCHIVE],
             IS_HDF5:            parameters[IS_HDF5],
-            EXP_DEF:            parameters[EXP_DEF]
+            EXP_DEF:            parameters[EXP_DEF],
+            API_VERSION:        __version__,
         }
 
         self.uuid_container = [None]

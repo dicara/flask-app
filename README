@@ -995,3 +995,4 @@ GnuBio Flask API.
    * Put package version in separate file
    * Add API version to analysis MongoDB document
    * Add parsing run report error traceback to log
+   * Bugfix in setting report directory

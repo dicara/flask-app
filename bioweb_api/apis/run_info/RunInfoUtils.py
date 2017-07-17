@@ -231,6 +231,8 @@ def get_hdf5_datasets(log_data, data_folder):
     @param log_data:            the document of run report yaml
     @param date_folder:         folder where data is located
     """
+    if log_data is None or RUN_ID not in log_data: return set()
+
     run_id = log_data[RUN_ID]
     hdf5_paths = [os.path.join(data_folder, f + '.h5')
                   for f in [run_id, run_id + '-baseline']
@@ -354,9 +356,8 @@ def update_run_reports(date_folders=None):
                         # find HDF5 datasets and add them to HDF5 collection
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
-
-                    log_data[DIR_PATH] = os.path.dirname(report_file_path)
-                    log_data[DIR_PATH].lstrip(os.path.join(RUN_REPORT_PATH, ''))
+                    # add report direcotry path
+                    log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(RUN_REPORT_PATH, ''))
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
@@ -370,8 +371,8 @@ def update_run_reports(date_folders=None):
                         if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
                                                    for x in ['pilot', 'beta']):
                             continue
-                        log_data[DIR_PATH] = os.path.dirname(report_file_path)
-                        log_data[DIR_PATH].lstrip(os.path.join(RUN_REPORT_PATH, ''))
+                        # add report direcotry path
+                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(RUN_REPORT_PATH, ''))
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 

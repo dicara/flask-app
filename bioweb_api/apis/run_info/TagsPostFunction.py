@@ -51,10 +51,6 @@ class TagsPostFunction(AbstractPostFunction):
     def notes():
         return "Add custom tags to a run report. Tags are case insensitive."
 
-    def response_messages(self):
-        msgs = super(TagsPostFunction, self).response_messages()
-        return msgs
-
     @classmethod
     def parameters(cls):
         cls.tags_parameter = ParameterFactory.tags("Run report tags.")

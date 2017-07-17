@@ -50,10 +50,6 @@ class TagsDeleteFunction(AbstractDeleteFunction):
     def notes():
         return "Remove a tag from a run report document."
 
-    def response_messages(self):
-        msgs = super(TagsDeleteFunction, self).response_messages()
-        return msgs
-
     @classmethod
     def parameters(cls):
         cls.tag_parameter = ParameterFactory.tags("Run report tags.")

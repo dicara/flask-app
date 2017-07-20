@@ -71,12 +71,12 @@ io_utilities.safe_make_dirs(TMP_PATH)
 # Test
 #===============================================================================
 class TestPrimaryAnalysisAPI(unittest.TestCase):
-    
+
     def setUp(self):
         self._client = app.test_client(self)
         get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
         get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
-        
+
     def test_dyes(self):
         response = get_data(self, _DYES_URL + '?refresh=true&format=json', 200)
         dyes     = read_yaml(os.path.join(_TEST_DIR, 'dyes.yaml'))
@@ -166,16 +166,16 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
     def test_process(self):
         # Test run details
         archive  = '20140715_b8_633pe_6'
-         
+
         # Construct url
         url = self.construct_process_url(archive)
-         
+
         # Submit process job
         response     = post_data(self, url, 200)
         process_uuid = response[_PROCESS][0][UUID]
-        
+
         # Test that submitting two jobs with the same name fails and returns
-        # the appropriate error code. 
+        # the appropriate error code.
         post_data(self, url, 403)
 
         running = True
@@ -186,7 +186,7 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
                 if process_uuid == job[UUID]:
                     job_details = job
                     running     = job_details[_STATUS] == 'running'
-         
+
         # Copy result files to cwd for bamboo to ingest as artifacts
         analysis_txt_path = None
         if _RESULT in job_details:
@@ -199,33 +199,33 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
             config_path = job_details[_CONFIG]
             if os.path.isfile(config_path):
                 shutil.copy(config_path, "observed.cfg")
-         
+
         error = ""
         if 'error' in job_details:
             error = job_details['error']
         msg = "Expected pa process job status succeeded, but found %s. " \
               "Error: %s" % (job_details[_STATUS], error)
         self.assertEquals(job_details[_STATUS], "succeeded", msg)
-         
+
         exp_analysis_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_ANALYSIS_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
               (analysis_txt_path, exp_analysis_path)
         self.assertTrue(filecmp.cmp(exp_analysis_path, analysis_txt_path), msg)
- 
+
         exp_config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), _EXPECTED_CONFIG_RESULT)
         msg = "Observed result (%s) doesn't match expected result (%s)." % \
               (config_path, exp_config_path)
         self.assertTrue(filecmp.cmp(exp_config_path, config_path), msg)
- 
+
         # Delete absorption job
         delete_data(self, _PROCESS_URL + "?uuid=%s" % process_uuid, 200)
-          
+
         # Ensure job no longer exists in the database
         response = get_data(self, _PROCESS_URL, 200)
         for job in response['Process']:
             msg = "PA process job %s still exists in database." % process_uuid
             self.assertNotEqual(process_uuid, job[UUID], msg)
-             
+
     @staticmethod
     def construct_process_url(archive, job_name=_JOB_NAME):
         url  = _PROCESS_URL

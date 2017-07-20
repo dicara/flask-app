@@ -30,7 +30,7 @@ import yaml
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, HDF5_COLLECTION, \
-    ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION, ALTERNATE_ARCHIVES_PATH
+    ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION, RUN_REPORT_PATH
 from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, \
     ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS, \
     ARCHIVE_PATH, TAGS
@@ -313,104 +313,95 @@ def update_run_reports(date_folders=None):
     # fetch utags from run report collection
     db_utags = _DB_CONNECTOR.distinct(RUN_REPORT_COLLECTION, UTAG)
 
-    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
-        run_report_path = os.path.join(disk_path, 'run_reports')
-        updated = False
-        if os.path.isdir(run_report_path):
-            updated = True
-            if date_folders is None:
-                try:
-                    latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
-                except TypeError:
-                    latest_date = None
+    if os.path.isdir(RUN_REPORT_PATH):
+        if date_folders is None:
+            try:
+                latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
+            except TypeError:
+                latest_date = datetime.now()
 
-                def valid_date(folder):
-                    if latest_date is None: return True
-                    date_obj = get_date_object(folder)
-                    return date_obj >= latest_date - timedelta(days=6)
+            def valid_date(folder):
+                date_obj = get_date_object(folder)
+                return date_obj >= latest_date - timedelta(days=6)
 
-                date_folders = [folder for folder in os.listdir(run_report_path)
-                                if re.match('\d{2}_\d{2}_\d{2}', folder) and valid_date(folder)]
+            date_folders = [folder for folder in os.listdir(RUN_REPORT_PATH)
+                            if re.match('\d{2}_\d{2}_\d{2}', folder) and valid_date(folder)]
 
-                # New file location
-                new_date_folders = get_date_folders(disk_path)
-                date_folders.extend(f for f in new_date_folders if valid_date(f))
+            # New file location
+            new_date_folders = get_date_folders()
+            date_folders.extend(f for f in new_date_folders if valid_date(f))
 
-            date_folders = [os.path.join(run_report_path, f) for f in date_folders]
-            date_folders = [f for f in date_folders if os.path.isdir(f)]
+        date_folders = [os.path.join(RUN_REPORT_PATH, f) for f in date_folders]
+        date_folders = [f for f in date_folders if os.path.isdir(f)]
 
-            reports = list()
-            for folder in date_folders:
-                for sf in os.listdir(folder):
-                    report_file_path = get_run_info_path(folder, sf)
-                    if report_file_path is None: continue
+        reports = list()
+        for folder in date_folders:
+            for sf in os.listdir(folder):
+                report_file_path = get_run_info_path(folder, sf)
+                if report_file_path is None: continue
 
-                    date_obj = get_date_object(folder)
-                    data_folder = os.path.join(run_report_path, folder, sf)
+                date_obj = get_date_object(folder)
+                data_folder = os.path.join(RUN_REPORT_PATH, folder, sf)
 
-                    utag = set_utag(date_obj, sf)
-                    if utag not in db_utags: # if not exists, need to insert to collection
+                utag = set_utag(date_obj, sf)
+                if utag not in db_utags: # if not exists, need to insert to collection
+                    log_data = read_report_file(report_file_path, date_obj, utag)
+                    if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
+                                               for x in ['pilot', 'beta']):
+                        log_data = {DATETIME: date_obj, UTAG: utag}
+                    if IMAGE_STACKS in log_data:
+                        # add image stacks to archive collection
+                        update_image_stacks(log_data, data_folder)
+                        # find HDF5 datasets and add them to HDF5 collection
+                        hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
+                        log_data[IMAGE_STACKS].extend(hdf5_datasets)
+                    # add report direcotry path
+                    log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(ARCHIVES_PATH, ''))
+                    reports.append(log_data)
+                else: # if exists, check HDF5 collection for new datasets
+                    log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
+
+                    # If previously a run report was not there or had wrong format,
+                    # the mongo documents only has three or four fields, _id, datetime,
+                    # unique_tag, and maybe dir_path. If this occurs, try reading the
+                    # run report again.
+                    if not set(log_data.keys()) - set([ID, DATETIME, UTAG, DIR_PATH]):
                         log_data = read_report_file(report_file_path, date_obj, utag)
                         if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
                                                    for x in ['pilot', 'beta']):
-                            log_data = {DATETIME: date_obj, UTAG: utag}
-                        if IMAGE_STACKS in log_data:
-                            # add image stacks to archive collection
-                            update_image_stacks(log_data, data_folder)
-                            # find HDF5 datasets and add them to HDF5 collection
-                            hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
-                            log_data[IMAGE_STACKS].extend(hdf5_datasets)
+                            continue
                         # add report direcotry path
-                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(run_report_path, ''))
-                        reports.append(log_data)
-                    else: # if exists, check HDF5 collection for new datasets
-                        log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
+                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(ARCHIVES_PATH, ''))
+                        # add image stacks to archive collection
+                        update_image_stacks(log_data, data_folder)
 
-                        # If previously a run report was not there or had wrong format,
-                        # the mongo documents only has three or four fields, _id, datetime,
-                        # unique_tag, and maybe dir_path. If this occurs, try reading the
-                        # run report again.
-                        if not set(log_data.keys()) - set([ID, DATETIME, UTAG, DIR_PATH]):
-                            log_data = read_report_file(report_file_path, date_obj, utag)
-                            if log_data is None or all(not log_data[DEVICE_NAME].lower().startswith(x)
-                                                       for x in ['pilot', 'beta']):
-                                continue
-                            # add report direcotry path
-                            log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(run_report_path, ''))
-                            # add image stacks to archive collection
-                            update_image_stacks(log_data, data_folder)
-
-                        if IMAGE_STACKS in log_data:
-                            # find HDF5 datasets and add new records to HDF5 collection
-                            new_datasets = set(get_hdf5_datasets(log_data, data_folder))
+                    if IMAGE_STACKS in log_data:
+                        # find HDF5 datasets and add new records to HDF5 collection
+                        new_datasets = set(get_hdf5_datasets(log_data, data_folder))
+                        if new_datasets:
+                            # exclude uploaded HDF5 datasets
+                            exist_datasets = set([d for d in log_data[IMAGE_STACKS]
+                                                  if isinstance(d, str) or isinstance(d, unicode)])
+                            new_datasets = list(new_datasets - exist_datasets)
                             if new_datasets:
-                                # exclude uploaded HDF5 datasets
-                                exist_datasets = set([d for d in log_data[IMAGE_STACKS]
-                                                      if isinstance(d, str) or isinstance(d, unicode)])
-                                new_datasets = list(new_datasets - exist_datasets)
-                                if new_datasets:
-                                    _DB_CONNECTOR.update(
-                                            RUN_REPORT_COLLECTION,
-                                            {UTAG: utag},
-                                            {"$addToSet": {IMAGE_STACKS:
-                                                {'$each': new_datasets}}})
-                                    APP_LOGGER.info('Updated run report utag=%s with %d datasets'
-                                                    % (utag, len(new_datasets)))
+                                _DB_CONNECTOR.update(
+                                        RUN_REPORT_COLLECTION,
+                                        {UTAG: utag},
+                                        {"$addToSet": {IMAGE_STACKS:
+                                            {'$each': new_datasets}}})
+                                APP_LOGGER.info('Updated run report utag=%s with %d datasets'
+                                                % (utag, len(new_datasets)))
 
-            APP_LOGGER.info("Found %d run reports" % (len(reports)))
-            if len(reports) > 0:
-                # There is a possible race condition here. Ideally these operations
-                # would be performed in concert atomically
-                _DB_CONNECTOR.insert(RUN_REPORT_COLLECTION, reports)
-        else:
-            APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % run_report_path)
-            continue
-
-    if updated:
-        APP_LOGGER.info("Database successfully updated with available run reports.")
+        APP_LOGGER.info("Found %d run reports" % (len(reports)))
+        if len(reports) > 0:
+            # There is a possible race condition here. Ideally these operations
+            # would be performed in concert atomically
+            _DB_CONNECTOR.insert(RUN_REPORT_COLLECTION, reports)
     else:
-        APP_LOGGER.info("Unable to update run reports. None of the archive disks is accessible.")
-    return updated
+        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
+        return False
+
+    return True
 
 def get_datasets_from_files(filepaths):
     """

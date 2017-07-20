@@ -80,14 +80,14 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
     def test_dyes(self):
         response = get_data(self, _DYES_URL + '?refresh=true&format=json', 200)
         dyes     = read_yaml(os.path.join(_TEST_DIR, 'dyes.yaml'))
-        
+
         observed_dyes = set([x['dye'] for x in response['Dyes']])
         expected_dyes = set([x['dye'] for x in dyes['Dyes']])
-        
+
         msg = "Expected dyes (%s) not a subset of observed (%s)." % \
               (expected_dyes, observed_dyes)
         self.assertTrue(expected_dyes.issubset(observed_dyes), msg)
-    
+
     def test_devices(self):
         response = get_data(self, _DEVICES_URL + '?refresh=true&format=json', 200)
         devices  = read_yaml(os.path.join(_TEST_DIR, 'devices.yaml'))
@@ -96,12 +96,12 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         msg = "Observed devices (%s) don't match expected (%s)." % \
               (observed_devices, expected_devices)
         self.assertEqual(response, devices, msg)
-        
+
     def test_process_no_archive(self):
         archive = "nonexistent_archive"
         url = self.construct_process_url(archive)
         post_data(self, url, 500)
-        
+
     def test_process_no_images_in_archive(self):
         archive = "tmp"
         url = self.construct_process_url(archive)

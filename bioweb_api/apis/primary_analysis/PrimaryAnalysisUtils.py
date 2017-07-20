@@ -30,7 +30,7 @@ import h5py
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
     DEVICES_COLLECTION, ARCHIVES_COLLECTION, PROBE_METADATA_COLLECTION, \
-    HDF5_COLLECTION, RUN_REPORT_PATH
+    HDF5_COLLECTION, ALTERNATE_ARCHIVES_PATH
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
@@ -87,16 +87,37 @@ def is_image_archive(archive_name):
     else:
         return False
 
+def get_disk_directory(file_path, c=re.compile('(/mnt/.+)/.+')):
+    return c.match(file_path).group(1)
+
 def get_hdf5_dataset_path(dataset_name):
     documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: dataset_name}, [HDF5_PATH])
-    return documents[0][HDF5_PATH]
+    hdf5_path = documents[0][HDF5_PATH]
+    if os.path.isfile(hdf5_path):
+        return hdf5_path
+    hdf5_path = hdf5_path.lstrip(os.path.join(get_disk_directory(hdf5_path), ''))
+    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
+        hdf5_alt_path = os.path.join(disk_path, hdf5_path)
+        if os.path.isfile(hdf5_alt_path):
+            _DB_CONNECTOR.update(HDF5_COLLECTION, {HDF5_DATASET: dataset_name},
+                                 {'$set': {HDF5_PATH: hdf5_alt_path}})
+            return hdf5_alt_path
 
 def get_archive_path(archive_name):
     documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: archive_name})
     if ARCHIVE_PATH in documents[0]:
-        return documents[0][ARCHIVE_PATH]
+        archive_path = documents[0][ARCHIVE_PATH]
     else:
-        return os.path.join(ARCHIVES_PATH, documents[0][ARCHIVE])
+        archive_path = os.path.join(ARCHIVES_PATH, documents[0][ARCHIVE])
+    if os.path.isdir(archive_path):
+        return archive_path
+    archive_path = archive_path.lstrip(os.path.join(get_disk_directory(hdf5_path), ''))
+    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
+        archive_alt_path = os.path.join(disk_path, archive_path)
+        if os.path.isfile(archive_alt_path):
+            _DB_CONNECTOR.update(ARCHIVES_COLLECTION, {ARCHIVE: archive_name},
+                                 {'$set': {ARCHIVE_PATH: archive_alt_path}})
+            return archive_alt_path
 
 def parse_pa_data_src(pa_data_src_name):
     """
@@ -144,13 +165,14 @@ def get_applications():
     '''
     return _DB_CONNECTOR.distinct_sorted(PROBE_METADATA_COLLECTION, APPLICATION)
 
-def get_date_folders():
+def get_date_folders(disk_path=ARCHIVES_PATH):
     """
     Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/.
     """
     # find year month folders, e.g. 2017_05
     year_month_regex = re.compile('20\d{2}_[01][0-9]$')
-    folders = [os.path.join(RUN_REPORT_PATH, f) for f in os.listdir(RUN_REPORT_PATH)
+    run_report_path = os.path.join(disk_path, 'run_reports')
+    folders = [os.path.join(run_report_path, f) for f in os.listdir(run_report_path)
                if year_month_regex.match(f)]
     folders = [f for f in folders if os.path.isdir(f)]
 
@@ -161,11 +183,11 @@ def get_date_folders():
     folders = [f for f in folders if os.path.isdir(f)]
     return folders
 
-def get_run_folders():
+def get_run_folders(disk_path=ARCHIVES_PATH):
     """
     Return the run folders in the new file location, e.g. /mnt/runs/run_reports/2017_05/11/1530_pilot7/.
     """
-    return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
+    return [os.path.join(f, sf) for f in get_date_folders(disk_path) for sf in os.listdir(f)]
 
 def update_archives():
     '''
@@ -176,27 +198,28 @@ def update_archives():
     '''
     APP_LOGGER.info("Updating database with available archives...")
     _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
-    if os.path.isdir(ARCHIVES_PATH):
-        # Remove archives named similarly (same name, different capitalization)
-        archives = io_utilities.get_subfolders(ARCHIVES_PATH)
-        records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                       for archive in archives]
+    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
+        if os.path.isdir(disk_path):
+            # Remove archives named similarly (same name, different capitalization)
+            archives = io_utilities.get_subfolders(disk_path)
+            records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                           for archive in archives]
 
-        # Check yyyy_mm/dd/HHMM_pilotX location
-        run_folders = get_run_folders()
-        for folder in run_folders:
-            archives = io_utilities.get_subfolders(folder)
-            records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                            for archive in archives])
+            # Check yyyy_mm/dd/HHMM_pilotX location
+            run_folders = get_run_folders(disk_path)
+            for folder in run_folders:
+                archives = io_utilities.get_subfolders(folder)
+                records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
+                                for archive in archives])
 
-        APP_LOGGER.info("Found %d archives" % (len(records)))
-        if len(records) > 0:
-            # There is a possible race condition here. Ideally these operations
-            # would be performed in concert atomically
-            _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
-    else:
-        APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % ARCHIVES_PATH)
-        return False
+            APP_LOGGER.info("Found %d archives" % (len(records)))
+            if len(records) > 0:
+                # There is a possible race condition here. Ideally these operations
+                # would be performed in concert atomically
+                _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
+        else:
+            APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % disk_path)
+            return False
 
     APP_LOGGER.info("Database successfully updated with available archives.")
     return True
@@ -204,32 +227,34 @@ def update_archives():
 def update_hdf5s():
     APP_LOGGER.info("Updating database with available HDF5 files...")
 
-    # check if run report path exists
-    if not os.path.isdir(RUN_REPORT_PATH):
-        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
-        return False
-
     # find new hdf5 files, using nested listdirs, way faster than glob, os.walk, or scandir
     # only search two subdirectories within the run report folder
     # assumes each the hdf5 file is in a subfolder in the run report folder
     database_paths = set(_DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH))
     current_paths = set()
-    for par_ in os.listdir(RUN_REPORT_PATH):
-        report_dir = os.path.join(RUN_REPORT_PATH, par_)
-        if os.path.isdir(report_dir):
-            for sub_ in os.listdir(report_dir):
-                subdir = os.path.join(report_dir, sub_)
-                if os.path.isdir(subdir):
-                    hdf5s = [f for f in os.listdir(subdir) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
-                    hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
-                    current_paths.update(hdf5_paths)
+    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
+        run_report_path = os.path.join(disk_path, 'run_reports')
+        # check if run report path exists
+        if not os.path.isdir(run_report_path):
+            APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % run_report_path)
+            return False
 
-    # Check yyyy_mm/dd/HHMM_pilotX location
-    run_folders = get_run_folders()
-    for folder in run_folders:
-        hdf5s = [f for f in os.listdir(folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
-        hdf5_paths = [os.path.join(folder, f) for f in hdf5s]
-        current_paths.update(hdf5_paths)
+        for par_ in os.listdir(run_report_path):
+            report_dir = os.path.join(run_report_path, par_)
+            if os.path.isdir(report_dir):
+                for sub_ in os.listdir(report_dir):
+                    subdir = os.path.join(report_dir, sub_)
+                    if os.path.isdir(subdir):
+                        hdf5s = [f for f in os.listdir(subdir) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+                        hdf5_paths = [os.path.join(subdir, f) for f in hdf5s]
+                        current_paths.update(hdf5_paths)
+
+        # Check yyyy_mm/dd/HHMM_pilotX location
+        run_folders = get_run_folders(disk_path)
+        for folder in run_folders:
+            hdf5s = [f for f in os.listdir(folder) if os.path.splitext(f)[-1] in VALID_HDF5_EXTENSIONS]
+            hdf5_paths = [os.path.join(folder, f) for f in hdf5s]
+            current_paths.update(hdf5_paths)
 
     # remove obsolete paths
     obsolete_paths = list(database_paths - current_paths)

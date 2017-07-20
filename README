@@ -995,3 +995,5 @@ GnuBio Flask API.
    * Add API version to analysis MongoDB document
    * Add parsing run report error traceback to log
    * Bugfix in setting report directory
+ * 3.97.0
+   * Get run reports, image stacks and HDF5s from a list of disks 

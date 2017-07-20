@@ -400,7 +400,7 @@ class SaAssayCallerCallable(object):
             return None
 
         for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATHS:
-            sys_listener_path = os.path.join(ARCHIVES_PATH, report_dir,
+            sys_listener_path = os.path.join(disk_path, report_dir,
                 SYS_LISTENER)
             if os.path.isfile(sys_listener_path):
                 shutil.copy(sys_listener_path, self.tmp_sys_listener_path)

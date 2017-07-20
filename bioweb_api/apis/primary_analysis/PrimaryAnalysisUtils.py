@@ -210,21 +210,22 @@ def update_archives():
         APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % ARCHIVES_PATH)
         return False
 
+    APP_LOGGER.info("Database successfully updated with available archives.")
     return True
 
 def update_hdf5s():
     APP_LOGGER.info("Updating database with available HDF5 files...")
+
+    # check if run report path exists
+    if not os.path.isdir(RUN_REPORT_PATH):
+        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
+        return False
 
     # find new hdf5 files, using nested listdirs, way faster than glob, os.walk, or scandir
     # only search two subdirectories within the run report folder
     # assumes each the hdf5 file is in a subfolder in the run report folder
     database_paths = set(_DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH))
     current_paths = set()
-    # check if run report path exists
-    if not os.path.isdir(RUN_REPORT_PATH):
-        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
-        return False
-
     for par_ in os.listdir(RUN_REPORT_PATH):
         report_dir = os.path.join(RUN_REPORT_PATH, par_)
         if os.path.isdir(report_dir):
@@ -253,7 +254,7 @@ def update_hdf5s():
                 if any(re.match(pat, dsname) for pat in [r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}',
                                                          r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}']):
                     new_records.append({
-                        HDF5_PATH: hdf5_path.lstrip(os.path.join(RUN_REPORT_PATH, '')),
+                        HDF5_PATH: hdf5_path.lstrip(os.path.join(ARCHIVES_PATH, '')),
                         HDF5_DATASET: dsname,
                     })
         except:

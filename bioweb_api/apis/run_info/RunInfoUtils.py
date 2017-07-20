@@ -401,6 +401,7 @@ def update_run_reports(date_folders=None):
         APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
         return False
 
+    APP_LOGGER.info("Database successfully updated with available run reports.")
     return True
 
 def get_datasets_from_files(filepaths):

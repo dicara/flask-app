@@ -198,8 +198,10 @@ def update_archives():
     '''
     APP_LOGGER.info("Updating database with available archives...")
     _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
+    updated = False
     for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
         if os.path.isdir(disk_path):
+            updated = True
             # Remove archives named similarly (same name, different capitalization)
             archives = io_utilities.get_subfolders(disk_path)
             records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
@@ -219,10 +221,13 @@ def update_archives():
                 _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, records)
         else:
             APP_LOGGER.error("Couldn't locate archives path '%s', to update database." % disk_path)
-            return False
+            continue
 
-    APP_LOGGER.info("Database successfully updated with available archives.")
-    return True
+    if updated:
+        APP_LOGGER.info("Database successfully updated with available archives.")
+    else:
+        APP_LOGGER.info("Unable to update archives. None of the archive disks is accessible.")
+    return updated
 
 def update_hdf5s():
     APP_LOGGER.info("Updating database with available HDF5 files...")
@@ -232,13 +237,15 @@ def update_hdf5s():
     # assumes each the hdf5 file is in a subfolder in the run report folder
     database_paths = set(_DB_CONNECTOR.distinct_sorted(HDF5_COLLECTION, HDF5_PATH))
     current_paths = set()
+    updated = False
     for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
         run_report_path = os.path.join(disk_path, 'run_reports')
         # check if run report path exists
         if not os.path.isdir(run_report_path):
             APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % run_report_path)
-            return False
+            continue
 
+        update = True
         for par_ in os.listdir(run_report_path):
             report_dir = os.path.join(run_report_path, par_)
             if os.path.isdir(report_dir):
@@ -285,7 +292,11 @@ def update_hdf5s():
     else:
         APP_LOGGER.info('Unable to find any new HDF5 files')
 
-    return True
+    if updated:
+        APP_LOGGER.info("Database successfully updated with available HDF5s.")
+    else:
+        APP_LOGGER.info("Unable to update HDF5s. None of the archive disks is accessible.")
+    return updated
 
 def update_dyes():
     '''

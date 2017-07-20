@@ -315,7 +315,9 @@ def update_run_reports(date_folders=None):
 
     for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATH:
         run_report_path = os.path.join(disk_path, 'run_reports')
+        updated = False
         if os.path.isdir(run_report_path):
+            updated = True
             if date_folders is None:
                 try:
                     latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
@@ -402,10 +404,13 @@ def update_run_reports(date_folders=None):
                 _DB_CONNECTOR.insert(RUN_REPORT_COLLECTION, reports)
         else:
             APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % run_report_path)
-            return False
+            continue
 
-    APP_LOGGER.info("Database successfully updated with available run reports.")
-    return True
+    if updated:
+        APP_LOGGER.info("Database successfully updated with available run reports.")
+    else:
+        APP_LOGGER.info("Unable to update run reports. None of the archive disks is accessible.")
+    return updated
 
 def get_datasets_from_files(filepaths):
     """

@@ -287,7 +287,6 @@ class PaProcessCallable(object):
                                         output_path=self.outfile_path)
         else:
             archive_path = get_archive_path(self.archive)
-            APP_LOGGER.info(archive_path)
             execute_process(archive_path, self.dyes, self.device, self.major,
                             self.minor, self.offsets, self.use_iid,
                             self.outfile_path, self.config_path,

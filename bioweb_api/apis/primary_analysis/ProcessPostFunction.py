@@ -45,7 +45,7 @@ from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, 
     OFFSETS, MAJOR, MINOR, USE_IID, IS_HDF5, API_VERSION
 
 from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import execute_process, \
-    parse_pa_data_src, get_hdf5_dataset_path, get_archive_path
+    parse_pa_data_src, get_data_filepath, DataType
 
 from primary_analysis.dye_model import DEFAULT_OFFSETS
 
@@ -260,7 +260,7 @@ class PaProcessCallable(object):
         query = {UUID: self.uuid}
         self.db_connector.update(PA_PROCESS_COLLECTION, query, update)
         if self.is_hdf5:
-            hdf5_path = get_hdf5_dataset_path(self.archive)
+            hdf5_path = get_data_filepath(self.archive, data_type=DataType.hdf5)
             dataset = h5py.File(hdf5_path)[self.archive]
             columns = dataset.attrs['columns']
             decomp_dyes = [c.replace('-decomp', '') for c in columns if '-decomp' in c]
@@ -286,7 +286,7 @@ class PaProcessCallable(object):
                                         dataset=self.archive,
                                         output_path=self.outfile_path)
         else:
-            archive_path = get_archive_path(self.archive)
+            archive_path = get_data_filepath(self.archive, data_type=DataType.image_stack)
             execute_process(archive_path, self.dyes, self.device, self.major,
                             self.minor, self.offsets, self.use_iid,
                             self.outfile_path, self.config_path,

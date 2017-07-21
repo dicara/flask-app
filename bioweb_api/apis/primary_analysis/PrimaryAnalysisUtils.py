@@ -26,6 +26,7 @@ import re
 import sys
 import shutil
 
+from enum import Enum
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
@@ -46,6 +47,9 @@ from primary_analysis.pa_images import convert_images
 #=============================================================================
 _DB_CONNECTOR = DbConnector.Instance()
 _DATASTORE    = Datastore()
+
+class DataType(Enum):
+    image_stack, hdf5 = ['image_stack', 'hdf5']
 
 #=============================================================================
 # RESTful location of services
@@ -87,24 +91,21 @@ def is_image_archive(archive_name):
     else:
         return False
 
-def get_hdf5_dataset_path(dataset_name):
-    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: dataset_name}, [HDF5_PATH])
-    hdf5_base_path = documents[0][HDF5_PATH]
+def get_data_filepath(data_name, data_type=DataType.image_stack):
+    if data_type == DataType.image_stack:
+        documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: data_name})
+        data_base_path = documents[0][ARCHIVE_PATH]
+    elif data_type == DataType.hdf5:
+        documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: data_name}, [HDF5_PATH])
+        data_base_path = documents[0][HDF5_PATH]
+    else:
+        raise TypeError("Unsupported data type: %s." % data_type)
 
     for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATHS:
-        hdf5_path = os.path.join(disk_path, hdf5_base_path)
-        if os.path.isfile(hdf5_path):
-            return hdf5_path
-    return None
-
-def get_archive_path(archive_name):
-    documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: archive_name})
-    archive_base_path = documents[0][ARCHIVE_PATH]
-
-    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATHS:
-        archive_path = os.path.join(disk_path, archive_base_path)
-        if os.path.isdir(archive_path):
-            return archive_path
+        data_filepath = os.path.join(disk_path, data_base_path)
+        if data_type == DataType.image_stack and os.path.isdir(data_filepath) or \
+                data_type == DataType.hdf5 and os.path.isfile(data_filepath):
+            return data_filepath
     return None
 
 def parse_pa_data_src(pa_data_src_name):

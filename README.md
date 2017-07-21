@@ -997,3 +997,4 @@ GnuBio Flask API.
    * Bugfix in setting report directory
  * 3.97.0
    * Get run reports, image stacks and HDF5s from a list of disks
+   * Rename run report sample_type and sample_name fields

@@ -33,7 +33,8 @@ from bioweb_api.apis.run_info.constants import CARTRIDGE_SN_TXT, CHIP_SN_TXT, \
     DEVICE_NAME, EXIT_NOTES, EXP_DEF_NAME, REAGENT_INFO, RUN_ID, RUN_DESCRIPTION, \
     TDI_STACKS, USER, IMAGE_STACKS, FILE_TYPE, UTAG, CARTRIDGE_BC, \
     EXP_DEF_UUID, KIT_BC, MCP_MODE, SAMPLE_NAME, SAMPLE_TYPE, SYRINGE_BC, FAIL_REASON, \
-    EXPERIMENT_PURPOSE, EXPERIMENT_CONFIGS, NOTE, NOTES, TIMESTAMP
+    EXPERIMENT_PURPOSE, EXPERIMENT_CONFIGS, NOTE, NOTES, TIMESTAMP, SAMPLE_ID, \
+    ASSAY_NAME
 
 #=============================================================================
 # Classes
@@ -266,8 +267,8 @@ class RunReportClientUI(object):
                    Kit.from_dict(kwargs.get(KIT_BC)),
                    kwargs.get(MCP_MODE),
                    kwargs.get(RUN_ID),
-                   kwargs.get(SAMPLE_NAME),
-                   kwargs.get(SAMPLE_TYPE),
+                   kwargs.get(SAMPLE_NAME) if SAMPLE_NAME in kwargs else kwargs.get(SAMPLE_ID),
+                   kwargs.get(SAMPLE_TYPE) if SAMPLE_TYPE in kwargs else kwargs.get(ASSAY_NAME),
                    Syringe.from_dict(kwargs.get(SYRINGE_BC)),
                    kwargs.get(TDI_STACKS),
                    kwargs.get(EXPERIMENT_PURPOSE),

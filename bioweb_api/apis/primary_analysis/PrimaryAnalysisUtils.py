@@ -176,6 +176,16 @@ def get_run_folders():
     """
     return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
 
+def remove_disk_directory(filepath, disk_dir=ARCHIVES_PATH):
+    """
+    Remove disk directory from a file path, e.g. /mnt/runs/run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
+    becomes run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
+    """
+    disk_dir = os.path.join(disk_dir, '')
+    if filepath.startswith(disk_dir):
+        return filepath.replace(disk_dir, '')
+    return filepath
+
 def update_archives():
     '''
     Update the database with available primary analysis archives.  It is not
@@ -189,7 +199,7 @@ def update_archives():
         # Remove archives named similarly (same name, different capitalization)
         archives = io_utilities.get_subfolders(ARCHIVES_PATH)
         records = [{ARCHIVE: os.path.basename(archive),
-                    ARCHIVE_PATH: archive.lstrip(os.path.join(ARCHIVES_PATH, ''))}
+                    ARCHIVE_PATH: remove_disk_directory(archive)}
                        for archive in archives]
 
         # Check yyyy_mm/dd/HHMM_pilotX location
@@ -197,7 +207,7 @@ def update_archives():
         for folder in run_folders:
             archives = io_utilities.get_subfolders(folder)
             records.extend([{ARCHIVE: os.path.basename(archive),
-                             ARCHIVE_PATH: archive.lstrip(os.path.join(ARCHIVES_PATH, ''))}
+                             ARCHIVE_PATH: remove_disk_directory(archive)}
                             for archive in archives])
 
         records = [r for r in records if r[ARCHIVE] not in exist_archives]
@@ -254,7 +264,7 @@ def update_hdf5s():
                 if any(re.match(pat, dsname) for pat in [r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}',
                                                          r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}']):
                     new_records.append({
-                        HDF5_PATH: hdf5_path.lstrip(os.path.join(ARCHIVES_PATH, '')),
+                        HDF5_PATH: remove_disk_directory(hdf5_path),
                         HDF5_DATASET: dsname,
                     })
         except:

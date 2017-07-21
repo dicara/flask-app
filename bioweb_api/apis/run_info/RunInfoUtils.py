@@ -46,7 +46,8 @@ from bioweb_api.apis.run_info.model.run_report import (
 )
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders, \
+    remove_disk_directory
 
 #=============================================================================
 # Private Static Variables
@@ -356,7 +357,7 @@ def update_run_reports(date_folders=None):
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
                     # add report direcotry path
-                    log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(ARCHIVES_PATH, ''))
+                    log_data[DIR_PATH] = remove_disk_directory(os.path.dirname(report_file_path))
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
@@ -371,7 +372,7 @@ def update_run_reports(date_folders=None):
                                                    for x in ['pilot', 'beta']):
                             continue
                         # add report direcotry path
-                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(ARCHIVES_PATH, ''))
+                        log_data[DIR_PATH] = remove_disk_directory(os.path.dirname(report_file_path))
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 

@@ -29,9 +29,12 @@ import shutil
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, read_yaml
 from bioweb_api.utilities import io_utilities
-from bioweb_api.apis.ApiConstants import UUID, PA_DATA_SOURCE
+from bioweb_api.apis.ApiConstants import UUID, PA_DATA_SOURCE, HDF5_PATH, \
+    HDF5_DATASET, ARCHIVE, ARCHIVE_PATH
 from bioweb_api import app, HOME_DIR, TARGETS_UPLOAD_PATH, PROBES_UPLOAD_PATH, \
-    RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH, TMP_PATH
+    RESULTS_PATH, REFS_PATH, PLATES_UPLOAD_PATH, TMP_PATH, HDF5_COLLECTION, \
+    ARCHIVES_COLLECTION
+from bioweb_api.DbConnector import DbConnector
 
 #=============================================================================
 # Setup Logging
@@ -58,6 +61,9 @@ _PROCESS                  = "Process"
 _DYES                     = ['633', 'pe']
 _DEVICE                   = "katahdin"
 _JOB_NAME                 = "test_pa_process_job"
+_DB_CONNECTOR             = DbConnector.Instance()
+_HDF5_DATASET             = '2016-08-02_0924.38-pilot1-unittest'
+_ARCHIVE                  = '20140715_b8_633pe_6'
 
 io_utilities.safe_make_dirs(HOME_DIR)
 io_utilities.safe_make_dirs(TARGETS_UPLOAD_PATH)
@@ -76,6 +82,22 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         self._client = app.test_client(self)
         get_data(self, _HDF5S_URL + '?refresh=true&format=json', 200)
         get_data(self, _ARCHIVES_URL + '?refresh=true&format=json', 200)
+
+        # insert HDF5 record
+        hdf5_record = {HDF5_PATH: 'run_reports/08_02_16/Tue02_1842_pilot1_unittest/id1470144257.h5',
+                       HDF5_DATASET: _HDF5_DATASET}
+        _DB_CONNECTOR.insert(HDF5_COLLECTION, [hdf5_record])
+
+        # insert archive record
+        archive_record = {ARCHIVE: _ARCHIVE, ARCHIVE_PATH: _ARCHIVE}
+        _DB_CONNECTOR.insert(ARCHIVES_COLLECTION, [archive_record])
+
+    @classmethod
+    def tearDownClass(cls):
+        _DB_CONNECTOR.remove(HDF5_COLLECTION,
+                             {HDF5_DATASET: '2016-08-02_0924.38-pilot1-unittest'})
+        _DB_CONNECTOR.remove(ARCHIVES_COLLECTION,
+                             {ARCHIVE: '20140715_b8_633pe_6'})
 
     def test_dyes(self):
         response = get_data(self, _DYES_URL + '?refresh=true&format=json', 200)
@@ -108,11 +130,8 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
         post_data(self, url, 404)
 
     def test_hdf5_process(self):
-        # Test run details
-        archive = '2016-08-02_0924.38-pilot1-unittest'
-
         # Construct url
-        url = self.construct_process_url(archive, 'test_HDF5_pa_process_job')
+        url = self.construct_process_url(_HDF5_DATASET, 'test_HDF5_pa_process_job')
 
         # Submit process job
         response     = post_data(self, url, 200)
@@ -164,11 +183,8 @@ class TestPrimaryAnalysisAPI(unittest.TestCase):
             self.assertNotEqual(process_uuid, job[UUID], msg)
 
     def test_process(self):
-        # Test run details
-        archive  = '20140715_b8_633pe_6'
-
         # Construct url
-        url = self.construct_process_url(archive)
+        url = self.construct_process_url(_ARCHIVE)
 
         # Submit process job
         response     = post_data(self, url, 200)

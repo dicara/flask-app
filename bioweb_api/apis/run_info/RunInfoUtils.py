@@ -29,8 +29,8 @@ import yaml
 
 import h5py
 
-from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
-    HDF5_COLLECTION, ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION
+from bioweb_api import ARCHIVES_PATH, RUN_REPORT_COLLECTION, HDF5_COLLECTION, \
+    ARCHIVES_COLLECTION, FA_PROCESS_COLLECTION, RUN_REPORT_PATH
 from bioweb_api.apis.ApiConstants import ID, UUID, HDF5_PATH, HDF5_DATASET, \
     ARCHIVE, STATUS, SUCCEEDED, FAILED, RUNNING, SUBMITTED, DATA_TO_JOBS, \
     ARCHIVE_PATH, TAGS
@@ -46,7 +46,8 @@ from bioweb_api.apis.run_info.model.run_report import (
 )
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.DbConnector import DbConnector
-from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders
+from bioweb_api.apis.primary_analysis.PrimaryAnalysisUtils import get_date_folders, \
+    remove_disk_directory
 
 #=============================================================================
 # Private Static Variables
@@ -318,10 +319,9 @@ def update_run_reports(date_folders=None):
             try:
                 latest_date = _DB_CONNECTOR.find_max(RUN_REPORT_COLLECTION, DATETIME)[DATETIME]
             except TypeError:
-                latest_date = None
+                latest_date = datetime.now()
 
             def valid_date(folder):
-                if latest_date is None: return True
                 date_obj = get_date_object(folder)
                 return date_obj >= latest_date - timedelta(days=6)
 
@@ -357,7 +357,7 @@ def update_run_reports(date_folders=None):
                         hdf5_datasets = get_hdf5_datasets(log_data, data_folder)
                         log_data[IMAGE_STACKS].extend(hdf5_datasets)
                     # add report direcotry path
-                    log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(RUN_REPORT_PATH, ''))
+                    log_data[DIR_PATH] = remove_disk_directory(os.path.dirname(report_file_path))
                     reports.append(log_data)
                 else: # if exists, check HDF5 collection for new datasets
                     log_data = _DB_CONNECTOR.find_one(RUN_REPORT_COLLECTION, UTAG, utag)
@@ -372,7 +372,7 @@ def update_run_reports(date_folders=None):
                                                    for x in ['pilot', 'beta']):
                             continue
                         # add report direcotry path
-                        log_data[DIR_PATH] = os.path.dirname(report_file_path).lstrip(os.path.join(RUN_REPORT_PATH, ''))
+                        log_data[DIR_PATH] = remove_disk_directory(os.path.dirname(report_file_path))
                         # add image stacks to archive collection
                         update_image_stacks(log_data, data_folder)
 
@@ -399,7 +399,7 @@ def update_run_reports(date_folders=None):
             # would be performed in concert atomically
             _DB_CONNECTOR.insert(RUN_REPORT_COLLECTION, reports)
     else:
-        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % ARCHIVES_PATH)
+        APP_LOGGER.error("Couldn't locate run report path '%s', to update database." % RUN_REPORT_PATH)
         return False
 
     APP_LOGGER.info("Database successfully updated with available run reports.")

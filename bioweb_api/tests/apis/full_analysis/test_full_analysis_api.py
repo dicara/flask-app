@@ -25,7 +25,7 @@ import os
 import time
 import unittest
 
-from bioweb_api import app, FA_PROCESS_COLLECTION, HOSTNAME, PORT
+from bioweb_api import app, FA_PROCESS_COLLECTION, HOSTNAME, PORT, HDF5_COLLECTION
 from bioweb_api.DbConnector import DbConnector
 from bioweb_api.tests.test_utils import post_data, get_data, \
     delete_data, add_url_argument
@@ -37,7 +37,7 @@ from bioweb_api.apis.ApiConstants import UUID, STATUS, JOB_TYPE_NAME, JOB_NAME, 
     PNG_SUM_URL, REQUIRED_DROPS, PDF_URL, PNG_URL, SUBMIT_DATESTAMP, \
     START_DATESTAMP, FINISH_DATESTAMP, AC_TRAINING_FACTOR, PA_DATA_SOURCE, \
     ERROR, KDE_PNG_URL, KDE_PNG_SUM_URL, MAX_UNINJECTED_RATIO, EP_DOCUMENT, \
-    UNIFIED_PDF, UNIFIED_PDF_URL
+    UNIFIED_PDF, UNIFIED_PDF_URL, HDF5_DATASET, HDF5_PATH
 
 from bioweb_api.apis.full_analysis.FullAnalysisPostFunction import FULL_ANALYSIS
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import MakeUnifiedPDF
@@ -156,10 +156,17 @@ class TestFullAnalysisAPI(unittest.TestCase):
 
         _DB_CONNECTOR.insert(FA_PROCESS_COLLECTION, [cls._fa_record])
 
+        # insert HDF5 record
+        hdf5_record = {HDF5_PATH: 'run_reports/08_17_16/Wed17_1749_pilot5/id1471455601.h5',
+                       HDF5_DATASET: '2016-08-17_1602.41-pilot5'}
+        _DB_CONNECTOR.insert(HDF5_COLLECTION, [hdf5_record])
+
     @classmethod
     def tearDownClass(cls):
         _DB_CONNECTOR.remove(FA_PROCESS_COLLECTION,
                              {UUID: {'$in': [cls._fa_uuid]}})
+        _DB_CONNECTOR.remove(HDF5_COLLECTION,
+                             {HDF5_DATASET: '2016-08-17_1602.41-pilot5'})
 
     def setUp(self):
         self._client = app.test_client(self)

@@ -26,11 +26,12 @@ import re
 import sys
 import shutil
 
+from enum import Enum
 import h5py
 
 from bioweb_api import ARCHIVES_PATH, TMP_PATH, DYES_COLLECTION, \
     DEVICES_COLLECTION, ARCHIVES_COLLECTION, PROBE_METADATA_COLLECTION, \
-    HDF5_COLLECTION, RUN_REPORT_PATH
+    HDF5_COLLECTION, ALTERNATE_ARCHIVES_PATHS, RUN_REPORT_PATH
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.utilities import io_utilities
 from bioweb_api.DbConnector import DbConnector
@@ -46,6 +47,11 @@ from primary_analysis.pa_images import convert_images
 #=============================================================================
 _DB_CONNECTOR = DbConnector.Instance()
 _DATASTORE    = Datastore()
+
+DISK_DIR = os.path.join(ARCHIVES_PATH, '')
+
+class DataType(Enum):
+    image_stack, hdf5 = ['image_stack', 'hdf5']
 
 #=============================================================================
 # RESTful location of services
@@ -87,16 +93,22 @@ def is_image_archive(archive_name):
     else:
         return False
 
-def get_hdf5_dataset_path(dataset_name):
-    documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: dataset_name}, [HDF5_PATH])
-    return documents[0][HDF5_PATH]
-
-def get_archive_path(archive_name):
-    documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: archive_name})
-    if ARCHIVE_PATH in documents[0]:
-        return documents[0][ARCHIVE_PATH]
+def get_data_filepath(data_name, data_type=DataType.image_stack):
+    if data_type == DataType.image_stack:
+        documents = _DB_CONNECTOR.find(ARCHIVES_COLLECTION, {ARCHIVE: data_name})
+        data_base_path = documents[0][ARCHIVE_PATH]
+    elif data_type == DataType.hdf5:
+        documents = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_DATASET: data_name}, [HDF5_PATH])
+        data_base_path = documents[0][HDF5_PATH]
     else:
-        return os.path.join(ARCHIVES_PATH, documents[0][ARCHIVE])
+        raise TypeError("Unsupported data type: %s." % data_type)
+
+    for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATHS:
+        data_filepath = os.path.join(disk_path, data_base_path)
+        if data_type == DataType.image_stack and os.path.isdir(data_filepath) or \
+                data_type == DataType.hdf5 and os.path.isfile(data_filepath):
+            return data_filepath
+    return None
 
 def parse_pa_data_src(pa_data_src_name):
     """
@@ -167,6 +179,15 @@ def get_run_folders():
     """
     return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
 
+def remove_disk_directory(filepath):
+    """
+    Remove disk directory from a file path, e.g. /mnt/runs/run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
+    becomes run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
+    """
+    if filepath.startswith(DISK_DIR):
+        return filepath.replace(DISK_DIR, '')
+    return filepath
+
 def update_archives():
     '''
     Update the database with available primary analysis archives.  It is not
@@ -175,19 +196,20 @@ def update_archives():
     @return True if database is successfully updated, False otherwise
     '''
     APP_LOGGER.info("Updating database with available archives...")
-    _DB_CONNECTOR.remove(ARCHIVES_COLLECTION, {})
+    exist_archives = _DB_CONNECTOR.distinct(ARCHIVES_COLLECTION, ARCHIVE)
     if os.path.isdir(ARCHIVES_PATH):
         # Remove archives named similarly (same name, different capitalization)
         archives = io_utilities.get_subfolders(ARCHIVES_PATH)
-        records = [{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                       for archive in archives]
 
         # Check yyyy_mm/dd/HHMM_pilotX location
         run_folders = get_run_folders()
         for folder in run_folders:
-            archives = io_utilities.get_subfolders(folder)
-            records.extend([{ARCHIVE: os.path.basename(archive), ARCHIVE_PATH: archive}
-                            for archive in archives])
+            archives.extend(io_utilities.get_subfolders(folder))
+
+        new_archives = [x for x in archives if os.path.basename(x) not in exist_archives]
+        records = [{ARCHIVE: os.path.basename(archive),
+                    ARCHIVE_PATH: remove_disk_directory(archive)}
+                       for archive in new_archives]
 
         APP_LOGGER.info("Found %d archives" % (len(records)))
         if len(records) > 0:
@@ -231,10 +253,6 @@ def update_hdf5s():
         hdf5_paths = [os.path.join(folder, f) for f in hdf5s]
         current_paths.update(hdf5_paths)
 
-    # remove obsolete paths
-    obsolete_paths = list(database_paths - current_paths)
-    _DB_CONNECTOR.remove(HDF5_COLLECTION, {HDF5_PATH: {'$in': obsolete_paths}})
-
     # update database with any new files
     new_hdf5_paths = current_paths - database_paths
     new_records = list()
@@ -246,7 +264,7 @@ def update_hdf5s():
                 if any(re.match(pat, dsname) for pat in [r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}',
                                                          r'^Pilot\d+_\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}']):
                     new_records.append({
-                        HDF5_PATH: hdf5_path,
+                        HDF5_PATH: remove_disk_directory(hdf5_path),
                         HDF5_DATASET: dsname,
                     })
         except:

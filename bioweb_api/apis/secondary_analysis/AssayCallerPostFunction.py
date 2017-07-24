@@ -36,7 +36,8 @@ from bioweb_api.utilities.io_utilities import make_clean_response, \
 from bioweb_api.utilities.logging_utilities import APP_LOGGER, VERSION
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api import SA_ASSAY_CALLER_COLLECTION, SA_IDENTITY_COLLECTION, \
-    FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION, RUN_REPORT_PATH
+    FA_PROCESS_COLLECTION, RUN_REPORT_COLLECTION, RUN_REPORT_PATH, \
+    ALTERNATE_ARCHIVES_PATHS, ARCHIVES_PATH
 from bioweb_api import TMP_PATH
 from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     ID, PICO2_DYE, ASSAY_DYE, JOB_TYPE, JOB_TYPE_NAME, RESULT, \
@@ -398,11 +399,12 @@ class SaAssayCallerCallable(object):
         if report_dir is None:
             return None
 
-        sys_listener_path = os.path.join(RUN_REPORT_PATH, report_dir,
-            SYS_LISTENER)
-        if os.path.isfile(sys_listener_path):
-            shutil.copy(sys_listener_path, self.tmp_sys_listener_path)
-            return self.tmp_sys_listener_path
+        for disk_path in [ARCHIVES_PATH] + ALTERNATE_ARCHIVES_PATHS:
+            sys_listener_path = os.path.join(disk_path, report_dir,
+                SYS_LISTENER)
+            if os.path.isfile(sys_listener_path):
+                shutil.copy(sys_listener_path, self.tmp_sys_listener_path)
+                return self.tmp_sys_listener_path
 
         return None
 

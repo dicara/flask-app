@@ -48,6 +48,8 @@ from primary_analysis.pa_images import convert_images
 _DB_CONNECTOR = DbConnector.Instance()
 _DATASTORE    = Datastore()
 
+DISK_DIR = os.path.join(ARCHIVES_PATH, '')
+
 class DataType(Enum):
     image_stack, hdf5 = ['image_stack', 'hdf5']
 
@@ -177,14 +179,13 @@ def get_run_folders():
     """
     return [os.path.join(f, sf) for f in get_date_folders() for sf in os.listdir(f)]
 
-def remove_disk_directory(filepath, disk_dir=ARCHIVES_PATH):
+def remove_disk_directory(filepath):
     """
     Remove disk directory from a file path, e.g. /mnt/runs/run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
     becomes run_reports/12_13_16/Tue13_1212_pilot7/id1481637429.h5
     """
-    disk_dir = os.path.join(disk_dir, '')
-    if filepath.startswith(disk_dir):
-        return filepath.replace(disk_dir, '')
+    if filepath.startswith(DISK_DIR):
+        return filepath.replace(DISK_DIR, '')
     return filepath
 
 def update_archives():
@@ -199,19 +200,17 @@ def update_archives():
     if os.path.isdir(ARCHIVES_PATH):
         # Remove archives named similarly (same name, different capitalization)
         archives = io_utilities.get_subfolders(ARCHIVES_PATH)
-        records = [{ARCHIVE: os.path.basename(archive),
-                    ARCHIVE_PATH: remove_disk_directory(archive)}
-                       for archive in archives]
 
         # Check yyyy_mm/dd/HHMM_pilotX location
         run_folders = get_run_folders()
         for folder in run_folders:
-            archives = io_utilities.get_subfolders(folder)
-            records.extend([{ARCHIVE: os.path.basename(archive),
-                             ARCHIVE_PATH: remove_disk_directory(archive)}
-                            for archive in archives])
+            archives.extend(io_utilities.get_subfolders(folder))
 
-        records = [r for r in records if r[ARCHIVE] not in exist_archives]
+        new_archives = [x for x in archives if os.path.basename(x) not in exist_archives]
+        records = [{ARCHIVE: os.path.basename(archive),
+                    ARCHIVE_PATH: remove_disk_directory(archive)}
+                       for archive in new_archives]
+
         APP_LOGGER.info("Found %d archives" % (len(records)))
         if len(records) > 0:
             # There is a possible race condition here. Ideally these operations

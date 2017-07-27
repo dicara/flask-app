@@ -164,12 +164,16 @@ class DbConnector(object):
                                  cls.distinct(collection, column_name)))
 
     @staticmethod
-    def remove(collection, criteria):
-        return _DB[collection].remove(criteria)
+    def remove(collection, criteria, parameters={}):
+        return _DB[collection].remove(criteria, parameters)
 
     @staticmethod
     def update(collection, query, update):
         _DB[collection].update(query, update)
+
+    @staticmethod
+    def save(collection, document):
+        _DB[collection].save(document)
 
 #===========================================================================
 # Ensure the initial instance is created.

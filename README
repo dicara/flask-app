@@ -998,3 +998,5 @@ GnuBio Flask API.
  * 3.97.0
    * Get run reports, image stacks and HDF5s from a list of disks
    * Rename run report sample_type and sample_name fields
+ * 3.98.0
+   * Limit the size of HDF5 file that can be processed

@@ -34,7 +34,7 @@ import time
 from flask import make_response, jsonify
 
 from bioweb_api import ARCHIVES_PATH, RESULTS_PATH, HOSTNAME, PORT, FA_PROCESS_COLLECTION, \
-    HOME_DIR
+    HOME_DIR, DAYS_TO_EXPIRE
 from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS, STATUS, RUNNING, \
     SUBMITTED, SUBMIT_DATESTAMP, URL, RESULT, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT
 from bioweb_api.DbConnector import DbConnector
@@ -319,11 +319,10 @@ def delete_unfinished_jobs(collection):
 
 def delete_tsv(collection):
     """
-    Given a collection, find jobs older than a week and delete their TSV outputs
-    from disk.
+    Given a collection, find old jobs and delete their TSV outputs from disk.
     """
     old_jobs = _DB_CONNECTOR.find(collection, {SUBMIT_DATESTAMP:
-                                    {'$lt': datetime.now() - timedelta(days=7)}})
+                        {'$lt': datetime.now() - timedelta(days=DAYS_TO_EXPIRE)}})
     for job in old_jobs:
         if collection != FA_PROCESS_COLLECTION:
             if job.get(RESULT) is not None:

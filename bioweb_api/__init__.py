@@ -54,5 +54,6 @@ IMAGES_COLLECTION            = app.config['IMAGES_COLLECTION']
 RUN_REPORT_COLLECTION        = app.config['RUN_REPORT_COLLECTION']
 EXP_DEF_COLLECTION           = app.config['EXP_DEF_COLLECTION']
 SA_EXPLORATORY_COLLECTION    = app.config['SA_EXPLORATORY_COLLECTION']
+DAYS_TO_EXPIRE               = app.config['DAYS_TO_EXPIRE']
 
 from . import controller

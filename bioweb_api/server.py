@@ -32,7 +32,6 @@ import signal
 import csv
 import shutil
 import tornado.options
-import traceback
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -241,8 +240,7 @@ def start(current_info):
                 io_utilities.delete_tsv(collection)
             io_utilities.delete_unfinished_jobs(collection)
     except:
-        GENERAL_LOGGER.exception("Failure deleting records of unfinished jobs or TSVs of old jobs: %s"
-                                 % traceback.format_exc())
+        GENERAL_LOGGER.exception("Failure deleting records of unfinished jobs or TSVs of old jobs.")
 
     io_utilities.safe_make_dirs(os.path.dirname(TORNADO_LOG_FILE_PREFIX))
     tornado.options.options.log_file_prefix = TORNADO_LOG_FILE_PREFIX

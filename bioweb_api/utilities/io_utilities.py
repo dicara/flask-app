@@ -334,7 +334,7 @@ def delete_tsv(collection):
                 doc = job[doc_name]
                 if doc.get(URL) is not None:
                     silently_remove_file(url_to_filepath(doc[URL]))
-                    doc[URL] = None
+                    job[doc_name][URL] = None
         _DB_CONNECTOR.save(collection, job)
 
 def url_to_filepath(url):

@@ -21,6 +21,7 @@ limitations under the License.
 #===============================================================================
 import collections
 import csv
+from datetime import datetime, timedelta
 import errno
 import math
 import numbers
@@ -30,17 +31,20 @@ import shutil
 import stat
 import time
 
-from datetime import datetime
 from flask import make_response, jsonify
 
-from bioweb_api import ARCHIVES_PATH, RESULTS_PATH, HOSTNAME, PORT
-from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS
+from bioweb_api import ARCHIVES_PATH, RESULTS_PATH, HOSTNAME, PORT, FA_PROCESS_COLLECTION, \
+    HOME_DIR, DAYS_TO_EXPIRE
+from bioweb_api.apis.ApiConstants import VALID_HAM_IMAGE_EXTENSIONS, STATUS, RUNNING, \
+    SUBMITTED, SUBMIT_DATESTAMP, URL, RESULT, PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT
+from bioweb_api.DbConnector import DbConnector
 
 #===============================================================================
 # Public Global Variables
 #===============================================================================
 TIME_FORMAT      = "%Y_%m_%d__%H_%M_%S"
 
+_DB_CONNECTOR = DbConnector.Instance()
 #===============================================================================
 # Utility Methods
 #===============================================================================
@@ -305,3 +309,40 @@ def get_subfolders(folder):
     """
     subs = [os.path.join(folder, sf) for sf in os.listdir(folder)]
     return [f for f in subs if os.path.isdir(f)]
+
+def delete_unfinished_jobs(collection):
+    """
+    Delete jobs with status running or submitted given a collection.
+    """
+    _DB_CONNECTOR.remove(collection, {STATUS: {'$in': [RUNNING, SUBMITTED]}},
+                         {'multi': True})
+
+def delete_tsv(collection):
+    """
+    Given a collection, find old jobs and delete their TSV outputs from disk.
+    """
+    old_jobs = _DB_CONNECTOR.find(collection, {SUBMIT_DATESTAMP:
+                        {'$lt': datetime.now() - timedelta(days=DAYS_TO_EXPIRE)}})
+    for job in old_jobs:
+        if collection != FA_PROCESS_COLLECTION:
+            if job.get(RESULT) is not None:
+                silently_remove_file(job[RESULT])
+                job[RESULT] = None
+                job[URL] = None
+        else:
+            for doc_name in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT]:
+                doc = job[doc_name]
+                if doc.get(URL) is not None:
+                    silently_remove_file(url_to_filepath(doc[URL]))
+                    doc[URL] = None
+        _DB_CONNECTOR.save(collection, job)
+
+def url_to_filepath(url):
+    """
+    From nginx url, return file location on the disk.
+    """
+    prefix = "http://%s/" % HOSTNAME
+    if url.startswith(prefix):
+        return os.path.join(HOME_DIR, url.replace(prefix, ''))
+    else:
+        raise ValueError("%s is not a valid URL." % url)

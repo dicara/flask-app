@@ -1000,3 +1000,6 @@ GnuBio Flask API.
    * Rename run report sample_type and sample_name fields
  * 3.98.0
    * Limit the size of HDF5 file that can be processed
+ * 3.99.0
+   * Delete unfinished analysis jobs before server startup
+   * Delete TSV outputs of jobs older than a week

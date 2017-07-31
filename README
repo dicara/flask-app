@@ -1002,6 +1002,8 @@ GnuBio Flask API.
    * Limit the size of HDF5 file that can be processed
  * 3.99.0
    * Delete unfinished analysis jobs before server startup
-   * Delete TSV outputs of old jobs 
+   * Delete TSV outputs of old jobs
  * 3.99.1
    * Bugfix in deleting TSVs of old jobs
+ * 3.99.2
+   * Fixed missing logging

@@ -1005,3 +1005,5 @@ GnuBio Flask API.
    * Delete TSV outputs of old jobs
  * 3.99.1
    * Bugfix in deleting TSVs of old jobs
+ * 3.99.2
+   * Fixed missing logging

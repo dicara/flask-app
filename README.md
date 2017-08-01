@@ -1007,3 +1007,6 @@ GnuBio Flask API.
    * Bugfix in deleting TSVs of old jobs
  * 3.99.2
    * Fixed missing logging
+ * 3.99.3
+   * Remove disk dir of archive and HDF5 paths when adding run reports
+   * Bugfix in deleting TSVs of failed jobs

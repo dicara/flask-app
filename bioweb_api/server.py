@@ -228,6 +228,10 @@ def start(current_info):
     '''
     Start an instance of the server.
     '''
+    io_utilities.safe_make_dirs(os.path.dirname(TORNADO_LOG_FILE_PREFIX))
+    tornado.options.options.log_file_prefix = TORNADO_LOG_FILE_PREFIX
+    tornado.options.parse_command_line()
+
     # Delete running or submitted jobs
     # Delete TSV outputs of old jobs
     GENERAL_LOGGER.info("Deleting records of unfinished jobs from databse. Deleting TSV outputs of old jobs.")
@@ -241,10 +245,6 @@ def start(current_info):
             io_utilities.delete_unfinished_jobs(collection)
     except:
         GENERAL_LOGGER.exception("Failure deleting records of unfinished jobs or TSVs of old jobs.")
-
-    io_utilities.safe_make_dirs(os.path.dirname(TORNADO_LOG_FILE_PREFIX))
-    tornado.options.options.log_file_prefix = TORNADO_LOG_FILE_PREFIX
-    tornado.options.parse_command_line()
 
     GENERAL_LOGGER.info("Starting up server on machine %s and port %s at %s." %
                  (current_info[MACHINE], current_info[PORT_HEADER],

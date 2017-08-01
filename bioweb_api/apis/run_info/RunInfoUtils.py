@@ -241,7 +241,8 @@ def get_hdf5_datasets(log_data, data_folder):
     all_datasets = set()
 
     for path in hdf5_paths:
-        exist_records = _DB_CONNECTOR.find(HDF5_COLLECTION, {HDF5_PATH: path})
+        exist_records = _DB_CONNECTOR.find(HDF5_COLLECTION,
+                                {HDF5_PATH: remove_disk_directory(path)})
         if exist_records:
             all_datasets.update(set(r[HDF5_DATASET] for r in exist_records))
             continue
@@ -253,7 +254,7 @@ def get_hdf5_datasets(log_data, data_folder):
             for dsname in dataset_names:
                 if re.match(r'^\d{4}-\d{2}-\d{2}_\d{4}\.\d{2}', dsname):
                     new_records.append({
-                        HDF5_PATH: path,
+                        HDF5_PATH: remove_disk_directory(path),
                         HDF5_DATASET: dsname,
                     })
         except:
@@ -283,7 +284,8 @@ def update_image_stacks(log_data, data_folder):
         if not exist_record:
             archive_path = os.path.join(data_folder, image_stack)
             if os.path.isdir(archive_path):
-                new_records.append({ARCHIVE: image_stack, ARCHIVE_PATH: archive_path})
+                new_records.append({ARCHIVE: image_stack,
+                                    ARCHIVE_PATH: remove_disk_directory(archive_path)})
                 break
 
     if new_records:

@@ -235,16 +235,16 @@ def start(current_info):
     # Delete running or submitted jobs
     # Delete TSV outputs of old jobs
     GENERAL_LOGGER.info("Deleting records of unfinished jobs from databse. Deleting TSV outputs of old jobs.")
-    try:
-        for collection in [PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,
-                           SA_ASSAY_CALLER_COLLECTION, SA_GENOTYPER_COLLECTION,
-                           SA_EXPLORATORY_COLLECTION, FA_PROCESS_COLLECTION]:
+    for collection in [PA_PROCESS_COLLECTION, SA_IDENTITY_COLLECTION,
+                       SA_ASSAY_CALLER_COLLECTION, SA_GENOTYPER_COLLECTION,
+                       SA_EXPLORATORY_COLLECTION, FA_PROCESS_COLLECTION]:
+        try:
             # Do not remove VCF/TSV outputs of genotyper and exploratory analysis
             if collection not in [SA_GENOTYPER_COLLECTION, SA_EXPLORATORY_COLLECTION]:
                 io_utilities.delete_tsv(collection)
             io_utilities.delete_unfinished_jobs(collection)
-    except:
-        GENERAL_LOGGER.exception("Failure deleting records of unfinished jobs or TSVs of old jobs.")
+        except:
+            GENERAL_LOGGER.exception("Failure deleting records of unfinished jobs or TSVs of old jobs.")
 
     GENERAL_LOGGER.info("Starting up server on machine %s and port %s at %s." %
                  (current_info[MACHINE], current_info[PORT_HEADER],

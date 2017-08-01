@@ -331,7 +331,7 @@ def delete_tsv(collection):
                 job[URL] = None
         else:
             for doc_name in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT]:
-                if doc_name not in doc: break
+                if doc_name not in job: break
                 doc = job[doc_name]
                 if doc.get(URL) is not None:
                     silently_remove_file(url_to_filepath(doc[URL]))

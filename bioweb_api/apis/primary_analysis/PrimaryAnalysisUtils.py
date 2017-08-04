@@ -50,12 +50,8 @@ _DATASTORE    = Datastore()
 
 DISK_DIR = os.path.join(ARCHIVES_PATH, '')
 
-MAX_FILE_SIZE =  3*1024*1024*1024
-
 class DataType(Enum):
     image_stack, hdf5 = ['image_stack', 'hdf5']
-
-bytes_to_gb = lambda x: x / (1024*1024*1024)
 
 #=============================================================================
 # RESTful location of services
@@ -112,14 +108,7 @@ def get_data_filepath(data_name, data_type=DataType.image_stack):
         if data_type == DataType.image_stack and os.path.isdir(data_filepath):
             return data_filepath
         if data_type == DataType.hdf5 and os.path.isfile(data_filepath):
-            file_size = os.path.getsize(data_filepath)
-            if file_size <= MAX_FILE_SIZE:
-                return data_filepath
-            else:
-                raise RuntimeError("Size of the file %s %.2fGB is over the limit %.2fGB."
-                                   % (os.path.basename(data_filepath),
-                                      bytes_to_gb(file_size),
-                                      bytes_to_gb(MAX_FILE_SIZE)))
+            return data_filepath
     return None
 
 def parse_pa_data_src(pa_data_src_name):

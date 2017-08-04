@@ -49,6 +49,7 @@ RUN_REPORT_PATH         = "/mnt/runs/run_reports"
 MODIFIED_ARCHIVES_PATH  = "/mnt/runs/run_analysis/modifiedH5"
 DATABASE_PORT           = 27017             # the Mongo port is well-known and pretty much constant
 MAX_BUFFER_SIZE         = 2*1024*1024*1024  # Max file upload size: 2GB
+MAX_DATASET_SIZE        = 15000000          # Collections over 15 million drops aren't allowed
 
 ALTERNATE_ARCHIVES_PATHS = ["/mnt/old-data"]
 

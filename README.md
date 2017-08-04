@@ -1010,3 +1010,5 @@ GnuBio Flask API.
  * 3.99.3
    * Remove disk dir of archive and HDF5 paths when adding run reports
    * Bugfix in deleting TSVs of failed jobs
+ * 3.99.4
+   * Limit size of data collection rather than total size of hdf5.

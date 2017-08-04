@@ -38,7 +38,7 @@ from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
 from bioweb_api.apis.parameters.ParameterFactory import ParameterFactory
 from bioweb_api.utilities.io_utilities import silently_remove_file, get_results_folder, \
     get_results_url
-from bioweb_api import PA_PROCESS_COLLECTION
+from bioweb_api import PA_PROCESS_COLLECTION, MAX_DATASET_SIZE
 from bioweb_api.apis.ApiConstants import UUID, ARCHIVE, JOB_STATUS, STATUS, ID, \
     ERROR, JOB_NAME, SUBMIT_DATESTAMP, DYES, DEVICE, START_DATESTAMP, RESULT, \
     FINISH_DATESTAMP, URL, CONFIG_URL, JOB_TYPE, JOB_TYPE_NAME, CONFIG, \
@@ -262,6 +262,9 @@ class PaProcessCallable(object):
         if self.is_hdf5:
             hdf5_path = get_data_filepath(self.archive, data_type=DataType.hdf5)
             dataset = h5py.File(hdf5_path)[self.archive]
+            if dataset.shape[0] > MAX_DATASET_SIZE:
+                raise RuntimeError("Size of the dataset %s (%d) is over the limit %d." % \
+                    (os.path.basename(self.archive), dataset.shape[0], MAX_DATASET_SIZE))
             columns = dataset.attrs['columns']
             decomp_dyes = [c.replace('-decomp', '') for c in columns if '-decomp' in c]
 

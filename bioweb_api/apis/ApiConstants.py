@@ -98,6 +98,7 @@ ARCHIVE          = "archive"
 ARCHIVE_PATH     = "archive_path"
 ARCHIVES         = "archives"
 AC_METHOD        = 'ac_method'
+BEST_EXIST_JOB   = "best_existing_job"
 CARTRIDGE_SN     = 'cart_serial'
 CHR_NUM          = "chr_num"
 CHR_START        = "chr_start"

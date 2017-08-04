@@ -1012,3 +1012,5 @@ GnuBio Flask API.
    * Bugfix in deleting TSVs of failed jobs
  * 3.99.4
    * Limit size of data collection rather than total size of hdf5.
+ * 3.100.0
+   * Check duplicate parameters and pick best existing job for rerun in server side

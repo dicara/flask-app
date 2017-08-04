@@ -22,7 +22,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_METHOD, PICO1_DYE, USE_PICO1_FILTER, \
     HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID, \
     AC_MODEL, DYES_SCATTER_PLOT_URL, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
-    USE_PICO2_FILTER, API_VERSION
+    USE_PICO2_FILTER, API_VERSION, BEST_EXIST_JOB
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
@@ -72,7 +72,7 @@ class FullAnalysisWorkFlowCallable(object):
     def __call__(self):
         self.set_defaults()
         # check if a run needs to be resumed.
-        if UUID in self.parameters:
+        if BEST_EXIST_JOB in self.parameters:
             self.resume_workflow()
 
         update_query = {STATUS: JOB_STATUS.running,
@@ -145,7 +145,7 @@ class FullAnalysisWorkFlowCallable(object):
         the succeeded subjobs and resume the workflow from the failed subjobs.
         """
         # find the full analysis job
-        previous_fa_job_document = self.db_connector.find_one(FA_PROCESS_COLLECTION, UUID, self.parameters[UUID])
+        previous_fa_job_document = self.parameters[BEST_EXIST_JOB]
 
         # if no previous job is found or experiment definition of previous job is
         # different from the current one, start from beginning

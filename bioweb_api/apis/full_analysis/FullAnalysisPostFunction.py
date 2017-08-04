@@ -351,7 +351,7 @@ def has_duplicate_params(parameters, exist_job, doc=PA_DOCUMENT):
     else:
         params_to_check = []
 
-    if doc in exist_job and any(parameters[param] != \
+    if doc in exist_job and any(parameters.get(param) != \
             exist_job[doc].get(convert_param_name(param))
             for param in params_to_check):
         return False

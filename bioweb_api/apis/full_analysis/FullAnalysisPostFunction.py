@@ -60,7 +60,20 @@ from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_TH
 from secondary_analysis.assay_calling.classifier_utils import available_models, \
     MODEL_FILES
 
+#===============================================================================
+# Contant Variables
+#===============================================================================
 FULL_ANALYSIS = 'FullAnalysis'
+
+# dictionary of document type to the list of parameters in the document
+_DOC_TYPE_TO_PARAMS = {PA_DOCUMENT: [OFFSETS],
+                       ID_DOCUMENT: [UI_THRESHOLD, MAX_UNINJECTED_RATIO, USE_PICO1_FILTER,
+                                     USE_PICO2_FILTER, IGNORE_LOWEST_BARCODE, DEV_MODE,
+                                     DRIFT_COMPENSATE, PICO1_DYE],
+                       AC_DOCUMENT: [AC_TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, AC_METHOD,
+                                     AC_MODEL],
+                       GT_DOCUMENT: [REQUIRED_DROPS],
+                       EP_DOCUMENT: []}
 
 #===============================================================================
 # Class
@@ -289,8 +302,8 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                     {ARCHIVE: name})
 
             status_code = 200
-            if any(all(has_duplicate_params(parameters, job, doc)
-                    for doc in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT])
+            if any(all(has_duplicate_params(parameters, job, doc_type)
+                    for doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT])
                     for job in exist_fa_jobs):
                 status_code = 403
                 json_response[FULL_ANALYSIS].append({ERROR: 'Job exists.'})
@@ -323,36 +336,29 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         return make_clean_response(json_response, max(status_codes))
 
-def has_duplicate_params(parameters, exist_job, doc=PA_DOCUMENT):
+def has_duplicate_params(parameters, exist_job, doc_type):
     """
-    Check whether the specified full analysis parameters are used in an existing job.
+    Check whether the specified full analysis parameters are used in a specified document
+    in an existing job.
 
     @param parameters:          full analysis parameters
     @param exist_job:           an existing full analysis job
+    @param doc_type:            type of document, e.g. pa_document, id_document
     """
-    if parameters[EXP_DEF] != exist_job[EXP_DEF]: return False
+    if parameters.get(EXP_DEF) != exist_job.get(EXP_DEF): return False
     # if this is an old job whose TSV files have been deleted, always rerun
-    if doc in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
-            doc in exist_job and URL in exist_job[doc] and \
-            exist_job[doc][URL] is None:
+    if doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
+            doc_type in exist_job and URL in exist_job[doc_type] and \
+            exist_job[doc_type][URL] is None:
         return False
 
-    if doc == PA_DOCUMENT:
-        params_to_check = [OFFSETS]
-    elif doc == ID_DOCUMENT:
-        params_to_check = [UI_THRESHOLD, MAX_UNINJECTED_RATIO, USE_PICO1_FILTER,
-                           USE_PICO2_FILTER, IGNORE_LOWEST_BARCODE, DEV_MODE,
-                           DRIFT_COMPENSATE, PICO1_DYE]
-    elif doc == AC_DOCUMENT:
-        params_to_check = [AC_TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, AC_METHOD,
-                           AC_MODEL]
-    elif doc == GT_DOCUMENT:
-        params_to_check = [REQUIRED_DROPS]
-    else:
-        params_to_check = []
+    try:
+        params_to_check = _DOC_TYPE_TO_PARAMS[doc_type]
+    except KeyError:
+        raise Exception("Unsupported document type: %s" % doc_type)
 
-    if doc in exist_job and any(parameters.get(param) != \
-            exist_job[doc].get(convert_param_name(param))
+    if doc_type in exist_job and any(parameters.get(param) != \
+            exist_job[doc_type].get(convert_param_name(param))
             for param in params_to_check):
         return False
     return True
@@ -370,13 +376,13 @@ def find_best_exising_job(parameters, jobs):
 
     def count_subjobs(job):
         count = 0
-        for doc in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT]:
-            if doc in job and job[doc].get(STATUS) == SUCCEEDED:
+        for doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT]:
+            if doc_type in job and job[doc_type].get(STATUS) == SUCCEEDED:
                 # if this is an old job and its TSV files have been deleted
-                if doc in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
-                    job[doc][URL] is None: return 0
+                if doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
+                    job[doc_type][URL] is None: return 0
                 # only count a subjob if having the same parameters
-                if has_duplicate_params(parameters, job, doc):
+                if has_duplicate_params(parameters, job, doc_type):
                     count += 1
         return count
 

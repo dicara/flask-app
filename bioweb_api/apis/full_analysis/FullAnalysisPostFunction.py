@@ -65,6 +65,9 @@ from secondary_analysis.assay_calling.classifier_utils import available_models, 
 #===============================================================================
 FULL_ANALYSIS = 'FullAnalysis'
 
+ALL_DOC_TYPES = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT]
+# document types corresponding to documents with potentially deleted TSV outputs
+DOC_TYPES_DELETED_TSV = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT]
 # dictionary of document type to the list of parameters in the document
 _DOC_TYPE_TO_PARAMS = {PA_DOCUMENT: [OFFSETS],
                        ID_DOCUMENT: [UI_THRESHOLD, MAX_UNINJECTED_RATIO, USE_PICO1_FILTER,
@@ -303,7 +306,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
             status_code = 200
             if any(all(has_duplicate_params(parameters, job, doc_type)
-                    for doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT])
+                    for doc_type in ALL_DOC_TYPES)
                     for job in exist_fa_jobs):
                 status_code = 403
                 json_response[FULL_ANALYSIS].append({ERROR: 'Job exists.'})
@@ -347,7 +350,7 @@ def has_duplicate_params(parameters, exist_job, doc_type):
     """
     if parameters.get(EXP_DEF) != exist_job.get(EXP_DEF): return False
     # if this is an old job whose TSV files have been deleted, always rerun
-    if doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
+    if doc_type in DOC_TYPES_DELETED_TSV and \
             doc_type in exist_job and URL in exist_job[doc_type] and \
             exist_job[doc_type][URL] is None:
         return False
@@ -376,10 +379,11 @@ def find_best_exising_job(parameters, jobs):
 
     def count_subjobs(job):
         count = 0
-        for doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT]:
+        for doc_type in ALL_DOC_TYPES:
             if doc_type in job and job[doc_type].get(STATUS) == SUCCEEDED:
                 # if this is an old job and its TSV files have been deleted
-                if doc_type in [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT] and \
+                # set number of successful subjobs to be zero and rerun from the very beginning
+                if doc_type in DOC_TYPES_DELETED_TSV and \
                     job[doc_type][URL] is None: return 0
                 # only count a subjob if having the same parameters
                 if has_duplicate_params(parameters, job, doc_type):

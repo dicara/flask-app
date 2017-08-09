@@ -37,9 +37,12 @@ from bioweb_api.apis.ApiConstants import ERROR, FINISH_DATESTAMP, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, CTRL_FILTER, CTRL_FILTER_DESCRIPTION, \
     AC_METHOD_DESCRIPTION, AC_METHOD, USE_PICO1_FILTER, DEV_MODE, \
     USE_PICO1_FILTER_DESCRIPTION, PICO1_DYE, AC_MODEL, AC_MODEL_DESCRIPTION, \
-    DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, USE_PICO2_FILTER, USE_PICO2_FILTER_DESCRIPTION
+    DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, USE_PICO2_FILTER, USE_PICO2_FILTER_DESCRIPTION, \
+    PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT, URL, EXP_DEF, \
+    SUCCEEDED, BEST_EXIST_JOB
 
 from bioweb_api.apis.full_analysis.FullAnalysisWorkflow import FullAnalysisWorkFlowCallable
+from bioweb_api.apis.full_analysis.FullAnalysisUtils import convert_param_name
 from bioweb_api.utilities.io_utilities import make_clean_response
 from bioweb_api.utilities.logging_utilities import APP_LOGGER
 from bioweb_api.apis.AbstractPostFunction import AbstractPostFunction
@@ -57,7 +60,23 @@ from secondary_analysis.constants import AC_CTRL_THRESHOLD as DEFAULT_AC_CTRL_TH
 from secondary_analysis.assay_calling.classifier_utils import available_models, \
     MODEL_FILES
 
+#===============================================================================
+# Contant Variables
+#===============================================================================
 FULL_ANALYSIS = 'FullAnalysis'
+
+ALL_DOC_TYPES = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT, GT_DOCUMENT, EP_DOCUMENT]
+# document types corresponding to documents with potentially deleted TSV outputs
+DOC_TYPES_DELETED_TSV = [PA_DOCUMENT, ID_DOCUMENT, AC_DOCUMENT]
+# dictionary of document type to the list of parameters in the document
+_DOC_TYPE_TO_PARAMS = {PA_DOCUMENT: [OFFSETS],
+                       ID_DOCUMENT: [UI_THRESHOLD, MAX_UNINJECTED_RATIO, USE_PICO1_FILTER,
+                                     USE_PICO2_FILTER, IGNORE_LOWEST_BARCODE, DEV_MODE,
+                                     DRIFT_COMPENSATE, PICO1_DYE],
+                       AC_DOCUMENT: [AC_TRAINING_FACTOR, CTRL_THRESH, CTRL_FILTER, AC_METHOD,
+                                     AC_MODEL],
+                       GT_DOCUMENT: [REQUIRED_DROPS],
+                       EP_DOCUMENT: []}
 
 #===============================================================================
 # Class
@@ -83,8 +102,7 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         msgs = super(FullAnalysisPostFunction, self).response_messages()
         msgs.extend([
                      { 'code': 403,
-                       'message': 'Job name already exists. Delete the ' \
-                                  'existing job or pick a new name.'},
+                       'message': 'Job with the same parameters already exists.'},
                      { 'code': 404,
                        'message': 'Submission unsuccessful.'},
                     ])
@@ -220,10 +238,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                                                        minimum=0,
                                                        default=0)
 
-        # full analysis parameters
-        cls.fa_uuid_param = ParameterFactory.job_uuid(FA_PROCESS_COLLECTION, required=False)
-
-
         parameters = [
                       cls.pa_data_src_param,
                       cls.dyes_param,
@@ -256,7 +270,6 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                       cls.ac_model,
                       cls.req_drops_param,
                       cls.exp_def_param,
-                      cls.fa_uuid_param,
                       cls.mask_param,
                      ]
         return parameters
@@ -283,16 +296,18 @@ class FullAnalysisPostFunction(AbstractPostFunction):
         if len(archives) < 1:
             return make_clean_response(json_response, 404)
 
-        fa_job_names = set(cls._DB_CONNECTOR.distinct(FA_PROCESS_COLLECTION, JOB_NAME))
-
         status_codes = list()
         len_archives = len(archives)
         for idx, (name, is_hdf5) in enumerate(archives):
             cur_job_name = "%s-%d" % (parameters[JOB_NAME], idx + 1) if len_archives > 1 \
                            else parameters[JOB_NAME]
+            exist_fa_jobs = cls._DB_CONNECTOR.find(FA_PROCESS_COLLECTION,
+                                    {ARCHIVE: name})
 
             status_code = 200
-            if cur_job_name in fa_job_names:
+            if any(all(has_duplicate_params(parameters, job, doc_type)
+                    for doc_type in ALL_DOC_TYPES)
+                    for job in exist_fa_jobs):
                 status_code = 403
                 json_response[FULL_ANALYSIS].append({ERROR: 'Job exists.'})
             else:
@@ -301,6 +316,8 @@ class FullAnalysisPostFunction(AbstractPostFunction):
                     cur_parameters[JOB_NAME] = cur_job_name
                     cur_parameters[ARCHIVE] = name
                     cur_parameters[IS_HDF5] = is_hdf5
+                    cur_parameters[BEST_EXIST_JOB] = find_best_exising_job(
+                                                    parameters, exist_fa_jobs)
 
                     fa_workflow = FullAnalysisWorkFlowCallable(parameters=cur_parameters,
                                                                db_connector=cls._DB_CONNECTOR)
@@ -322,6 +339,63 @@ class FullAnalysisPostFunction(AbstractPostFunction):
 
         return make_clean_response(json_response, max(status_codes))
 
+def has_duplicate_params(parameters, exist_job, doc_type):
+    """
+    Check whether the specified full analysis parameters are used in a specified document
+    in an existing job.
+
+    @param parameters:          full analysis parameters
+    @param exist_job:           an existing full analysis job
+    @param doc_type:            type of document, e.g. pa_document, id_document
+    """
+    if parameters.get(EXP_DEF) != exist_job.get(EXP_DEF): return False
+    # if this is an old job whose TSV files have been deleted, always rerun
+    if doc_type in DOC_TYPES_DELETED_TSV and \
+            doc_type in exist_job and URL in exist_job[doc_type] and \
+            exist_job[doc_type][URL] is None:
+        return False
+
+    try:
+        params_to_check = _DOC_TYPE_TO_PARAMS[doc_type]
+    except KeyError:
+        raise Exception("Unsupported document type: %s" % doc_type)
+
+    if doc_type in exist_job and any(parameters.get(param) != \
+            exist_job[doc_type].get(convert_param_name(param))
+            for param in params_to_check):
+        return False
+    return True
+
+def find_best_exising_job(parameters, jobs):
+    """
+    From a list of existing full analysis jobs, find the best one for rerun.
+
+    @param parameters:          full analysis parameters
+    @param jobs:                a list of full analysis jobs
+    """
+    if not jobs: return None
+    max_num_subjobs = 0
+    best_job = None
+
+    def count_subjobs(job):
+        count = 0
+        for doc_type in ALL_DOC_TYPES:
+            if doc_type in job and job[doc_type].get(STATUS) == SUCCEEDED:
+                # if this is an old job and its TSV files have been deleted
+                # set number of successful subjobs to be zero and rerun from the very beginning
+                if doc_type in DOC_TYPES_DELETED_TSV and \
+                    job[doc_type][URL] is None: return 0
+                # only count a subjob if having the same parameters
+                if has_duplicate_params(parameters, job, doc_type):
+                    count += 1
+        return count
+
+    for job in jobs:
+        num_subjobs = count_subjobs(job)
+        if num_subjobs > max_num_subjobs:
+            max_num_subjobs = num_subjobs
+            best_job = job
+    return best_job
 
 def make_process_callback(uuid, db_connector):
     """

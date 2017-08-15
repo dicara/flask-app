@@ -46,10 +46,12 @@ from bioweb_api.apis.ApiConstants import UUID, JOB_NAME, JOB_STATUS, STATUS, \
     MAX_UI_RATIO_DESCRIPTION, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, \
     IGNORE_LOWEST_BARCODE_DESCRIPTION, PICO1_DYE, USE_PICO1_FILTER, DEV_MODE, \
     DEFAULT_DEV_MODE, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
-    DEFAULT_IGNORE_LOWEST_BARCODE, USE_PICO2_FILTER, API_VERSION
+    DEFAULT_IGNORE_LOWEST_BARCODE, USE_PICO2_FILTER, API_VERSION, \
+    DROP_COUNT_PLOT_URL
 from primary_analysis.command import InvalidFileError
 from secondary_analysis.constants import FACTORY_ORGANIC, UNINJECTED_THRESHOLD, \
-    UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX
+    UNINJECTED_RATIO, ID_PLOT_SUFFIX, ID_PLATES_PLOT_SUFFIX, ID_TEMPORAL_PLOT_SUFFIX, \
+    ID_DROP_COUNT_PLOT_SUFFIX
 
 from secondary_analysis.constants import ID_TRAINING_FACTOR as DEFAULT_ID_TRAINING_FACTOR
 from secondary_analysis.identity.offline_identity import OfflineIdentity
@@ -289,6 +291,7 @@ class IdentityPostFunction(AbstractPostFunction):
                                                      sai_callable.report_path,
                                                      sai_callable.plate_plot_path,
                                                      sai_callable.temporal_plot_path,
+                                                     sai_callable.drop_count_plot_path,
                                                      cls._DB_CONNECTOR)
 
                     # Add to queue
@@ -329,9 +332,10 @@ class SaIdentityCallable(object):
         self.training_factor       = training_factor
 
         results_folder             = get_results_folder()
-        self.plot_path             = os.path.join(results_folder, self.uuid + '.png')
-        self.plate_plot_path       = os.path.join(results_folder, self.uuid + '_plate.png')
-        self.temporal_plot_path    = os.path.join(results_folder, self.uuid + '_temporal.png')
+        self.plot_path             = os.path.join(results_folder, '%s%s' % (self.uuid, ID_PLOT_SUFFIX,))
+        self.plate_plot_path       = os.path.join(results_folder, '%s%s' % (self.uuid, ID_PLATES_PLOT_SUFFIX,))
+        self.drop_count_plot_path  = os.path.join(results_folder, '%s%s' % (self.uuid, ID_DROP_COUNT_PLOT_SUFFIX,))
+        self.temporal_plot_path    = os.path.join(results_folder, '%s%s' % (self.uuid, ID_TEMPORAL_PLOT_SUFFIX,))
         self.outfile_path          = os.path.join(results_folder, self.uuid)
         self.report_path           = os.path.join(results_folder, self.uuid + '.yaml')
         self.assay_dye             = assay_dye
@@ -415,10 +419,11 @@ class SaIdentityCallable(object):
             if not self.use_pico2_filter:
                 self.pico2_dye = None
             safe_make_dirs(self.tmp_path)
+            plate_base_path = os.path.join(self.tmp_path, 'tmp_plot')
             OfflineIdentity(in_path=primary_analysis_doc[RESULT],
                      num_probes=self.num_probes,
                      factory_type=FACTORY_ORGANIC,
-                     plot_base_path=os.path.join(self.tmp_path, 'tmp_plot'),
+                     plot_base_path=plate_base_path,
                      out_file=self.tmp_outfile_path,
                      report_path=self.tmp_report_path,
                      assay_dye=self.assay_dye,
@@ -438,15 +443,18 @@ class SaIdentityCallable(object):
                 raise Exception("Secondary analysis identity job failed: identity output file not generated.")
             else:
                 shutil.copy(self.tmp_outfile_path, self.outfile_path)
-            tmp_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_PLOT_SUFFIX)
-            tmp_plate_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_PLATES_PLOT_SUFFIX)
-            tmp_temporal_plot_path = os.path.join(self.tmp_path, 'tmp_plot' + ID_TEMPORAL_PLOT_SUFFIX)
+            tmp_plot_path = plate_base_path + ID_PLOT_SUFFIX
+            tmp_plate_plot_path = plate_base_path + ID_PLATES_PLOT_SUFFIX
+            tmp_temporal_plot_path = plate_base_path + ID_TEMPORAL_PLOT_SUFFIX
+            tmp_drop_count_plot_path = plate_base_path + ID_DROP_COUNT_PLOT_SUFFIX
             if os.path.isfile(tmp_plot_path):
                 shutil.copy(tmp_plot_path, self.plot_path)
             if os.path.isfile(tmp_plate_plot_path):
                 shutil.copy(tmp_plate_plot_path, self.plate_plot_path)
             if os.path.isfile(tmp_temporal_plot_path):
                 shutil.copy(tmp_temporal_plot_path, self.temporal_plot_path)
+            if os.path.isfile(tmp_drop_count_plot_path):
+                shutil.copy(tmp_drop_count_plot_path, self.drop_count_plot_path)
             if os.path.isfile(self.tmp_report_path):
                 shutil.copy(self.tmp_report_path, self.report_path)
         finally:
@@ -455,7 +463,8 @@ class SaIdentityCallable(object):
 
 
 def make_process_callback(uuid, outfile_path, plot_path, report_path,
-                          plate_plot_path, temporal_plot_path, db_connector):
+                          plate_plot_path, temporal_plot_path,
+                          drop_count_plot_path, db_connector):
     """
     Return a closure that is fired when the job finishes. This
     callback updates the DB with completion status, result file location, and
@@ -467,6 +476,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
     @param report_path:    Path where the report should live.
     @param plate_plot_path:    Path where the plate plot should live.
     @param temporal_plot_path:    Path where the temporal plot should live.
+    @param drop_count_plot_path:    Path where the drop count plot should live.
     @param db_connector: Object that handles communication with the DB
     """
     query = {UUID: uuid}
@@ -483,6 +493,7 @@ def make_process_callback(uuid, outfile_path, plot_path, report_path,
                             REPORT_URL: get_results_url(report_path),
                             PLATE_PLOT_URL: get_results_url(plate_plot_path),
                             TEMPORAL_PLOT_URL: get_results_url(temporal_plot_path),
+                            DROP_COUNT_PLOT_URL: get_results_url(drop_count_plot_path),
                             FINISH_DATESTAMP: datetime.today()}
             if report_errors:
                 update_data[ERROR] = ' '.join(report_errors)

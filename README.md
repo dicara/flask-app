@@ -1014,3 +1014,7 @@ GnuBio Flask API.
    * Limit size of data collection rather than total size of hdf5.
  * 3.100.0
    * Check duplicate parameters and pick best existing job for rerun in server side
+ * 3.101.0
+   * added cluster drop count plot to identity output
+   * added cluster drop count section to identity report
+   * updated secondary-analysis to version 3.32.0

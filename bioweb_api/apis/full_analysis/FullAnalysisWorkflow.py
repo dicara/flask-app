@@ -22,7 +22,7 @@ from bioweb_api.apis.ApiConstants import PICO2_DYE, ASSAY_DYE, SUBMIT_DATESTAMP,
     IGNORE_LOWEST_BARCODE, CTRL_FILTER, AC_METHOD, PICO1_DYE, USE_PICO1_FILTER, \
     HOTSPOT, SEQUENCING, EXPLORATORY, EP_DOCUMENT, SQ_DOCUMENT, SA_EXPLORATORY_UUID, \
     AC_MODEL, DYES_SCATTER_PLOT_URL, DRIFT_COMPENSATE, DEFAULT_DRIFT_COMPENSATE, \
-    USE_PICO2_FILTER, API_VERSION, BEST_EXIST_JOB
+    USE_PICO2_FILTER, API_VERSION, BEST_EXIST_JOB, DROP_COUNT_PLOT_URL
 from bioweb_api.apis.full_analysis.FullAnalysisUtils import is_param_diff, generate_random_str, \
     add_unified_pdf
 from bioweb_api.apis.primary_analysis.ProcessPostFunction import PaProcessCallable, PROCESS
@@ -271,6 +271,7 @@ class FullAnalysisWorkFlowCallable(object):
                                             report_path=callable.report_path,
                                             plate_plot_path=callable.plate_plot_path,
                                             temporal_plot_path=callable.temporal_plot_path,
+                                            drop_count_plot_path=callable.drop_count_plot_path,
                                             db_connector=self.db_connector)
 
         # enter identity uuid into full analysis database entry
@@ -297,7 +298,8 @@ class FullAnalysisWorkFlowCallable(object):
         keys = [UUID, URL, REPORT_URL, PLOT_URL, STATUS, ERROR, START_DATESTAMP,
                 FINISH_DATESTAMP, TRAINING_FACTOR, UI_THRESHOLD, MAX_UNINJECTED_RATIO,
                 PLATE_PLOT_URL, TEMPORAL_PLOT_URL, IGNORE_LOWEST_BARCODE, PICO1_DYE,
-                USE_PICO1_FILTER, DEV_MODE, DRIFT_COMPENSATE, USE_PICO2_FILTER]
+                USE_PICO1_FILTER, DEV_MODE, DRIFT_COMPENSATE, USE_PICO2_FILTER,
+                DROP_COUNT_PLOT_URL]
         document = {key: result[key] for key in keys if key in result}
         update = {"$set": {ID_DOCUMENT: document}}
         self.db_connector.update(FA_PROCESS_COLLECTION, {UUID: self.uuid}, update)

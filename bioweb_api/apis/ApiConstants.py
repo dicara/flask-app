@@ -121,6 +121,7 @@ DEVICES          = "devices"
 DESCRIPTION      = "description"
 DIFF_PARAMS      = "diff_params"
 DRIFT_COMPENSATE = 'drift_compensate'
+DROP_COUNT_PLOT_URL = 'drop_count_plot_url'
 DYE              = "dye"
 DYES             = "dyes"
 DYES_LOTS        = "dyes_lots"

@@ -282,11 +282,12 @@ def update_image_stacks(log_data, data_folder):
     for image_stack in log_data[IMAGE_STACKS]:
         exist_record = _DB_CONNECTOR.find_one(ARCHIVES_COLLECTION, ARCHIVE, image_stack)
         if not exist_record:
-            archive_path = os.path.join(data_folder, image_stack)
-            if os.path.isdir(archive_path):
-                new_records.append({ARCHIVE: image_stack,
-                                    ARCHIVE_PATH: remove_disk_directory(archive_path)})
-                break
+            for folder in [ARCHIVES_PATH, data_folder]:
+                archive_path = os.path.join(folder, image_stack)
+                if os.path.isdir(archive_path):
+                    new_records.append({ARCHIVE: image_stack,
+                                        ARCHIVE_PATH: remove_disk_directory(archive_path)})
+                    break
 
     if new_records:
         APP_LOGGER.info('Found %d image stacks: %s' % (len(new_records), new_records))

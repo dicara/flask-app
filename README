@@ -1018,3 +1018,5 @@ GnuBio Flask API.
    * added cluster drop count plot to identity output
    * added cluster drop count section to identity report
    * updated secondary-analysis to version 3.32.0
+ * 3.101.1
+   * Bugfix in refreshing image stacks
